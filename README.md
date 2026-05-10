@@ -6,6 +6,8 @@ DIY organizes TypeScript dependencies with plain capability types:
 - Agents use the CLI and TypeScript to fix missing or unneeded capabilities.
 - No runtime DI framework, reflection, metadata scanning, or graph solving.
 
+The tradeoff is manually maintained TypeScript DI annotations, checked by the CLI and updated by agents, in exchange for no runtime cost, no control-flow changes, and easy-to-read explicit code.
+
 ## Getting Started
 
 Get up and running with DIY in just a few simple steps:
