@@ -1,6 +1,6 @@
 {
 	"name": "@beff/diy-cli",
-	"version": "0.1.0",
+	"version": "0.0.0",
 	"type": "module",
 	"bin": {
 		"diy-cli": "./bin/index.cjs"
