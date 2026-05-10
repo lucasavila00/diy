@@ -1,14 +1,19 @@
 # DIY: Typescript Dependency Injection for the Agentic Era
 
-DIY is a TypeScript dependency-injection pattern built around plain capability types and a CLI analyzer. It keeps dependency flow readable and explicit for humans and agents without adding a runtime injection framework.
+DIY organizes TypeScript dependencies with plain capability types.
+
+Code stays readable because each function shows what it needs.
+
+Agents keep it up to date by running the CLI analyzer.
+
+There is no runtime dependency-injection framework.
 
 ## Why Use DIY?
 
-- **Readable**: Dependencies are visible at function boundaries instead of being hidden behind globals, decorators, or implicit container lookups.
-- **Explicit**: Service access goes through typed `Capabilities<...>` values and literal capability IDs such as `capabilities.need("core.fs")`.
-- **No Runtime Cost**: DIY does not use reflection, decorators, metadata scanning, or a runtime graph solver. The runtime container is just a small typed service map.
-- **Agent-Maintained**: Capability declarations do need to be kept up to date manually. In agentic workflows, the agent handles that by running `diy-cli` after changes.
-- **Actionable Analyzer**: `@beff/diy-cli` reports stale, unused, redundant, or invalid capability usage and points at the code that needs to be fixed.
+- **Readable dependencies**: Function signatures show required services instead of hiding them behind globals, decorators, or container lookups.
+- **Agent-maintained by design**: The CLI reports stale, unused, redundant, or invalid capability usage so agents can keep the dependency map current.
+- **Safer changes**: A clear dependency map helps agents move code, split modules, and update features without guessing about hidden coupling.
+- **No framework tax**: Teams get explicit dependency structure without reflection, metadata scanning, or runtime graph solving.
 
 ## Getting Started
 
