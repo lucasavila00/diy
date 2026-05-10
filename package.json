@@ -4,7 +4,10 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"build": "pnpm -r --if-present run build",
 		"check": "pnpm run typecheck && pnpm run test",
+		"diy:check": "pnpm --filter @beff/diy-cli run analyze -- packages",
+		"diy:graph": "pnpm --filter @beff/diy-cli run analyze -- --graph packages > diy-module-graph.txt",
 		"test": "pnpm -r --if-present run test",
 		"typecheck": "pnpm -r run typecheck"
 	},

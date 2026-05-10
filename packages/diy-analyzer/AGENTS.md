@@ -2,7 +2,7 @@
 
 ## Architecture
 
-`@q/diy-analyzer` is a TypeScript analyzer for the DIY dependency-injection style used in this repo. The pipeline is:
+`@beff/diy-cli` is a TypeScript analyzer for the DIY dependency-injection style used in this repo. The pipeline is:
 
 1. `src/frontend/program.ts` builds the analyzer program from CLI inputs.
 2. `src/frontend/module-loader.ts` parses files with `oxc-parser`, records imports, aliases, and function nodes, then materializes effectful function metadata.
@@ -41,13 +41,13 @@
 - The repo-wide graph artifact is `diy-module-graph.txt`; refresh it from the repo root with `pnpm run diy:graph`.
 - Test behavior through public analyzer exports unless a small helper is deliberately made public.
 - Snapshot output must not include random temp directory names or absolute fixture paths. Prefer serialized formatter output with a fixture `cwd`, or normalize paths to fixture-relative values before snapshotting structured analysis.
-- Use `pnpm --filter @q/diy-analyzer run test-fix` only when intentionally updating snapshots.
+- Use `pnpm --filter @beff/diy-cli run test-fix` only when intentionally updating snapshots.
 
 ## Validation
 
 Run these from the repository root after analyzer changes:
 
-- `pnpm --filter @q/diy-analyzer run test`
-- `pnpm --filter @q/diy-analyzer run typecheck`
+- `pnpm --filter @beff/diy-cli run test`
+- `pnpm --filter @beff/diy-cli run typecheck`
 - `pnpm run diy:check`
 - `pnpm run check`

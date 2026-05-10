@@ -1,11 +1,28 @@
 {
-	"name": "@q/diy",
+	"name": "@beff/diy",
 	"version": "0.1.0",
-	"private": true,
 	"type": "module",
+	"main": "dist/cjs/index.js",
+	"types": "dist/types/index.d.ts",
 	"scripts": {
+		"build": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json && node ./script/fixup-package.mjs",
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},
+	"exports": {
+		".": {
+			"types": "./dist/types/index.d.ts",
+			"require": "./dist/cjs/index.js",
+			"import": "./dist/esm/index.js",
+			"default": "./dist/esm/index.js"
+		},
+		"./capabilities": {
+			"types": "./dist/types/capabilities.d.ts",
+			"require": "./dist/cjs/capabilities.js",
+			"import": "./dist/esm/capabilities.js",
+			"default": "./dist/esm/capabilities.js"
+		}
+	},
+	"files": ["dist/cjs", "dist/esm", "dist/types"],
 	"devDependencies": {
 		"typescript": "^6.0.3"
 	}

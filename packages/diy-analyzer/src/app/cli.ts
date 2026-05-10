@@ -3,29 +3,33 @@ import { formatDiyModuleGraph } from "../backend/module-graph-format.ts";
 import { analyzeDiy } from "./analyze.ts";
 import { analyzeDiyModuleGraph } from "./module-graph.ts";
 
-const args = process.argv.slice(2);
-const cwd = process.env["INIT_CWD"] ?? process.env["npm_config_local_prefix"] ?? process.cwd();
-const graphMode = args[0] === "--graph";
-const inputs = graphMode ? args.slice(1) : args;
+async function main(): Promise<void> {
+	const args = process.argv.slice(2);
+	const cwd = process.env["INIT_CWD"] ?? process.env["npm_config_local_prefix"] ?? process.cwd();
+	const graphMode = args[0] === "--graph";
+	const inputs = graphMode ? args.slice(1) : args;
 
-if (inputs.length === 0) {
-	process.stderr.write(
-		"Usage: pnpm --filter @q/diy-analyzer run analyze -- [--graph] <paths...>\n",
-	);
-	process.exitCode = 1;
-} else if (graphMode) {
-	const analysis = await analyzeDiy(inputs, { cwd });
-	if (analysis.unsupported.length > 0 || analysis.violations.length > 0) {
-		const output = formatDiyAnalysis(analysis, { cwd });
-		if (output.length > 0) {
-			process.stderr.write(output);
-		}
+	if (inputs.length === 0) {
+		process.stderr.write("Usage: diy-cli [--graph] <paths...>\n");
 		process.exitCode = 1;
-	} else {
-		const graph = await analyzeDiyModuleGraph(inputs, { cwd });
-		process.stdout.write(formatDiyModuleGraph(graph, { cwd }));
+		return;
 	}
-} else {
+
+	if (graphMode) {
+		const analysis = await analyzeDiy(inputs, { cwd });
+		if (analysis.unsupported.length > 0 || analysis.violations.length > 0) {
+			const output = formatDiyAnalysis(analysis, { cwd });
+			if (output.length > 0) {
+				process.stderr.write(output);
+			}
+			process.exitCode = 1;
+		} else {
+			const graph = await analyzeDiyModuleGraph(inputs, { cwd });
+			process.stdout.write(formatDiyModuleGraph(graph, { cwd }));
+		}
+		return;
+	}
+
 	const analysis = await analyzeDiy(inputs, { cwd });
 	const output = formatDiyAnalysis(analysis, { cwd });
 	if (output.length > 0) {
@@ -41,3 +45,12 @@ if (inputs.length === 0) {
 		process.stdout.write(`DIY analyzer passed: ${analysis.coveredFiles.length} files analyzed.\n`);
 	}
 }
+
+void main().catch((error: unknown) => {
+	if (error instanceof Error) {
+		process.stderr.write(`${error.stack ?? error.message}\n`);
+	} else {
+		process.stderr.write(`${String(error)}\n`);
+	}
+	process.exitCode = 1;
+});

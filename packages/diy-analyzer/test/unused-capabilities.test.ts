@@ -246,7 +246,7 @@ export type ModelCapability = ClockCapability | FsCapability | SpawnCapability;
 			root,
 			"packages/app/src/main.ts",
 			`
-import type { Capabilities } from "@q/diy/src/capabilities.ts";
+import type { Capabilities } from "@beff/diy/capabilities";
 import type { SpawnCapability } from "@q/core/src/deps.ts";
 import type { ModelCapability } from "@q/model/src/types.ts";
 
