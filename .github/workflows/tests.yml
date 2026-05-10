@@ -1,0 +1,21 @@
+name: Tests
+on: [push]
+jobs:
+  static-validate:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "22.x"
+          registry-url: "https://registry.npmjs.org"
+      - name: Tests
+        run: |
+          pnpm install
+          pnpm run diy:check
+          pnpm run check
+          pnpm run build
+          git diff --exit-code

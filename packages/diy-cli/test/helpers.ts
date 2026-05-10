@@ -5,7 +5,7 @@ import { afterEach } from "vitest";
 
 import { analyzeDiy } from "../src/app/analyze.ts";
 
-const tempRoot = resolve(".tmp", "diy-analyzer-tests");
+const tempRoot = resolve(".tmp", "diy-cli-tests");
 const tempDirs: string[] = [];
 
 afterEach(async () => {

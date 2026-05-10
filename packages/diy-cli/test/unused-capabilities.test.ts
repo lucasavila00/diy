@@ -7,7 +7,7 @@ type Analysis = Awaited<ReturnType<typeof analyzeDiy>>;
 
 function displayPath(filePath: string): string {
 	const normalized = filePath.replaceAll("\\", "/");
-	if (normalized.includes("/.tmp/diy-analyzer-tests/")) {
+	if (normalized.includes("/.tmp/diy-cli-tests/")) {
 		const srcIndex = normalized.lastIndexOf("/src/");
 		return srcIndex < 0 ? normalized : normalized.slice(srcIndex + 1);
 	}

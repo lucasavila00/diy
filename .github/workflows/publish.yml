@@ -21,4 +21,4 @@ jobs:
           pnpm install
           pnpm build
           (cd packages/diy && pnpm publish --no-git-checks --access public)
-          (cd packages/diy-analyzer && pnpm publish --no-git-checks --access public)
+          (cd packages/diy-cli && pnpm publish --no-git-checks --access public)
