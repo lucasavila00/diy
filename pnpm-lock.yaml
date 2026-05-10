@@ -14,7 +14,7 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  packages/diy-analyzer:
+  packages/diy-cli:
     dependencies:
       '@babel/code-frame':
         specifier: ^7.29.0
