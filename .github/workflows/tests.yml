@@ -16,4 +16,5 @@ jobs:
         run: |
           pnpm install
           npm run all
-          git diff --exit-code
+          git add .
+          git diff --cached --exit-code
