@@ -1,0 +1,14 @@
+{
+	"name": "diy",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"check": "pnpm run typecheck && pnpm run test",
+		"diy:check": "pnpm --filter @q/diy-analyzer run analyze -- packages",
+		"diy:graph": "pnpm --filter @q/diy-analyzer run analyze -- --graph packages > diy-module-graph.txt",
+		"test": "pnpm -r --if-present run test",
+		"typecheck": "pnpm -r run typecheck"
+	},
+	"packageManager": "pnpm@10.27.0"
+}

@@ -1,0 +1,55 @@
+packages/alpha/src/sample.ts:16:24 dynamic capability access
+  14 |
+  15 | export function bad(capabilities: Capabilities<FsCapability>, id: string): void {
+> 16 | 	use(capabilities.need(id));
+     | 	                      ^ Capability IDs must be string literals.
+  17 | 	use(capabilities.need(`core.${id}`));
+  18 | 	use(capabilities["need"]("core.fs"));
+  19 | 	use(capabilities["provide"]({ "core.clock": {} }));
+packages/alpha/src/sample.ts:17:24 dynamic capability access
+  15 | export function bad(capabilities: Capabilities<FsCapability>, id: string): void {
+  16 | 	use(capabilities.need(id));
+> 17 | 	use(capabilities.need(`core.${id}`));
+     | 	                      ^ Capability IDs must be string literals.
+  18 | 	use(capabilities["need"]("core.fs"));
+  19 | 	use(capabilities["provide"]({ "core.clock": {} }));
+  20 | 	use(capabilities.override?.({ "core.fs": {} }));
+packages/alpha/src/sample.ts:18:6 dynamic capability access
+  16 | 	use(capabilities.need(id));
+  17 | 	use(capabilities.need(`core.${id}`));
+> 18 | 	use(capabilities["need"]("core.fs"));
+     | 	    ^ Use direct capability method calls like `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.
+  19 | 	use(capabilities["provide"]({ "core.clock": {} }));
+  20 | 	use(capabilities.override?.({ "core.fs": {} }));
+  21 | }
+packages/alpha/src/sample.ts:18:6 escaped capabilities
+  16 | 	use(capabilities.need(id));
+  17 | 	use(capabilities.need(`core.${id}`));
+> 18 | 	use(capabilities["need"]("core.fs"));
+     | 	    ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
+  19 | 	use(capabilities["provide"]({ "core.clock": {} }));
+  20 | 	use(capabilities.override?.({ "core.fs": {} }));
+  21 | }
+packages/alpha/src/sample.ts:19:6 dynamic capability access
+  17 | 	use(capabilities.need(`core.${id}`));
+  18 | 	use(capabilities["need"]("core.fs"));
+> 19 | 	use(capabilities["provide"]({ "core.clock": {} }));
+     | 	    ^ Use direct capability method calls like `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.
+  20 | 	use(capabilities.override?.({ "core.fs": {} }));
+  21 | }
+  22 |
+packages/alpha/src/sample.ts:19:6 escaped capabilities
+  17 | 	use(capabilities.need(`core.${id}`));
+  18 | 	use(capabilities["need"]("core.fs"));
+> 19 | 	use(capabilities["provide"]({ "core.clock": {} }));
+     | 	    ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
+  20 | 	use(capabilities.override?.({ "core.fs": {} }));
+  21 | }
+  22 |
+packages/alpha/src/sample.ts:20:6 dynamic capability access
+  18 | 	use(capabilities["need"]("core.fs"));
+  19 | 	use(capabilities["provide"]({ "core.clock": {} }));
+> 20 | 	use(capabilities.override?.({ "core.fs": {} }));
+     | 	    ^ Use direct capability method calls like `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.
+  21 | }
+  22 |

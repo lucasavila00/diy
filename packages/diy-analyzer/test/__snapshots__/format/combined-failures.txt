@@ -1,0 +1,16 @@
+packages/alpha/src/sample.ts:16:8 unused capability
+  14 | type WriteCapability = Capability<"core.write", unknown>;
+  15 |
+> 16 | export function bad(capabilities: Capabilities<FsCapability | WriteCapability>, id: string): void {
+     |        ^ Declares unused capability "core.write".
+  17 | 	capabilities.need(id);
+  18 | 	capabilities.need("core.fs");
+  19 | }
+packages/alpha/src/sample.ts:17:20 dynamic capability access
+  15 |
+  16 | export function bad(capabilities: Capabilities<FsCapability | WriteCapability>, id: string): void {
+> 17 | 	capabilities.need(id);
+     | 	                  ^ Capability IDs must be string literals.
+  18 | 	capabilities.need("core.fs");
+  19 | }
+  20 |

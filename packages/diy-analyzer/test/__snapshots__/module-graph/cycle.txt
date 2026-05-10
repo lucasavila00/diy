@@ -1,0 +1,8 @@
+Module graph
+
+packages/app/src/main.ts
++-- alpha: core.clock, core.fs
+|  `-- calls: beta
+|
+`-- beta: core.clock, core.fs
+   `-- calls: alpha

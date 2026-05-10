@@ -1,0 +1,133 @@
+import { readFileSync } from "node:fs";
+import { relative, resolve } from "node:path";
+
+import { codeFrameColumns } from "@babel/code-frame";
+
+import { normalizePath } from "../frontend/source-files.ts";
+import type {
+	AnalyzeOptions,
+	DiyAnalyzerUnsupported,
+	DiyAnalyzerViolation,
+	DiyAnalysis,
+	DiyUnusedCapabilityFinding,
+} from "../middle-end/types.ts";
+
+export function sortFindings(
+	findings: readonly DiyUnusedCapabilityFinding[],
+): readonly DiyUnusedCapabilityFinding[] {
+	return Array.from(findings).sort(compareFindings);
+}
+
+export function sortUnsupported(
+	unsupported: readonly DiyAnalyzerUnsupported[],
+): readonly DiyAnalyzerUnsupported[] {
+	return Array.from(unsupported).sort(compareUnsupported);
+}
+
+export function sortViolations(
+	violations: readonly DiyAnalyzerViolation[],
+): readonly DiyAnalyzerViolation[] {
+	return Array.from(violations).sort(compareViolations);
+}
+
+function compareFindings(
+	left: DiyUnusedCapabilityFinding,
+	right: DiyUnusedCapabilityFinding,
+): number {
+	return (
+		left.filePath.localeCompare(right.filePath) ||
+		left.line - right.line ||
+		left.functionName.localeCompare(right.functionName)
+	);
+}
+
+function compareUnsupported(left: DiyAnalyzerUnsupported, right: DiyAnalyzerUnsupported): number {
+	return (
+		left.filePath.localeCompare(right.filePath) ||
+		(left.line ?? 0) - (right.line ?? 0) ||
+		(left.functionName ?? "").localeCompare(right.functionName ?? "") ||
+		left.reason.localeCompare(right.reason)
+	);
+}
+
+function compareViolations(left: DiyAnalyzerViolation, right: DiyAnalyzerViolation): number {
+	return (
+		left.filePath.localeCompare(right.filePath) ||
+		left.line - right.line ||
+		(left.functionName ?? "").localeCompare(right.functionName ?? "") ||
+		left.name.localeCompare(right.name) ||
+		left.reason.localeCompare(right.reason)
+	);
+}
+
+function formatList(values: readonly string[]): string {
+	return values.length === 0 ? "(none)" : values.join(", ");
+}
+
+type DiagnosticLocation = {
+	readonly column?: number;
+	readonly filePath: string;
+	readonly line?: number;
+};
+
+function formatDiagnostic(
+	cwd: string,
+	item: DiagnosticLocation,
+	name: string,
+	message: string,
+): string {
+	const displayPath = normalizePath(relative(cwd, item.filePath));
+	const lineColumn =
+		item.line == null
+			? displayPath
+			: `${displayPath}:${item.line}${item.column == null ? "" : `:${item.column}`}`;
+	const location = `${lineColumn} ${name}`;
+	const source = readSourceFile(item.filePath);
+	if (source == null || item.line == null) {
+		return `${location} ${message}`;
+	}
+	return `${location}\n${codeFrameColumns(
+		source,
+		{
+			start: {
+				column: item.column ?? 1,
+				line: item.line,
+			},
+		},
+		{
+			highlightCode: false,
+			message,
+		},
+	)}`;
+}
+
+function readSourceFile(filePath: string): string | null {
+	try {
+		return readFileSync(filePath, "utf8");
+	} catch {
+		return null;
+	}
+}
+
+export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions = {}): string {
+	const cwd = resolve(options.cwd ?? process.cwd());
+	const lines: string[] = [];
+	for (const finding of analysis.findings) {
+		for (const id of finding.unused) {
+			lines.push(
+				formatDiagnostic(cwd, finding, "unused capability", `Declares unused capability "${id}".`),
+			);
+		}
+	}
+	for (const violation of analysis.violations) {
+		const capabilityIds =
+			violation.capabilityIds == null ? "" : `: ${formatList(violation.capabilityIds)}`;
+		lines.push(
+			formatDiagnostic(cwd, violation, violation.name, `${violation.reason}${capabilityIds}`),
+		);
+	}
+	for (const item of analysis.unsupported) {
+		lines.push(formatDiagnostic(cwd, item, "unsupported analysis", item.reason));
+	}
+	return lines.length === 0 ? "" : `${lines.join("\n")}\n`;
+}
