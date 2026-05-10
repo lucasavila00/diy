@@ -3,8 +3,7 @@
 DIY organizes TypeScript dependencies with plain capability types:
 
 - Readable function signatures.
-- Agent-maintained CLI checks for stale, unused, redundant, or invalid capabilities.
-- Clear dependency maps for safer code moves and feature changes.
+- Agents use the CLI and TypeScript to fix missing or unneeded capabilities.
 - No runtime DI framework, reflection, metadata scanning, or graph solving.
 
 ## Getting Started
