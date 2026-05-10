@@ -1,0 +1,15 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"useTabs": true,
+	"singleQuote": false,
+	"ignorePatterns": [
+		"**/dist/**",
+		"**/node_modules/**",
+		"**/coverage/**",
+		"**/.turbo/**",
+		"**/.cache/**",
+		"**/.tmp/**",
+		"**/diy-module-graph.txt"
+	],
+	"sortImports": {}
+}

@@ -1,18 +1,21 @@
 {
 	"name": "@beff/diy-cli",
 	"version": "0.0.0",
-	"type": "module",
 	"bin": {
 		"diy-cli": "./bin/index.cjs"
 	},
+	"files": [
+		"bin",
+		"dist/cjs"
+	],
+	"type": "module",
 	"scripts": {
 		"analyze": "node src/app/cli.ts",
 		"build": "tsc -b ./tsconfig.cjs.json && node ./script/fixup-package.mjs",
 		"test": "vitest run",
-		"test-fix": "pnpm run test -- --update",
+		"test-fix": "vitest run --update",
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},
-	"files": ["bin", "dist/cjs"],
 	"dependencies": {
 		"@babel/code-frame": "^7.29.0",
 		"oxc-parser": "^0.129.0",

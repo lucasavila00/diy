@@ -1,0 +1,72 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"ignorePatterns": [
+		"**/dist/**",
+		"**/node_modules/**",
+		"**/coverage/**",
+		"**/.turbo/**",
+		"**/.cache/**",
+		"**/.tmp/**"
+	],
+	"categories": {
+		"correctness": "error",
+		"suspicious": "error"
+	},
+	"plugins": ["typescript", "unicorn", "oxc", "import", "node", "promise", "vitest"],
+	"jsPlugins": ["./oxlint-plugin-local.mjs"],
+	"rules": {
+		"import/consistent-type-specifier-style": "error",
+		"import/exports-last": "off",
+		"import/first": "error",
+		"import/group-exports": "off",
+		"import/no-anonymous-default-export": "error",
+		"import/no-duplicates": "error",
+		"import/no-named-export": "off",
+		"import/no-nodejs-modules": "off",
+		"import/prefer-default-export": "off",
+		"local/cross-package-imports": "error",
+		"local/no-strict-nullish-comparison": "error",
+		"local/no-useless-function-forwarder": "error",
+		"local/no-useless-object": "error",
+		"local/no-useless-type-alias": "error",
+		"local/no-vi-mock": "error",
+		"local/no-vi-spy": "error",
+		"local/source-import-extensions": "error",
+		"no-duplicate-imports": "off",
+		"no-magic-numbers": "off",
+		"no-shadow": "error",
+		"no-ternary": "off",
+		"promise/catch-or-return": "error",
+		"promise/no-return-wrap": "error",
+		"sort-keys": "off",
+		"typescript/no-explicit-any": "error",
+		"unicorn/no-array-sort": "off",
+		"vitest/require-mock-type-parameters": "error"
+	},
+	"overrides": [
+		{
+			"files": ["packages/*/test/**/*.ts"],
+			"env": {
+				"node": true
+			},
+			"rules": {
+				"import/first": "off"
+			}
+		},
+		{
+			"files": ["packages/*/src/**/*.ts", "packages/*/script/**/*.mjs"],
+			"env": {
+				"node": true
+			}
+		},
+		{
+			"files": ["packages/*/bin/**/*.cjs"],
+			"env": {
+				"node": true
+			},
+			"rules": {
+				"import/no-unassigned-import": "off"
+			}
+		}
+	]
+}

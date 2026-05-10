@@ -15,7 +15,5 @@ jobs:
       - name: Tests
         run: |
           pnpm install
-          pnpm run diy:check
-          pnpm run check
-          pnpm run build
+          npm run all
           git diff --exit-code
