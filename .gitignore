@@ -3,4 +3,3 @@ dist/
 coverage/
 .turbo/
 .cache/
-diy-module-graph.txt
