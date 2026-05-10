@@ -1,19 +1,11 @@
 # DIY: Typescript Dependency Injection for the Agentic Era
 
-DIY organizes TypeScript dependencies with plain capability types.
+DIY organizes TypeScript dependencies with plain capability types:
 
-Code stays readable because each function shows what it needs.
-
-Agents keep it up to date by running the CLI analyzer.
-
-There is no runtime dependency-injection framework.
-
-## Why Use DIY?
-
-- **Readable dependencies**: Function signatures show required services instead of hiding them behind globals, decorators, or container lookups.
-- **Agent-maintained by design**: The CLI reports stale, unused, redundant, or invalid capability usage so agents can keep the dependency map current.
-- **Safer changes**: A clear dependency map helps agents move code, split modules, and update features without guessing about hidden coupling.
-- **No framework tax**: Teams get explicit dependency structure without reflection, metadata scanning, or runtime graph solving.
+- Readable function signatures.
+- Agent-maintained CLI checks for stale, unused, redundant, or invalid capabilities.
+- Clear dependency maps for safer code moves and feature changes.
+- No runtime DI framework, reflection, metadata scanning, or graph solving.
 
 ## Getting Started
 
@@ -74,10 +66,10 @@ Accept `capabilities` as the first parameter of effectful functions and request 
 
 ```ts
 import type { Capabilities } from "@beff/diy/capabilities";
-import type { AppCapability } from "./capabilities.ts";
+import type { FsCapability } from "./capabilities.ts";
 
 export async function readConfig(
-	capabilities: Capabilities<AppCapability>,
+	capabilities: Capabilities<FsCapability>,
 	path: string,
 ): Promise<string> {
 	const fs = capabilities.need("core.fs");
