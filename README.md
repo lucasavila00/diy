@@ -1,4 +1,4 @@
-# DIY: Typescript Dependency Injection for the Agentic Era
+# DIY: TypeScript Dependency Injection for the Agentic Era
 
 DIY organizes TypeScript dependencies with plain capability types:
 
@@ -45,6 +45,9 @@ export type ClockCapability = Capability<"core.clock", ClockLike>;
 export type AppCapability = ClockCapability | FsCapability;
 ```
 
+Use TypeScript unions to group multiple dependencies. Here, `AppCapability` means a
+container may provide both clock and filesystem services.
+
 ### 3. Provide services
 
 Build a `Capabilities` value from concrete service implementations:
@@ -67,17 +70,23 @@ Accept `capabilities` as the first parameter of effectful functions and request 
 
 ```ts
 import type { Capabilities } from "@beff/diy/capabilities";
-import type { FsCapability } from "./capabilities.ts";
+import type { ClockCapability, FsCapability } from "./capabilities.ts";
 
-export async function readConfig(
-	capabilities: Capabilities<FsCapability>,
+export async function readTimestampedConfig(
+	capabilities: Capabilities<ClockCapability | FsCapability>,
 	path: string,
 ): Promise<string> {
+	const clock = capabilities.need("core.clock");
 	const fs = capabilities.need("core.fs");
+	const config = await fs.readFile(path, "utf8");
 
-	return fs.readFile(path, "utf8");
+	return `[${clock.now().toISOString()}]\n${config}`;
 }
 ```
+
+Declare the narrowest union a function needs. Entry points can use broader aliases
+such as `AppCapability`, while helper functions can request just
+`ClockCapability | FsCapability` or a single capability.
 
 ### 5. Add analyzer config and scripts
 
