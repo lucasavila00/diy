@@ -170,7 +170,7 @@ DIY's analyzer is intentionally strict so dependency flow stays easy to follow:
 - Capabilities parameters must be typed as `Capabilities<...>`.
 - Capabilities parameters must be the first function parameter.
 - Capability method calls must be direct calls such as `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.
-- `capabilities.need(...)` must use a string literal capability ID.
+- `capabilities.need(...)` must use a string literal capability ID or a resolvable `const` string identifier.
 - Capability methods must not be aliased, rebound, returned, or passed around.
 - The `capabilities` value may be forwarded as the first argument to another effectful function.
 - Declared capabilities that are not used directly or transitively are reported as unused.

@@ -29,6 +29,7 @@ import {
 } from "./ast.ts";
 import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
 import { scanFunctionBody } from "./function-scan.ts";
+import { collectStringConstantBindings } from "./need-id.ts";
 import type {
 	AstNode,
 	FunctionInfo,
@@ -79,6 +80,8 @@ export class ModuleLoader {
 		const moduleInfo: ModuleInfo = {
 			aliases: new Map(),
 			body,
+			constantExports: new Map(),
+			constants: new Map(),
 			filePath: resolvedPath,
 			functionNodes: new Map(),
 			functions: new Map(),
@@ -91,6 +94,7 @@ export class ModuleLoader {
 		this.modules.set(resolvedPath, moduleInfo);
 		collectImports(body, moduleInfo.imports);
 		collectAliases(body, moduleInfo.aliases);
+		collectStringConstantBindings(body, moduleInfo.constants, moduleInfo.constantExports);
 		collectFunctionNodes(body, null, moduleInfo.functionNodes);
 		return moduleInfo;
 	}
@@ -120,6 +124,10 @@ export class ModuleLoader {
 
 	allModules(): readonly ModuleInfo[] {
 		return Array.from(this.modules.values());
+	}
+
+	getModule(filePath: string): ModuleInfo | undefined {
+		return this.modules.get(resolve(filePath));
 	}
 
 	isSourceFile(filePath: string): boolean {
@@ -152,7 +160,7 @@ export class ModuleLoader {
 			return null;
 		}
 		const declared = resolveCapabilityIds(this, moduleInfo, allowedType, []);
-		const scan = scanFunctionBody(moduleInfo, functionNode);
+		const scan = scanFunctionBody(this, moduleInfo, functionNode);
 		const functionLocation = locationForOffset(moduleInfo.lineStarts, functionNode.start);
 		return {
 			calls: scan.calls,

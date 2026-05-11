@@ -14,7 +14,7 @@ export async function analyzeDiy(
 	/* istanbul ignore next -- CLI/tests always pass cwd; default is process-entry convenience. */
 	const cwd = resolve(options.cwd ?? process.cwd());
 	const program = await buildDiyProgram(config, cwd);
-	const frontend = analyzeFrontend(program.modules);
+	const frontend = analyzeFrontend(program.loader, program.modules);
 	const middleEnd = analyzeMiddleEnd(program.loader, program.modules);
 	return finalizeAnalysis({
 		coveredFiles: program.coveredFiles,

@@ -223,7 +223,3 @@ export function isCapabilitiesType(typeNode: unknown): typeNode is AstNode {
 	const node = getNode(typeNode);
 	return node?.type === "TSTypeReference" && getTypeName(node) === "Capabilities";
 }
-
-export function isStringLiteral(node: unknown): boolean {
-	return getLiteralString(node) != null;
-}

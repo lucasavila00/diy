@@ -1,62 +1,71 @@
-src/main.ts:9:24 dynamic capability access
-   7 | export function bad(capabilities: Capabilities<FsCapability>, id: string): void {
-   8 | 	// @ts-expect-error intentionally invalid for analyzer coverage
->  9 | 	use(capabilities.need(id));
-     | 	                      ^ Capability IDs must be string literals.
-  10 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  11 | 	use(capabilities.need(`core.${id}`));
-  12 | 	use(capabilities["need"]("core.fs"));
-  = help: use a literal capability ID, for example `capabilities.need("core.fs")`
 src/main.ts:11:24 dynamic capability access
-   9 | 	use(capabilities.need(id));
+   9 |
   10 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 11 | 	use(capabilities.need(`core.${id}`));
-     | 	                      ^ Capability IDs must be string literals.
-  12 | 	use(capabilities["need"]("core.fs"));
-  13 | 	use(capabilities["provide"]({ "core.clock": {} }));
-  14 | 	use(capabilities.override?.({ "core.fs": {} }));
-  = help: use a literal capability ID, for example `capabilities.need("core.fs")`
-src/main.ts:12:6 dynamic capability access
-  10 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  11 | 	use(capabilities.need(`core.${id}`));
-> 12 | 	use(capabilities["need"]("core.fs"));
+> 11 | 	use(capabilities.need(id));
+     | 	                      ^ Capability IDs must be string literals or resolvable const string identifiers.
+  12 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  13 | 	use(capabilities.need(`core.${id}`));
+  14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  = help: use a literal capability ID or a const string identifier, for example `capabilities.need("core.fs")`
+src/main.ts:13:24 dynamic capability access
+  11 | 	use(capabilities.need(id));
+  12 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 13 | 	use(capabilities.need(`core.${id}`));
+     | 	                      ^ Capability IDs must be string literals or resolvable const string identifiers.
+  14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  15 | 	use(capabilities.need(dynamicId));
+  16 | 	use(capabilities["need"]("core.fs"));
+  = help: use a literal capability ID or a const string identifier, for example `capabilities.need("core.fs")`
+src/main.ts:15:24 dynamic capability access
+  13 | 	use(capabilities.need(`core.${id}`));
+  14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 15 | 	use(capabilities.need(dynamicId));
+     | 	                      ^ Capability IDs must be string literals or resolvable const string identifiers.
+  16 | 	use(capabilities["need"]("core.fs"));
+  17 | 	use(capabilities["provide"]({ "core.clock": {} }));
+  18 | 	use(capabilities.override?.({ "core.fs": {} }));
+  = help: use a literal capability ID or a const string identifier, for example `capabilities.need("core.fs")`
+src/main.ts:16:6 dynamic capability access
+  14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  15 | 	use(capabilities.need(dynamicId));
+> 16 | 	use(capabilities["need"]("core.fs"));
      | 	    ^ Use direct capability method calls like `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.
-  13 | 	use(capabilities["provide"]({ "core.clock": {} }));
-  14 | 	use(capabilities.override?.({ "core.fs": {} }));
-  15 | }
+  17 | 	use(capabilities["provide"]({ "core.clock": {} }));
+  18 | 	use(capabilities.override?.({ "core.fs": {} }));
+  19 | }
   = help: replace computed or optional access with direct property access, for example `capabilities.need("core.fs")`
-src/main.ts:12:6 escaped capabilities
-  10 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  11 | 	use(capabilities.need(`core.${id}`));
-> 12 | 	use(capabilities["need"]("core.fs"));
+src/main.ts:16:6 escaped capabilities
+  14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  15 | 	use(capabilities.need(dynamicId));
+> 16 | 	use(capabilities["need"]("core.fs"));
      | 	    ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  13 | 	use(capabilities["provide"]({ "core.clock": {} }));
-  14 | 	use(capabilities.override?.({ "core.fs": {} }));
-  15 | }
+  17 | 	use(capabilities["provide"]({ "core.clock": {} }));
+  18 | 	use(capabilities.override?.({ "core.fs": {} }));
+  19 | }
   = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:13:6 dynamic capability access
-  11 | 	use(capabilities.need(`core.${id}`));
-  12 | 	use(capabilities["need"]("core.fs"));
-> 13 | 	use(capabilities["provide"]({ "core.clock": {} }));
+src/main.ts:17:6 dynamic capability access
+  15 | 	use(capabilities.need(dynamicId));
+  16 | 	use(capabilities["need"]("core.fs"));
+> 17 | 	use(capabilities["provide"]({ "core.clock": {} }));
      | 	    ^ Use direct capability method calls like `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.
-  14 | 	use(capabilities.override?.({ "core.fs": {} }));
-  15 | }
-  16 |
+  18 | 	use(capabilities.override?.({ "core.fs": {} }));
+  19 | }
+  20 |
   = help: replace computed or optional access with direct property access, for example `capabilities.need("core.fs")`
-src/main.ts:13:6 escaped capabilities
-  11 | 	use(capabilities.need(`core.${id}`));
-  12 | 	use(capabilities["need"]("core.fs"));
-> 13 | 	use(capabilities["provide"]({ "core.clock": {} }));
+src/main.ts:17:6 escaped capabilities
+  15 | 	use(capabilities.need(dynamicId));
+  16 | 	use(capabilities["need"]("core.fs"));
+> 17 | 	use(capabilities["provide"]({ "core.clock": {} }));
      | 	    ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  14 | 	use(capabilities.override?.({ "core.fs": {} }));
-  15 | }
-  16 |
+  18 | 	use(capabilities.override?.({ "core.fs": {} }));
+  19 | }
+  20 |
   = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:14:6 dynamic capability access
-  12 | 	use(capabilities["need"]("core.fs"));
-  13 | 	use(capabilities["provide"]({ "core.clock": {} }));
-> 14 | 	use(capabilities.override?.({ "core.fs": {} }));
+src/main.ts:18:6 dynamic capability access
+  16 | 	use(capabilities["need"]("core.fs"));
+  17 | 	use(capabilities["provide"]({ "core.clock": {} }));
+> 18 | 	use(capabilities.override?.({ "core.fs": {} }));
      | 	    ^ Use direct capability method calls like `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.
-  15 | }
-  16 |
+  19 | }
+  20 |
   = help: replace computed or optional access with direct property access, for example `capabilities.need("core.fs")`

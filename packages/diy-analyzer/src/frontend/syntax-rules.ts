@@ -13,13 +13,14 @@ import {
 	isCapabilitiesMethodMember,
 	isCapabilitiesNeedMember,
 	isCapabilitiesType,
-	isStringLiteral,
 	lineForOffset,
 	locationForOffset,
 	capabilityMethodNames,
 } from "./ast.ts";
 import { isDiyCapabilitiesType, publicDiyImportSources } from "./diy-imports.ts";
-import type { AstNode, ModuleInfo } from "./types.ts";
+import type { ModuleLoader } from "./module-loader.ts";
+import { collectVariableDeclarationConstants, resolveNeedId } from "./need-id.ts";
+import type { AstNode, ModuleInfo, StringConstantBinding } from "./types.ts";
 
 type FunctionFrame = {
 	readonly hasCapabilitiesParam: boolean;
@@ -27,7 +28,10 @@ type FunctionFrame = {
 	readonly name: string | null;
 };
 
-export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerViolation[] {
+export function analyzeDiySyntax(
+	loader: ModuleLoader,
+	moduleInfo: ModuleInfo,
+): readonly DiyAnalyzerViolation[] {
 	/* istanbul ignore next -- callers only invoke syntax analysis for reportable modules. */
 	if (!moduleInfo.reportable) {
 		return [];
@@ -35,6 +39,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 
 	const violations: DiyAnalyzerViolation[] = [];
 	const functionStack: FunctionFrame[] = [];
+	const constantScopes: Map<string, StringConstantBinding>[] = [];
 	const reportedCapabilityRanges = new Set<string>();
 
 	/* c8 ignore next -- only used by the defensive missing-range fallback. */
@@ -102,8 +107,27 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 	const hasVisibleDiyCapabilitiesParam = (): boolean =>
 		visibleCapabilitiesFrame()?.hasDiyCapabilitiesParam === true;
 
+	const enterConstantScope = (node: AstNode): void => {
+		const scope = new Map<string, StringConstantBinding>();
+		for (const statement of getArray(node["body"])) {
+			const statementNode = getNode(statement);
+			if (statementNode?.type === "VariableDeclaration") {
+				collectVariableDeclarationConstants(statementNode, scope);
+			}
+		}
+		constantScopes.push(scope);
+	};
+
 	const enterFunction = (node: AstNode, parent: AstNode | null): void => {
 		const params = getArray(node["params"]);
+		const functionConstants = new Map<string, StringConstantBinding>();
+		for (const param of params) {
+			const name = getIdentifierName(getIdentifierFromParam(param));
+			if (name != null) {
+				functionConstants.set(name, null);
+			}
+		}
+		constantScopes.push(functionConstants);
 		functionStack.push({
 			hasCapabilitiesParam: params.some(
 				(param) => getIdentifierName(getIdentifierFromParam(param)) === "capabilities",
@@ -197,16 +221,27 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 			);
 			return;
 		}
-		if (isCapabilitiesNeedMember(callee) && !isStringLiteral(getArray(node["arguments"])[0])) {
+		if (
+			isCapabilitiesNeedMember(callee) &&
+			resolveNeedId(
+				{
+					loader,
+					localConstants: constantScopes,
+					moduleInfo,
+				},
+				getArray(node["arguments"])[0],
+			) == null
+		) {
 			report(
 				/* c8 ignore next -- dynamic need reports use the parsed argument when present. */
 				getNode(getArray(node["arguments"])[0]) ?? node,
 				"dynamic capability access",
-				"Capability IDs must be string literals.",
+				"Capability IDs must be string literals or resolvable const string identifiers.",
 				[
 					{
 						kind: "help",
-						message: 'use a literal capability ID, for example `capabilities.need("core.fs")`',
+						message:
+							'use a literal capability ID or a const string identifier, for example `capabilities.need("core.fs")`',
 					},
 				],
 			);
@@ -400,6 +435,10 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 		if (isFunction) {
 			enterFunction(node, parent);
 		}
+		const createsConstantScope = node.type === "BlockStatement";
+		if (createsConstantScope) {
+			enterConstantScope(node);
+		}
 		if (node.type === "CallExpression") {
 			checkCallExpression(node);
 		}
@@ -417,7 +456,11 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 			visit(child, node, parent);
 		}
 		if (isFunction) {
+			constantScopes.pop();
 			functionStack.pop();
+		}
+		if (createsConstantScope) {
+			constantScopes.pop();
 		}
 	};
 

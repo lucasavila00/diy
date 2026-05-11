@@ -9,9 +9,13 @@ export type ImportedBinding = {
 	readonly source: string;
 };
 
+export type StringConstantBinding = string | null;
+
 export type ModuleInfo = {
 	readonly aliases: Map<string, unknown>;
 	readonly body: readonly unknown[];
+	readonly constantExports: Map<string, string>;
+	readonly constants: Map<string, StringConstantBinding>;
 	readonly filePath: string;
 	readonly functionNodes: Map<string, AstNode>;
 	readonly functions: Map<string, FunctionInfo>;

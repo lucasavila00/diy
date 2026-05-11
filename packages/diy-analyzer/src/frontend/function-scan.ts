@@ -3,7 +3,6 @@ import {
 	getFirstParam,
 	getIdentifierFromParam,
 	getIdentifierName,
-	getLiteralString,
 	getNode,
 	getParamType,
 	getTypeArguments,
@@ -13,7 +12,9 @@ import {
 	isCapabilitiesTransformCall,
 } from "./ast.ts";
 import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
-import type { AstNode, ModuleInfo, UnsupportedReason } from "./types.ts";
+import type { ModuleLoader } from "./module-loader.ts";
+import { collectVariableDeclarationConstants, resolveNeedId } from "./need-id.ts";
+import type { AstNode, ModuleInfo, StringConstantBinding, UnsupportedReason } from "./types.ts";
 
 type FunctionScan = {
 	readonly calls: readonly ScannedCapabilitiesForwardingCall[];
@@ -33,7 +34,11 @@ type ScannedCapabilitiesForwardingCall = {
 	readonly providedType: unknown | null;
 };
 
-export function scanFunctionBody(moduleInfo: ModuleInfo, functionNode: AstNode): FunctionScan {
+export function scanFunctionBody(
+	loader: ModuleLoader,
+	moduleInfo: ModuleInfo,
+	functionNode: AstNode,
+): FunctionScan {
 	const direct = new Set<string>();
 	const calls: ScannedCapabilitiesForwardingCall[] = [];
 	const provideChecks: ScannedCapabilitiesProvideCheck[] = [];
@@ -41,6 +46,29 @@ export function scanFunctionBody(moduleInfo: ModuleInfo, functionNode: AstNode):
 	let forwardsTransformedCapabilities = false;
 	const unsupportedReasons: UnsupportedReason[] = [];
 	const body = functionNode["body"];
+	const constantScopes: Map<string, StringConstantBinding>[] = [];
+
+	const enterScope = (node: AstNode): void => {
+		const scope = new Map<string, StringConstantBinding>();
+		if (isFunctionNode(node)) {
+			for (const param of getArray(node["params"])) {
+				const name = getIdentifierName(getIdentifierFromParam(param));
+				/* c8 ignore next -- function parameters with names are covered by analyzer fixtures. */
+				if (name != null) {
+					scope.set(name, null);
+				}
+			}
+		}
+		for (const statement of getArray(node["body"])) {
+			const statementNode = getNode(statement);
+			if (statementNode?.type === "VariableDeclaration") {
+				collectVariableDeclarationConstants(statementNode, scope);
+			}
+		}
+		constantScopes.push(scope);
+	};
+
+	enterScope(functionNode);
 
 	const visit = (value: unknown): void => {
 		if (Array.isArray(value)) {
@@ -58,8 +86,15 @@ export function scanFunctionBody(moduleInfo: ModuleInfo, functionNode: AstNode):
 				return;
 			}
 		}
+		const createsScope = node.type === "BlockStatement" || (node !== functionNode && isFunctionNode(node));
+		if (createsScope) {
+			enterScope(node);
+		}
 		if (isCapabilitiesNeedCall(node)) {
-			const id = getLiteralString(getArray(node["arguments"])[0]);
+			const id = resolveNeedId(
+				{ loader, localConstants: constantScopes, moduleInfo },
+				getArray(node["arguments"])[0],
+			);
 			if (id != null) {
 				direct.add(id);
 			}
@@ -102,9 +137,13 @@ export function scanFunctionBody(moduleInfo: ModuleInfo, functionNode: AstNode):
 			}
 			visit(child);
 		}
+		if (createsScope) {
+			constantScopes.pop();
+		}
 	};
 
 	visit(body);
+	constantScopes.pop();
 	return {
 		calls,
 		direct,
