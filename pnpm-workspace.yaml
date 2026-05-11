@@ -1,4 +1,4 @@
 packages:
   - "packages/*"
-  - "e2e-tests/failure"
-  - "e2e-tests/success/*"
+  - "v8-tests/failure"
+  - "v8-tests/success/*"

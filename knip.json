@@ -1,13 +1,15 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
 	"ignoreWorkspaces": [
-		"e2e-tests/failure",
-		"e2e-tests/success/module-graph",
-		"e2e-tests/success/module-resolution",
-		"e2e-tests/success/nested-callback-need",
-		"e2e-tests/success/renamed-capability-provide"
+		"v8-tests/failure",
+		"v8-tests/success/module-graph",
+		"v8-tests/success/module-resolution",
+		"v8-tests/success/nested-callback-need",
+		"v8-tests/success/renamed-capability-provide",
+		"v8-tests/success/unrelated-capabilities-type"
 	],
 	"ignoreIssues": {
+		"packages/diy-analyzer/src/frontend/ast.ts": ["exports"],
 		"packages/diy-analyzer/tsc-slim/out.js": ["exports"]
 	},
 	"workspaces": {

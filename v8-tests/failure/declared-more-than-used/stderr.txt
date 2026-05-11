@@ -1,0 +1,9 @@
+src/main.ts:6:8 unused capability
+  4 | type WriteCapability = Capability<"core.write", unknown>;
+  5 |
+> 6 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
+    |        ^ Declares unused capability "core.write".
+  7 | 	capabilities.need("core.read");
+  8 | }
+  9 |
+  = help: remove "core.write" from `Capabilities<...>`, or add a real `capabilities.need("core.write")` call if it is required

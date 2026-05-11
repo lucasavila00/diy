@@ -7,6 +7,6 @@ export default defineConfig({
 			provider: "v8",
 			reporter: ["text", "html", "lcov"],
 		},
-		include: ["e2e-tests/**/*.test.ts"],
+		include: ["v8-tests/**/*.test.ts"],
 	},
 });

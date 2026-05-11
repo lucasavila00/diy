@@ -30,78 +30,6 @@ importers:
         specifier: ^4.1.5
         version: 4.1.5(@types/node@24.12.3)(@vitest/coverage-v8@4.1.5)(vite@8.0.11(@types/node@24.12.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.8.4))
 
-  e2e-tests/failure:
-    dependencies:
-      '@beff/diy':
-        specifier: workspace:*
-        version: link:../../packages/diy
-    devDependencies:
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  e2e-tests/success/module-graph:
-    dependencies:
-      '@beff/diy':
-        specifier: workspace:*
-        version: link:../../../packages/diy
-      '@beff/diy-cli':
-        specifier: workspace:*
-        version: link:../../../packages/diy-cli
-    devDependencies:
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  e2e-tests/success/module-resolution:
-    dependencies:
-      '@beff/diy':
-        specifier: workspace:*
-        version: link:../../../packages/diy
-      '@beff/diy-cli':
-        specifier: workspace:*
-        version: link:../../../packages/diy-cli
-    devDependencies:
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  e2e-tests/success/nested-callback-need:
-    dependencies:
-      '@beff/diy':
-        specifier: workspace:*
-        version: link:../../../packages/diy
-      '@beff/diy-cli':
-        specifier: workspace:*
-        version: link:../../../packages/diy-cli
-    devDependencies:
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  e2e-tests/success/renamed-capability-provide:
-    dependencies:
-      '@beff/diy':
-        specifier: workspace:*
-        version: link:../../../packages/diy
-      '@beff/diy-cli':
-        specifier: workspace:*
-        version: link:../../../packages/diy-cli
-    devDependencies:
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  e2e-tests/success/unrelated-capabilities-type:
-    dependencies:
-      '@beff/diy-cli':
-        specifier: workspace:*
-        version: link:../../../packages/diy-cli
-    devDependencies:
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
   packages/diy:
     devDependencies:
       typescript:
@@ -141,6 +69,78 @@ importers:
       oxc-parser:
         specifier: ^0.129.0
         version: 0.129.0
+
+  v8-tests/failure:
+    dependencies:
+      '@beff/diy':
+        specifier: workspace:*
+        version: link:../../packages/diy
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  v8-tests/success/module-graph:
+    dependencies:
+      '@beff/diy':
+        specifier: workspace:*
+        version: link:../../../packages/diy
+      '@beff/diy-cli':
+        specifier: workspace:*
+        version: link:../../../packages/diy-cli
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  v8-tests/success/module-resolution:
+    dependencies:
+      '@beff/diy':
+        specifier: workspace:*
+        version: link:../../../packages/diy
+      '@beff/diy-cli':
+        specifier: workspace:*
+        version: link:../../../packages/diy-cli
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  v8-tests/success/nested-callback-need:
+    dependencies:
+      '@beff/diy':
+        specifier: workspace:*
+        version: link:../../../packages/diy
+      '@beff/diy-cli':
+        specifier: workspace:*
+        version: link:../../../packages/diy-cli
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  v8-tests/success/renamed-capability-provide:
+    dependencies:
+      '@beff/diy':
+        specifier: workspace:*
+        version: link:../../../packages/diy
+      '@beff/diy-cli':
+        specifier: workspace:*
+        version: link:../../../packages/diy-cli
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  v8-tests/success/unrelated-capabilities-type:
+    dependencies:
+      '@beff/diy-cli':
+        specifier: workspace:*
+        version: link:../../../packages/diy-cli
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 

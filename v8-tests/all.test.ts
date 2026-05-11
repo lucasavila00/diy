@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { executeDiyCli, runDiyCli } from "../packages/diy-analyzer/src/app/cli.ts";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const e2eDir = join(rootDir, "e2e-tests");
+const v8TestsDir = join(rootDir, "v8-tests");
 
 type CapturedRun = {
 	readonly exitCode: number;
@@ -77,7 +77,7 @@ async function failureRun(caseDir: string): Promise<CapturedRun> {
 }
 
 describe("DIY failure e2e", () => {
-	const caseDirs = fixtureDirs(join(e2eDir, "failure"));
+	const caseDirs = fixtureDirs(join(v8TestsDir, "failure"));
 
 	for (const caseDir of caseDirs) {
 		it(`${basename(caseDir)} fails with expected output`, async () => {
@@ -90,7 +90,7 @@ describe("DIY failure e2e", () => {
 });
 
 describe("DIY success e2e", () => {
-	const caseDirs = fixtureDirs(join(e2eDir, "success"));
+	const caseDirs = fixtureDirs(join(v8TestsDir, "success"));
 
 	for (const caseDir of caseDirs) {
 		it(`${basename(caseDir)} passes`, async () => {
