@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 
 import type { DiySourceConfig } from "../frontend/source-files.ts";
 
@@ -13,12 +13,12 @@ function resolveProjectPath(projectPath: string, cwd: string): string {
 	return isAbsolute(projectPath) ? projectPath : join(cwd, projectPath);
 }
 
-async function readDiyProject(projectPath: string): Promise<DiyProject> {
+async function readDiyProject(projectPath: string, displayPath: string): Promise<DiyProject> {
 	let contents: string;
 	try {
 		contents = await readFile(projectPath, "utf8");
 	} catch (error) {
-		throw new Error(`Failed to read diy.json at ${projectPath}: ${String(error)}`, {
+		throw new Error(`Failed to read diy.json at ${displayPath}: ${formatReadError(error)}`, {
 			cause: error,
 		});
 	}
@@ -27,7 +27,7 @@ async function readDiyProject(projectPath: string): Promise<DiyProject> {
 	try {
 		parsed = JSON.parse(contents);
 	} catch (error) {
-		throw new Error(`Failed to parse diy.json at ${projectPath}: ${String(error)}`, {
+		throw new Error(`Failed to parse diy.json at ${displayPath}: ${String(error)}`, {
 			cause: error,
 		});
 	}
@@ -37,6 +37,24 @@ async function readDiyProject(projectPath: string): Promise<DiyProject> {
 		cwd: dirname(projectPath),
 		projectPath,
 	};
+}
+
+function displayProjectPath(projectPath: string, cwd: string): string {
+	const relativePath = relative(cwd, projectPath);
+	return relativePath.startsWith("..") || isAbsolute(relativePath) ? projectPath : relativePath;
+}
+
+function formatReadError(error: unknown): string {
+	if (error == null || typeof error !== "object") {
+		return String(error);
+	}
+	const code = "code" in error && typeof error.code === "string" ? error.code : null;
+	const rawMessage = error instanceof Error ? error.message : String(error);
+	const message = rawMessage.split(", open ")[0] ?? rawMessage;
+	if (code == null || message.startsWith(`${code}: `)) {
+		return message;
+	}
+	return `${code}: ${message}`;
 }
 
 function parseDiyConfig(value: unknown): DiySourceConfig {
@@ -68,5 +86,6 @@ function readStringArray(value: object, field: string): readonly string[] | null
 }
 
 export function resolveDiyProject(projectPath: string, cwd: string): Promise<DiyProject> {
-	return readDiyProject(resolve(resolveProjectPath(projectPath, cwd)));
+	const resolvedProjectPath = resolve(resolveProjectPath(projectPath, cwd));
+	return readDiyProject(resolvedProjectPath, displayProjectPath(resolvedProjectPath, cwd));
 }
