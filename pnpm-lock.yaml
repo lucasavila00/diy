@@ -86,6 +86,16 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  e2e-tests/success/unrelated-capabilities-type:
+    dependencies:
+      '@beff/diy-cli':
+        specifier: workspace:*
+        version: link:../../../packages/diy-cli
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/diy:
     devDependencies:
       typescript:

@@ -19,6 +19,7 @@ export type ModuleInfo = {
 	readonly lineStarts: readonly number[];
 	readonly parseErrors: readonly ParseErrorInfo[];
 	readonly reportable: boolean;
+	readonly reexports: Map<string, ImportedBinding>;
 	readonly source: string;
 };
 

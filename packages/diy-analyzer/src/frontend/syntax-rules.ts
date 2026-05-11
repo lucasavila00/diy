@@ -18,16 +18,20 @@ import {
 	locationForOffset,
 	capabilityMethodNames,
 } from "./ast.ts";
+import { isDiyCapabilitiesType, publicDiyImportSources } from "./diy-imports.ts";
+import type { ModuleLoader } from "./module-loader.ts";
 import type { AstNode, ModuleInfo } from "./types.ts";
 
 type FunctionFrame = {
 	readonly hasCapabilitiesParam: boolean;
+	readonly hasDiyCapabilitiesParam: boolean;
 	readonly name: string | null;
 };
 
-const publicDiyImportSources = new Set(["@beff/diy", "@beff/diy/capabilities"]);
-
-export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerViolation[] {
+export function analyzeDiySyntax(
+	loader: ModuleLoader,
+	moduleInfo: ModuleInfo,
+): readonly DiyAnalyzerViolation[] {
 	if (!moduleInfo.reportable) {
 		return [];
 	}
@@ -83,8 +87,17 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 			],
 		);
 	};
-	const hasVisibleCapabilitiesParam = (): boolean =>
-		functionStack.some((frame) => frame.hasCapabilitiesParam);
+	const visibleCapabilitiesFrame = (): FunctionFrame | undefined => {
+		for (let index = functionStack.length - 1; index >= 0; index -= 1) {
+			const frame = functionStack[index];
+			if (frame?.hasCapabilitiesParam === true) {
+				return frame;
+			}
+		}
+		return undefined;
+	};
+	const hasVisibleDiyCapabilitiesParam = (): boolean =>
+		visibleCapabilitiesFrame()?.hasDiyCapabilitiesParam === true;
 
 	const enterFunction = (node: AstNode, parent: AstNode | null): void => {
 		const params = getArray(node["params"]);
@@ -92,6 +105,13 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 			hasCapabilitiesParam: params.some(
 				(param) => getIdentifierName(getIdentifierFromParam(param)) === "capabilities",
 			),
+			hasDiyCapabilitiesParam: params.some((param) => {
+				const identifier = getIdentifierFromParam(param);
+				return (
+					getIdentifierName(identifier) === "capabilities" &&
+					isDiyCapabilitiesType(loader, moduleInfo, getParamType(getNode(param)))
+				);
+			}),
 			name: getFunctionName(node, parent),
 		});
 		for (const [index, paramValue] of params.entries()) {
@@ -101,9 +121,15 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 				continue;
 			}
 
-			const hasCapabilitiesType = isCapabilitiesType(getParamType(param));
+			const typeNode = getParamType(param);
+			const hasDiyCapabilitiesType = isDiyCapabilitiesType(loader, moduleInfo, typeNode);
+			const hasUnrelatedCapabilitiesType =
+				isCapabilitiesType(typeNode) && !hasDiyCapabilitiesType;
 			const name = getIdentifierName(identifier);
-			if (!hasCapabilitiesType && name !== "capabilities") {
+			if (!hasDiyCapabilitiesType && name !== "capabilities") {
+				continue;
+			}
+			if (name === "capabilities" && hasUnrelatedCapabilitiesType) {
 				continue;
 			}
 			if (name !== "capabilities") {
@@ -114,7 +140,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 					[capabilitiesParameterHelp()],
 				);
 			}
-			if (name === "capabilities" && !hasCapabilitiesType) {
+			if (name === "capabilities" && !hasDiyCapabilitiesType) {
 				report(
 					param ?? identifier,
 					"invalid capabilities parameter",
@@ -142,6 +168,9 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 	};
 
 	const checkCallExpression = (node: AstNode): void => {
+		if (!hasVisibleDiyCapabilitiesParam()) {
+			return;
+		}
 		if (!isCapabilitiesMethodMember(node["callee"])) {
 			return;
 		}
@@ -177,6 +206,9 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 	};
 
 	const checkNoNeedAlias = (node: AstNode): void => {
+		if (!hasVisibleDiyCapabilitiesParam()) {
+			return;
+		}
 		if (node.type === "AssignmentExpression" && isCapabilitiesMethodMember(node["right"])) {
 			report(
 				getNode(node["right"]) ?? node,
@@ -281,7 +313,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 		if (getIdentifierName(node) !== "capabilities") {
 			return;
 		}
-		if (functionStack.length === 0 || !hasVisibleCapabilitiesParam()) {
+		if (functionStack.length === 0 || !hasVisibleDiyCapabilitiesParam()) {
 			return;
 		}
 		if (isNonValueIdentifierParent(parent) || isCapabilitiesParamIdentifier(node, parent)) {

@@ -1,5 +1,6 @@
 import type { DiyAnalyzerUnsupported, DiyAnalyzerViolation } from "../middle-end/types.ts";
 import { analyzeDiySyntax } from "./syntax-rules.ts";
+import type { ModuleLoader } from "./module-loader.ts";
 import type { ModuleInfo } from "./types.ts";
 
 type FrontendAnalysis = {
@@ -7,7 +8,10 @@ type FrontendAnalysis = {
 	readonly violations: readonly DiyAnalyzerViolation[];
 };
 
-export function analyzeFrontend(modules: readonly ModuleInfo[]): FrontendAnalysis {
+export function analyzeFrontend(
+	loader: ModuleLoader,
+	modules: readonly ModuleInfo[],
+): FrontendAnalysis {
 	const unsupported: DiyAnalyzerUnsupported[] = [];
 	const violations: DiyAnalyzerViolation[] = [];
 	for (const moduleInfo of modules) {
@@ -32,7 +36,7 @@ export function analyzeFrontend(modules: readonly ModuleInfo[]): FrontendAnalysi
 		if (!moduleInfo.reportable) {
 			continue;
 		}
-		violations.push(...analyzeDiySyntax(moduleInfo));
+		violations.push(...analyzeDiySyntax(loader, moduleInfo));
 	}
 	return { unsupported, violations };
 }

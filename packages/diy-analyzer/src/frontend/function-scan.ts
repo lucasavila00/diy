@@ -1,7 +1,7 @@
 import {
 	getArray,
 	getFirstParam,
-	getCapabilitiesAllowedType,
+	getIdentifierFromParam,
 	getIdentifierName,
 	getLiteralString,
 	getNode,
@@ -12,7 +12,9 @@ import {
 	isCapabilitiesNeedCall,
 	isCapabilitiesTransformCall,
 } from "./ast.ts";
-import type { AstNode, UnsupportedReason } from "./types.ts";
+import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
+import type { ModuleLoader } from "./module-loader.ts";
+import type { AstNode, ModuleInfo, UnsupportedReason } from "./types.ts";
 
 type FunctionScan = {
 	readonly calls: readonly ScannedCapabilitiesForwardingCall[];
@@ -32,7 +34,11 @@ type ScannedCapabilitiesForwardingCall = {
 	readonly providedType: unknown | null;
 };
 
-export function scanFunctionBody(functionNode: AstNode): FunctionScan {
+export function scanFunctionBody(
+	loader: ModuleLoader,
+	moduleInfo: ModuleInfo,
+	functionNode: AstNode,
+): FunctionScan {
 	const direct = new Set<string>();
 	const calls: ScannedCapabilitiesForwardingCall[] = [];
 	const provideChecks: ScannedCapabilitiesProvideCheck[] = [];
@@ -53,8 +59,7 @@ export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 			return;
 		}
 		if (node !== functionNode && isFunctionNode(node)) {
-			const firstParam = getFirstParam(node);
-			if (getCapabilitiesAllowedType(getParamType(firstParam)) != null) {
+			if (hasOwnCapabilitiesBinding(loader, moduleInfo, node)) {
 				return;
 			}
 		}
@@ -112,6 +117,20 @@ export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 		provideChecks,
 		unsupportedReasons,
 	};
+}
+
+function hasOwnCapabilitiesBinding(
+	loader: ModuleLoader,
+	moduleInfo: ModuleInfo,
+	functionNode: AstNode,
+): boolean {
+	const firstParam = getFirstParam(functionNode);
+	if (getDiyCapabilitiesAllowedType(loader, moduleInfo, getParamType(firstParam)) != null) {
+		return true;
+	}
+	return getArray(functionNode["params"]).some(
+		(param) => getIdentifierName(getIdentifierFromParam(param)) === "capabilities",
+	);
 }
 
 type ForwardedCapabilitiesArgument = {
