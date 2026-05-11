@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"all": "pnpm run format && pnpm run lint:fix && pnpm run typecheck && pnpm run test-fix && pnpm run build && pnpm run test:e2e && pnpm run diy:check && pnpm run knip",
+		"all": "pnpm run format && pnpm run lint:fix && pnpm run build && pnpm run typecheck && pnpm run test-fix && pnpm run test:e2e && pnpm run diy:check && pnpm run knip",
 		"build": "pnpm -r --if-present run build",
 		"check": "pnpm run typecheck && pnpm run test",
 		"diy:check": "pnpm --filter @beff/diy-cli run analyze packages",
