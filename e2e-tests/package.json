@@ -1,0 +1,13 @@
+{
+	"name": "@private/diy-e2e-cli",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"diy-cli": "cd \"$INIT_CWD\" && diy-cli"
+	},
+	"dependencies": {
+		"@beff/diy": "workspace:*",
+		"@beff/diy-cli": "workspace:*"
+	}
+}

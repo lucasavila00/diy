@@ -1,1 +1,1 @@
-node ../../../packages/diy-cli/bin/index.js -p diy.json extra
+npm --silent --prefix ../.. run diy-cli -- -p diy.json extra

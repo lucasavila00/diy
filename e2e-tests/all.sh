@@ -3,8 +3,6 @@ set -u
 set -o pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_DIR="$(cd "$ROOT_DIR/.." && pwd)"
-CLI_PATH="$REPO_DIR/packages/diy-cli/bin/index.js"
 
 if [ "$#" -gt 0 ]; then
 	echo "Usage: bash e2e-tests/all.sh" >&2
@@ -33,7 +31,7 @@ run_case() {
 	if [ -f "$case_dir/command.sh" ]; then
 		command=(bash command.sh)
 	else
-		command=(node "$CLI_PATH" -p diy.json)
+		command=(npm --silent --prefix "$ROOT_DIR" run diy-cli -- -p diy.json)
 	fi
 
 	if (cd "$case_dir" && "${command[@]}") >"$stdout_file" 2>"$stderr_file"; then

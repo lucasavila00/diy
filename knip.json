@@ -1,6 +1,7 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
 	"ignoreWorkspaces": [
+		"e2e-tests",
 		"v8-tests/failure",
 		"v8-tests/success/module-graph",
 		"v8-tests/success/module-resolution",

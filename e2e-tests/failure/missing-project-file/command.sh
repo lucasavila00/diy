@@ -1,1 +1,1 @@
-node ../../../packages/diy-cli/bin/index.js -p missing-diy.json
+npm --silent --prefix ../.. run diy-cli -- -p missing-diy.json
