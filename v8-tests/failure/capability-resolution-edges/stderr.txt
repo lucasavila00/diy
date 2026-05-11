@@ -18,11 +18,11 @@ src/main.ts:10:22 unsupported analysis
    8 |
    9 | type ReadCapability = Capability<"read", unknown>;
 > 10 | type AnyCapability = Capability<string, unknown>;
-     |                      ^ Capability first type argument is not a string literal
+     |                      ^ Capability first type argument is not a string literal or typeof string constant
   11 | // @ts-expect-error intentionally invalid for analyzer coverage
   12 | type MissingTypeNode = Capabilities;
   13 |
-  = help: use a string literal capability ID, for example `Capability<"app.clock", Clock>`
+  = help: use a string literal or const reference, for example `Capability<"app.clock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`
 src/main.ts:29:8 unsupported analysis
   27 | }
   28 |

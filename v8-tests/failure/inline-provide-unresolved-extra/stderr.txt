@@ -2,9 +2,9 @@ src/main.ts:7:27 unsupported analysis
    5 | type LegacyClockCapability = Capability<"legacy.clock", Clock>;
    6 | type AppClockCapability = Capability<"app.clock", Clock>;
 >  7 | type AnyClockCapability = Capability<string, Clock>;
-     |                           ^ capabilities.provide extra capability type: Capability first type argument is not a string literal
+     |                           ^ capabilities.provide extra capability type: Capability first type argument is not a string literal or typeof string constant
    8 |
    9 | export function readRenamed(capabilities: Capabilities<AppClockCapability>): Date {
   10 | 	return capabilities.need("app.clock").now();
-  = help: use a string literal capability ID, for example `Capability<"app.clock", Clock>`
+  = help: use a string literal or const reference, for example `Capability<"app.clock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`
   = help: change this type to `Capability<"id", ...>` or a union of resolvable capability types

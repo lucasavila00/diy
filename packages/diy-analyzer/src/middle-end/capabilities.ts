@@ -239,7 +239,11 @@ function getCapabilityId(
 	}
 	if (node?.type === "TSTypeQuery") {
 		const name = getIdentifierName(node["exprName"]);
-		return name == null ? null : resolveStringConstantName({ loader, moduleInfo }, name);
+		/* c8 ignore next -- qualified type queries are intentionally unsupported. */
+		if (name == null) {
+			return null;
+		}
+		return resolveStringConstantName({ loader, moduleInfo }, name);
 	}
 	return null;
 }

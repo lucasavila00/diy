@@ -1,0 +1,6 @@
+Module graph
+
+src/main.ts
++-- loadLocal: app.local
+|
+`-- loadExternal: app.external
