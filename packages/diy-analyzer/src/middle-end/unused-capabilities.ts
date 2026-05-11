@@ -43,18 +43,19 @@ export function analyzeUnusedCapabilities(
 				if (extra.reasons.length > 0) {
 					for (const reason of extra.reasons) {
 						unsupported.push({
-							column: check.column,
-							filePath: functionInfo.filePath,
+							column: reason.column ?? check.column,
+							filePath: reason.filePath ?? functionInfo.filePath,
 							functionName: functionInfo.name,
-							line: check.line,
+							line: reason.line ?? check.line,
 							notes: [
+								...(reason.notes ?? []),
 								{
 									kind: "help",
 									message:
-										'use a resolvable `Capability<"id", ...>` type or union for the `capabilities.provide<...>` extra capability type',
+										'change this type to `Capability<"id", ...>` or a union of resolvable capability types',
 								},
 							],
-							reason: `capabilities.provide extra capability type: ${reason}`,
+							reason: `capabilities.provide extra capability type: ${reason.message}`,
 						});
 					}
 					continue;

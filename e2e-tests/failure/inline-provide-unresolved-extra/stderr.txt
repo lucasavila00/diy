@@ -1,9 +1,10 @@
-src/main.ts:15:3 unsupported analysis
-  13 | export function load(capabilities: Capabilities<LegacyClockCapability>): Date {
-  14 | 	return readRenamed(
-> 15 | 		capabilities.provide<AnyClockCapability>({
-     | 		^ capabilities.provide extra capability type: Capability first type argument is not a string literal
-  16 | 			"app.clock": capabilities.need("legacy.clock"),
-  17 | 		}),
-  18 | 	);
-  = help: use a resolvable `Capability<"id", ...>` type or union for the `capabilities.provide<...>` extra capability type
+src/main.ts:7:27 unsupported analysis
+   5 | type LegacyClockCapability = Capability<"legacy.clock", Clock>;
+   6 | type AppClockCapability = Capability<"app.clock", Clock>;
+>  7 | type AnyClockCapability = Capability<string, Clock>;
+     |                           ^ capabilities.provide extra capability type: Capability first type argument is not a string literal
+   8 |
+   9 | export function readRenamed(capabilities: Capabilities<AppClockCapability>): Date {
+  10 | 	return capabilities.need("app.clock").now();
+  = help: use a string literal capability ID, for example `Capability<"app.clock", Clock>`
+  = help: change this type to `Capability<"id", ...>` or a union of resolvable capability types

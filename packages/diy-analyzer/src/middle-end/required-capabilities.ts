@@ -111,14 +111,23 @@ function makeUnsupported(
 	reason: UnsupportedReason,
 ): DiyAnalyzerUnsupported {
 	const notes = unsupportedNotes(reason);
+	const location = unsupportedLocation(reason);
 	return {
-		column: functionInfo.column,
-		filePath: functionInfo.filePath,
+		column: location.column ?? functionInfo.column,
+		filePath: location.filePath ?? functionInfo.filePath,
 		functionName: functionInfo.name,
-		line: functionInfo.line,
+		line: location.line ?? functionInfo.line,
 		...(notes == null ? {} : { notes }),
 		reason: reason.message,
 	};
+}
+
+function unsupportedLocation(reason: UnsupportedReason): {
+	readonly column?: number;
+	readonly filePath?: string;
+	readonly line?: number;
+} {
+	return reason.kind === "capability-resolution" ? reason : {};
 }
 
 function unresolvedForwardingTargetReason(calleeName: string): UnsupportedReason {
@@ -132,7 +141,7 @@ function unresolvedForwardingTargetReason(calleeName: string): UnsupportedReason
 function unsupportedNotes(reason: UnsupportedReason): readonly DiyAnalyzerNote[] | undefined {
 	switch (reason.kind) {
 		case "capability-resolution":
-			return undefined;
+			return reason.notes;
 		case "unresolved-forwarding-callee":
 			return [
 				{

@@ -24,6 +24,7 @@ export type ArenaModule = {
 	readonly filePath: string;
 	readonly functions: readonly FunctionIndex[];
 	readonly imports: Map<string, ImportedBinding>;
+	readonly lineStarts: readonly number[];
 	readonly reportable: boolean;
 };
 
@@ -68,6 +69,7 @@ export function buildMiddleEndArena(
 			filePath: moduleInfo.filePath,
 			functions: [],
 			imports: moduleInfo.imports,
+			lineStarts: moduleInfo.lineStarts,
 			reportable: moduleInfo.reportable,
 		});
 	}

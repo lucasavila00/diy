@@ -4,20 +4,22 @@ import {
 	getNode,
 	getTypeArguments,
 	getTypeName,
+	locationForOffset,
 } from "../frontend/ast.ts";
 import type { ModuleLoader } from "../frontend/module-loader.ts";
 import type { ImportedBinding } from "../frontend/types.ts";
-import type { TypeResolution } from "./types.ts";
+import type { TypeResolution, TypeResolutionReason } from "./types.ts";
 
 type CapabilityModule = {
 	readonly aliases: Map<string, unknown>;
 	readonly filePath: string;
 	readonly imports: Map<string, ImportedBinding>;
+	readonly lineStarts: readonly number[];
 };
 
 type MutableTypeResolution = {
 	readonly ids: Set<string>;
-	readonly reasons: Set<string>;
+	readonly reasons: TypeResolutionReason[];
 	resolving: boolean;
 };
 
@@ -43,7 +45,7 @@ function resolveCapabilityIdsInner(
 ): MutableTypeResolution {
 	const node = getNode(typeNode);
 	if (node == null) {
-		return makeResolution([], ["missing type node"]);
+		return makeResolution([], [makeReason(moduleInfo, null, "missing type node")]);
 	}
 	if (node.type === "TSParenthesizedType") {
 		return resolveCapabilityIdsInner(context, loader, moduleInfo, node["typeAnnotation"]);
@@ -56,17 +58,26 @@ function resolveCapabilityIdsInner(
 		return resolution;
 	}
 	if (node.type !== "TSTypeReference") {
-		return makeResolution([], [`unsupported capability type ${node.type}`]);
+		return makeResolution(
+			[],
+			[makeReason(moduleInfo, node, `unsupported capability type ${node.type}`)],
+		);
 	}
 	const typeName = getTypeName(node);
 	if (typeName == null) {
-		return makeResolution([], ["unsupported qualified type reference"]);
+		return makeResolution(
+			[],
+			[makeReason(moduleInfo, node, "unsupported qualified type reference")],
+		);
 	}
 	const typeArguments = getTypeArguments(node);
 	if (typeName === "Capability") {
 		const id = getTokenCapabilityId(typeArguments[0]);
 		return id == null
-			? makeResolution([], ["Capability first type argument is not a string literal"])
+			? makeResolution(
+					[],
+					[makeReason(moduleInfo, node, "Capability first type argument is not a string literal")],
+				)
 			: makeResolution([id]);
 	}
 	if (typeName === "Exclude") {
@@ -76,7 +87,7 @@ function resolveCapabilityIdsInner(
 		for (const id of excluded.ids) {
 			ids.delete(id);
 		}
-		return makeResolution(ids, new Set([...included.reasons, ...excluded.reasons]));
+		return makeResolution(ids, [...included.reasons, ...excluded.reasons]);
 	}
 	const localAlias = moduleInfo.aliases.get(typeName);
 	if (localAlias != null) {
@@ -84,7 +95,10 @@ function resolveCapabilityIdsInner(
 	}
 	const imported = moduleInfo.imports.get(typeName);
 	if (imported == null) {
-		return makeResolution([], [`unresolved capability alias ${typeName}`]);
+		return makeResolution(
+			[],
+			[makeReason(moduleInfo, node, `unresolved capability alias ${typeName}`)],
+		);
 	}
 	const importedModule = loader.allModules().find((candidate) => {
 		const resolvedImport = loader.resolveImport(moduleInfo.filePath, imported.source);
@@ -95,15 +109,22 @@ function resolveCapabilityIdsInner(
 		return makeResolution(
 			[],
 			[
-				resolvedPath == null
-					? `unresolved import ${imported.source}`
-					: `import ${imported.source} was not loaded before resolving ${typeName}`,
+				makeReason(
+					moduleInfo,
+					node,
+					resolvedPath == null
+						? `unresolved import ${imported.source}`
+						: `import ${imported.source} was not loaded before resolving ${typeName}`,
+				),
 			],
 		);
 	}
 	const alias = importedModule.aliases.get(imported.importedName);
 	if (alias == null) {
-		return makeResolution([], [`unresolved imported capability alias ${typeName}`]);
+		return makeResolution(
+			[],
+			[makeReason(moduleInfo, node, `unresolved imported capability alias ${typeName}`)],
+		);
 	}
 	return resolveAlias(context, loader, importedModule, imported.importedName, alias);
 }
@@ -127,9 +148,9 @@ function resolveAlias(
 	let changed = true;
 	while (changed) {
 		const beforeIds = placeholder.ids.size;
-		const beforeReasons = placeholder.reasons.size;
+		const beforeReasons = placeholder.reasons.length;
 		mergeResolution(placeholder, resolveCapabilityIdsInner(context, loader, moduleInfo, alias));
-		changed = beforeIds !== placeholder.ids.size || beforeReasons !== placeholder.reasons.size;
+		changed = beforeIds !== placeholder.ids.size || beforeReasons !== placeholder.reasons.length;
 	}
 	placeholder.resolving = false;
 	return placeholder;
@@ -137,9 +158,9 @@ function resolveAlias(
 
 function makeResolution(
 	ids: Iterable<string> = [],
-	reasons: Iterable<string> = [],
+	reasons: Iterable<TypeResolutionReason> = [],
 ): MutableTypeResolution {
-	return { ids: new Set(ids), reasons: new Set(reasons), resolving: false };
+	return { ids: new Set(ids), reasons: Array.from(reasons), resolving: false };
 }
 
 function mergeResolution(target: MutableTypeResolution, source: MutableTypeResolution): void {
@@ -147,15 +168,60 @@ function mergeResolution(target: MutableTypeResolution, source: MutableTypeResol
 		target.ids.add(id);
 	}
 	for (const reason of source.reasons) {
-		target.reasons.add(reason);
+		if (!target.reasons.some((existing) => sameReason(existing, reason))) {
+			target.reasons.push(reason);
+		}
 	}
 }
 
 function freezeResolution(resolution: MutableTypeResolution): TypeResolution {
 	return {
 		ids: new Set(resolution.ids),
-		reasons: Array.from(resolution.reasons).sort(),
+		reasons: Array.from(resolution.reasons).sort(compareReasons),
 	};
+}
+
+function makeReason(
+	moduleInfo: CapabilityModule,
+	node: unknown,
+	message: string,
+): TypeResolutionReason {
+	const location = locationForOffset(moduleInfo.lineStarts, getNode(node)?.start);
+	return {
+		column: location.column,
+		filePath: moduleInfo.filePath,
+		line: location.line,
+		message,
+		...(message === capabilityIdNotStringLiteralMessage
+			? {
+					notes: [
+						{
+							kind: "help" as const,
+							message:
+								'use a string literal capability ID, for example `Capability<"app.clock", Clock>`',
+						},
+					],
+				}
+			: {}),
+	};
+}
+
+function sameReason(left: TypeResolutionReason, right: TypeResolutionReason): boolean {
+	return (
+		left.filePath === right.filePath &&
+		left.line === right.line &&
+		left.column === right.column &&
+		left.message === right.message
+	);
+}
+
+function compareReasons(left: TypeResolutionReason, right: TypeResolutionReason): number {
+	return (
+		(left.filePath ?? "").localeCompare(right.filePath ?? "") ||
+		(left.line ?? 0) - (right.line ?? 0) ||
+		(left.column ?? 0) - (right.column ?? 0) ||
+		left.message.localeCompare(right.message)
+	);
 }
 
 function getTokenCapabilityId(typeNode: unknown): string | null {
@@ -165,3 +231,6 @@ function getTokenCapabilityId(typeNode: unknown): string | null {
 	}
 	return getLiteralString(node["literal"]);
 }
+
+const capabilityIdNotStringLiteralMessage =
+	"Capability first type argument is not a string literal";

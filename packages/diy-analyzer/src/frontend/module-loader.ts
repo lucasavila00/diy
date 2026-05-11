@@ -29,7 +29,13 @@ import {
 	unwrapDeclaration,
 } from "./ast.ts";
 import { scanFunctionBody } from "./function-scan.ts";
-import type { AstNode, FunctionInfo, ImportedBinding, ModuleInfo } from "./types.ts";
+import type {
+	AstNode,
+	FunctionInfo,
+	ImportedBinding,
+	ModuleInfo,
+	UnsupportedReason,
+} from "./types.ts";
 
 export class ModuleLoader {
 	private readonly modules = new Map<string, ModuleInfo>();
@@ -160,10 +166,7 @@ export class ModuleLoader {
 			line: functionLocation.line,
 			name,
 			unsupportedReasons: [
-				...declared.reasons.map((message) => ({
-					kind: "capability-resolution" as const,
-					message,
-				})),
+				...declared.reasons.map(makeCapabilityResolutionReason),
 				...scan.unsupportedReasons,
 			],
 		};
@@ -191,6 +194,39 @@ export class ModuleLoader {
 		this.compilerOptions = compilerOptions;
 		return compilerOptions;
 	}
+}
+
+function makeCapabilityResolutionReason(reason: {
+	readonly column?: number;
+	readonly filePath?: string;
+	readonly line?: number;
+	readonly message: string;
+	readonly notes?: readonly { readonly kind: "help" | "note"; readonly message: string }[];
+}): UnsupportedReason {
+	const unsupported: {
+		column?: number;
+		filePath?: string;
+		kind: "capability-resolution";
+		line?: number;
+		message: string;
+		notes?: readonly { readonly kind: "help" | "note"; readonly message: string }[];
+	} = {
+		kind: "capability-resolution",
+		message: reason.message,
+	};
+	if (reason.column != null) {
+		unsupported.column = reason.column;
+	}
+	if (reason.filePath != null) {
+		unsupported.filePath = reason.filePath;
+	}
+	if (reason.line != null) {
+		unsupported.line = reason.line;
+	}
+	if (reason.notes != null) {
+		unsupported.notes = reason.notes;
+	}
+	return unsupported;
 }
 
 function getFirstErrorLabel(error: {

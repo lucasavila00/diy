@@ -1,0 +1,9 @@
+src/main.ts:5:27 unsupported analysis
+  3 | type Clock = { now(): Date };
+  4 |
+> 5 | type AnyClockCapability = Capability<string, Clock>;
+    |                           ^ Capability first type argument is not a string literal
+  6 |
+  7 | export function load(capabilities: Capabilities<AnyClockCapability>): Date {
+  8 | 	capabilities.need("app.clock");
+  = help: use a string literal capability ID, for example `Capability<"app.clock", Clock>`

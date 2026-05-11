@@ -54,8 +54,12 @@ export type CapabilitiesProvideCheck = {
 
 export type UnsupportedReason =
 	| {
+			readonly column?: number;
+			readonly filePath?: string;
 			readonly kind: "capability-resolution";
+			readonly line?: number;
 			readonly message: string;
+			readonly notes?: readonly { readonly kind: "help" | "note"; readonly message: string }[];
 	  }
 	| {
 			readonly kind: "unresolved-forwarding-callee";
