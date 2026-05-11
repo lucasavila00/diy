@@ -7,6 +7,7 @@
 		"all": "pnpm run format && pnpm run lint:fix && pnpm run build && pnpm run typecheck && pnpm run test-fix && pnpm run test:e2e && pnpm run knip",
 		"build": "pnpm -r --if-present run build",
 		"check": "pnpm run typecheck && pnpm run test",
+		"changeset": "changeset",
 		"diy:check": "diy-cli -p e2e-tests/success/module-graph/diy.json",
 		"diy:graph": "diy-cli --graph -p e2e-tests/success/module-graph/diy.json",
 		"test:e2e": "pnpm -r --if-present run e2e && bash e2e-tests/all.sh",
@@ -21,6 +22,7 @@
 	},
 	"devDependencies": {
 		"@beff/diy-cli": "workspace:*",
+		"@changesets/cli": "^2.31.0",
 		"knip": "^5.63.1",
 		"oxfmt": "^0.46.0",
 		"oxlint": "^1.61.0",

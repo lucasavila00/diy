@@ -5,6 +5,9 @@
 		"e2e-tests/success/module-graph",
 		"e2e-tests/success/module-resolution"
 	],
+	"ignoreIssues": {
+		"packages/diy-analyzer/tsc-slim/out.js": ["exports"]
+	},
 	"workspaces": {
 		".": {
 			"entry": ["oxlint-plugin-local.mjs", "scripts/check-knip-workspaces.mjs"],
@@ -20,6 +23,7 @@
 		},
 		"packages/diy-cli": {
 			"entry": ["bin/index.js!"],
+			"ignoreDependencies": ["oxc-parser"],
 			"project": ["bin/**/*.js!"]
 		}
 	}

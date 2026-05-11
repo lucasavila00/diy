@@ -26,8 +26,8 @@ await build({
 	plugins: [
 		{
 			name: "tinyglobby-cjs",
-			setup(build) {
-				build.onResolve({ filter: /^tinyglobby$/ }, () => ({ path: tinyglobbyCjsPath }));
+			setup(context) {
+				context.onResolve({ filter: /^tinyglobby$/ }, () => ({ path: tinyglobbyCjsPath }));
 			},
 		},
 	],

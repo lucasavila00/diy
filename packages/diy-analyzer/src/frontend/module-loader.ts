@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 import { parseSync } from "oxc-parser";
-import type { CompilerOptions, ModuleResolutionHost } from "typescript";
+import type { CompilerOptions } from "typescript";
 
 import {
 	findConfigFile,
@@ -99,7 +99,7 @@ export class ModuleLoader {
 			source,
 			resolvedFromFilePath,
 			this.resolveCompilerOptions(),
-			moduleResolutionHost,
+			tsSys,
 		);
 		const resolvedFileName = resolved.resolvedModule?.resolvedFileName;
 		const resolvedPath =
@@ -190,11 +190,6 @@ export class ModuleLoader {
 		return compilerOptions;
 	}
 }
-
-const moduleResolutionHost: ModuleResolutionHost = {
-	fileExists: tsSys.fileExists,
-	readFile: tsSys.readFile,
-};
 
 function getFirstErrorLabel(error: {
 	readonly labels?: readonly { readonly start?: number }[];

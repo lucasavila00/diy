@@ -2,11 +2,13 @@
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
 	"ignorePatterns": [
 		"**/dist/**",
+		"**/dist-cli/**",
 		"**/node_modules/**",
 		"**/coverage/**",
 		"**/.turbo/**",
 		"**/.cache/**",
-		"**/.tmp/**"
+		"**/.tmp/**",
+		"**/tsc-slim/**"
 	],
 	"categories": {
 		"correctness": "error",
