@@ -15,6 +15,10 @@ type UnusedCapabilityResult = {
 	readonly violations: readonly DiyAnalyzerViolation[];
 };
 
+function formatCapabilityIdsForNote(ids: readonly string[]): string {
+	return ids.map((id) => `\`${id}\``).join(", ");
+}
+
 export function analyzeUnusedCapabilities(
 	loader: ModuleLoader,
 	modules: readonly ModuleInfo[],
@@ -52,6 +56,7 @@ export function analyzeUnusedCapabilities(
 					.filter((id) => functionInfo.declared.has(id))
 					.sort();
 				if (overlapping.length > 0) {
+					const verb = overlapping.length === 1 ? "is" : "are";
 					violations.push({
 						capabilityIds: overlapping,
 						column: check.column,
@@ -59,6 +64,19 @@ export function analyzeUnusedCapabilities(
 						functionName: functionInfo.name,
 						line: check.line,
 						name: "redundant capability provider",
+						notes: [
+							{
+								kind: "note",
+								message:
+									`${formatCapabilityIdsForNote(overlapping)} ${verb} already allowed by this function's ` +
+									"`capabilities` parameter",
+							},
+							{
+								kind: "help",
+								message:
+									"use `capabilities.override(...)` when replacing an existing capability is intentional",
+							},
+						],
 						reason: "capabilities.provide adds capabilities already present on capabilities",
 					});
 				}

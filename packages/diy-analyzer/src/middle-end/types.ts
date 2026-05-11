@@ -22,6 +22,11 @@ export type DiyAnalyzerUnsupported = {
 	readonly reason: string;
 };
 
+export type DiyAnalyzerNote = {
+	readonly kind: "help" | "note";
+	readonly message: string;
+};
+
 export type DiyAnalyzerViolation = {
 	readonly capabilityIds?: readonly string[];
 	readonly filePath: string;
@@ -29,6 +34,7 @@ export type DiyAnalyzerViolation = {
 	readonly column?: number;
 	readonly line: number;
 	readonly name: string;
+	readonly notes?: readonly DiyAnalyzerNote[];
 	readonly reason: string;
 };
 

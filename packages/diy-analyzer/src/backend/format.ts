@@ -6,6 +6,7 @@ import { codeFrameColumns } from "@babel/code-frame";
 import { normalizePath } from "../frontend/source-files.ts";
 import type {
 	AnalyzeOptions,
+	DiyAnalyzerNote,
 	DiyAnalyzerUnsupported,
 	DiyAnalyzerViolation,
 	DiyAnalysis,
@@ -64,6 +65,13 @@ function formatList(values: readonly string[]): string {
 	return values.length === 0 ? "(none)" : values.join(", ");
 }
 
+function formatNotes(notes: readonly DiyAnalyzerNote[] | undefined): string {
+	if (notes == null || notes.length === 0) {
+		return "";
+	}
+	return `\n${notes.map((note) => `  = ${note.kind}: ${note.message}`).join("\n")}`;
+}
+
 type DiagnosticLocation = {
 	readonly column?: number;
 	readonly filePath: string;
@@ -75,6 +83,7 @@ function formatDiagnostic(
 	item: DiagnosticLocation,
 	name: string,
 	message: string,
+	notes?: readonly DiyAnalyzerNote[],
 ): string {
 	const displayPath = normalizePath(relative(cwd, item.filePath));
 	const lineColumn =
@@ -84,7 +93,7 @@ function formatDiagnostic(
 	const location = `${lineColumn} ${name}`;
 	const source = readSourceFile(item.filePath);
 	if (source == null || item.line == null) {
-		return `${location} ${message}`;
+		return `${location} ${message}${formatNotes(notes)}`;
 	}
 	return `${location}\n${codeFrameColumns(
 		source,
@@ -98,7 +107,7 @@ function formatDiagnostic(
 			highlightCode: false,
 			message,
 		},
-	)}`;
+	)}${formatNotes(notes)}`;
 }
 
 function readSourceFile(filePath: string): string | null {
@@ -123,7 +132,13 @@ export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions
 		const capabilityIds =
 			violation.capabilityIds == null ? "" : `: ${formatList(violation.capabilityIds)}`;
 		lines.push(
-			formatDiagnostic(cwd, violation, violation.name, `${violation.reason}${capabilityIds}`),
+			formatDiagnostic(
+				cwd,
+				violation,
+				violation.name,
+				`${violation.reason}${capabilityIds}`,
+				violation.notes,
+			),
 		);
 	}
 	for (const item of analysis.unsupported) {

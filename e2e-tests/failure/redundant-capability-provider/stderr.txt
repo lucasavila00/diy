@@ -5,3 +5,5 @@ src/main.ts:9:9 redundant capability provider
      | 	       ^ capabilities.provide adds capabilities already present on capabilities: write
   10 | }
   11 |
+  = note: `write` is already allowed by this function's `capabilities` parameter
+  = help: use `capabilities.override(...)` when replacing an existing capability is intentional
