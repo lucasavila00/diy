@@ -3,7 +3,8 @@
 	"ignoreWorkspaces": [
 		"e2e-tests/failure",
 		"e2e-tests/success/module-graph",
-		"e2e-tests/success/module-resolution"
+		"e2e-tests/success/module-resolution",
+		"e2e-tests/success/nested-callback-need"
 	],
 	"ignoreIssues": {
 		"packages/diy-analyzer/tsc-slim/out.js": ["exports"]
