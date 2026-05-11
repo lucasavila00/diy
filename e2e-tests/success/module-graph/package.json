@@ -1,0 +1,14 @@
+{
+	"name": "@beff/diy-e2e-module-graph",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"diy:check": "diy-cli packages",
+		"diy:graph": "diy-cli --graph packages > module-graph.txt",
+		"e2e": "pnpm run diy:check && pnpm run diy:graph"
+	},
+	"dependencies": {
+		"@beff/diy-cli": "workspace:*"
+	}
+}

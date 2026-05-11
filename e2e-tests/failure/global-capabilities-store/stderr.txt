@@ -1,0 +1,8 @@
+packages/app/src/main.ts:11:23 escaped capabilities
+   9 |
+  10 | export function start(capabilities: Capabilities<FsCapability>): void {
+> 11 | 	storedCapabilities = capabilities;
+     | 	                     ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
+  12 | 	capabilities.need("core.fs");
+  13 | }
+  14 |
