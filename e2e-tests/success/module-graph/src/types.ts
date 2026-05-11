@@ -1,3 +1,3 @@
-import type { ClockCapability, FsCapability } from "./deps.ts";
+import type { ClockCapability, EnvCapability, FsCapability } from "./deps.ts";
 
-export type AppCapability = ClockCapability | FsCapability;
+export type AppCapability = ClockCapability | EnvCapability | FsCapability;

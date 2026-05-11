@@ -7,5 +7,7 @@ src/config.ts
 `-- readConfig: core.fs
 
 src/main.ts
-`-- run: core.clock, core.fs
-   `-- calls: readClock, readConfig
++-- run: core.clock, core.env, core.fs
+|  `-- calls: readClock, readConfig
+|
+`-- nestedOnly: core.secret

@@ -17,7 +17,6 @@ import {
 	getArray,
 	getFirstParam,
 	getFunctionName,
-	getIdentifierFromParam,
 	getIdentifierName,
 	getLiteralString,
 	getNode,
@@ -139,9 +138,6 @@ export class ModuleLoader {
 		functionNode: AstNode,
 	): FunctionInfo | null {
 		const firstParam = getFirstParam(functionNode);
-		if (getIdentifierName(getIdentifierFromParam(firstParam)) !== "capabilities") {
-			return null;
-		}
 		const allowedType = getCapabilitiesAllowedType(getParamType(firstParam));
 		if (allowedType == null) {
 			return null;

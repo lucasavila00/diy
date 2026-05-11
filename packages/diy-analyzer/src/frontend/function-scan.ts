@@ -1,10 +1,11 @@
 import {
 	getArray,
 	getFirstParam,
-	getIdentifierFromParam,
+	getCapabilitiesAllowedType,
 	getIdentifierName,
 	getLiteralString,
 	getNode,
+	getParamType,
 	getTypeArguments,
 	isFunctionNode,
 	isCapabilitiesProvideCall,
@@ -47,7 +48,7 @@ export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 		}
 		if (node !== functionNode && isFunctionNode(node)) {
 			const firstParam = getFirstParam(node);
-			if (getIdentifierName(getIdentifierFromParam(firstParam)) === "capabilities") {
+			if (getCapabilitiesAllowedType(getParamType(firstParam)) != null) {
 				return;
 			}
 		}
