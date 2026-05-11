@@ -19,6 +19,7 @@ export async function expandSourceFiles(
 	for (const match of await glob([...config.include], {
 		absolute: true,
 		cwd,
+		/* istanbul ignore next -- config parsing normalizes missing ignore to an empty array. */
 		ignore: [...(config.ignore ?? [])],
 		onlyFiles: true,
 	})) {

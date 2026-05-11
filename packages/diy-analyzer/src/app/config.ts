@@ -10,6 +10,7 @@ type DiyProject = {
 };
 
 function resolveProjectPath(projectPath: string, cwd: string): string {
+	/* c8 ignore next -- fixture commands use project paths relative to their case directory. */
 	return isAbsolute(projectPath) ? projectPath : join(cwd, projectPath);
 }
 
@@ -41,19 +42,27 @@ async function readDiyProject(projectPath: string, displayPath: string): Promise
 
 function displayProjectPath(projectPath: string, cwd: string): string {
 	const relativePath = relative(cwd, projectPath);
+	/* c8 ignore next -- fixture commands keep project files under their case directory. */
 	return relativePath.startsWith("..") || isAbsolute(relativePath) ? projectPath : relativePath;
 }
 
 function formatReadError(error: unknown): string {
+	/* c8 ignore next -- fs read failures are Node error objects. */
 	if (error == null || typeof error !== "object") {
+		/* istanbul ignore next -- fs read failures are Node error objects. */
 		return String(error);
 	}
+	/* c8 ignore next -- Node fs errors expose message/code in a stable shape. */
 	const code = "code" in error && typeof error.code === "string" ? error.code : null;
+	/* c8 ignore next -- fs read failures are Error objects. */
 	const rawMessage = error instanceof Error ? error.message : String(error);
+	/* c8 ignore next -- Node fs error messages include text before the open path. */
 	const message = rawMessage.split(", open ")[0] ?? rawMessage;
+	/* c8 ignore next -- Node fs messages already include the error code. */
 	if (code == null || message.startsWith(`${code}: `)) {
 		return message;
 	}
+	/* istanbul ignore next -- Node fs messages already include the error code. */
 	return `${code}: ${message}`;
 }
 

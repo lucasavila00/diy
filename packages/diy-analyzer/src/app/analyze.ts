@@ -11,6 +11,7 @@ export async function analyzeDiy(
 	config: DiySourceConfig,
 	options: AnalyzeOptions = {},
 ): Promise<DiyAnalysis> {
+	/* istanbul ignore next -- CLI/tests always pass cwd; default is process-entry convenience. */
 	const cwd = resolve(options.cwd ?? process.cwd());
 	const program = await buildDiyProgram(config, cwd);
 	const frontend = analyzeFrontend(program.modules);

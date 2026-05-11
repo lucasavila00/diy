@@ -1,0 +1,1 @@
+diy.json field "ignore" must be a string array.

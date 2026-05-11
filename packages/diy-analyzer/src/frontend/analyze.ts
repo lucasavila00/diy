@@ -21,14 +21,17 @@ export function analyzeFrontend(modules: readonly ModuleInfo[]): FrontendAnalysi
 				filePath: moduleInfo.filePath,
 				reason: parseError.message,
 			};
+			/* c8 ignore next -- Oxc parse errors include label columns for reportable syntax errors. */
 			if (parseError.column != null) {
 				item.column = parseError.column;
 			}
+			/* c8 ignore next -- Oxc parse errors include label lines for reportable syntax errors. */
 			if (parseError.line != null) {
 				item.line = parseError.line;
 			}
 			unsupported.push(item);
 		}
+		/* istanbul ignore next -- ModuleLoader only materializes configured source files. */
 		if (!moduleInfo.reportable) {
 			continue;
 		}

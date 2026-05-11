@@ -1,0 +1,8 @@
+Module graph
+
+lib/one.ts
+`-- run: read, write
+   `-- calls: src/one.ts:run
+
+src/one.ts
+`-- run: read

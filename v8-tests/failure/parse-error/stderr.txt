@@ -1,0 +1,4 @@
+broken/main.fixture:1:15 unsupported analysis
+> 1 | const value = ;
+    |               ^ Unexpected token
+  2 |

@@ -1,0 +1,4 @@
+{
+	"ignore": [false],
+	"include": ["src/**/*.ts"]
+}

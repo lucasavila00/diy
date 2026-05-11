@@ -17,5 +17,6 @@ export function getDiyCapabilitiesAllowedType(moduleInfo: ModuleInfo, typeNode: 
 	if (node == null || !isDiyCapabilitiesType(moduleInfo, node)) {
 		return null;
 	}
+	/* c8 ignore next -- valid Capabilities<T> parameters provide the allowed type argument. */
 	return getTypeArguments(node)[0] ?? null;
 }

@@ -1,0 +1,1 @@
+diy.json must define a non-empty "include" string array.

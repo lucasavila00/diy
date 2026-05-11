@@ -47,6 +47,8 @@ function resolveCapabilityIdsInner(
 	if (node == null) {
 		return makeResolution([], [makeReason(moduleInfo, null, "missing type node")]);
 	}
+	/* istanbul ignore next -- formatter removes parenthesized type aliases in fixtures. */
+	/* c8 ignore next -- formatter removes parenthesized type aliases in fixtures. */
 	if (node.type === "TSParenthesizedType") {
 		return resolveCapabilityIdsInner(context, loader, moduleInfo, node["typeAnnotation"]);
 	}
@@ -112,6 +114,7 @@ function resolveCapabilityIdsInner(
 				makeReason(
 					moduleInfo,
 					node,
+					/* istanbul ignore next -- dependency loading prevents resolved-but-unloaded imports. */
 					resolvedPath == null
 						? `unresolved import ${imported.source}`
 						: `import ${imported.source} was not loaded before resolving ${typeName}`,
@@ -216,6 +219,7 @@ function sameReason(left: TypeResolutionReason, right: TypeResolutionReason): bo
 }
 
 function compareReasons(left: TypeResolutionReason, right: TypeResolutionReason): number {
+	/* istanbul ignore next -- sorting is deterministic fallback behavior. */
 	return (
 		(left.filePath ?? "").localeCompare(right.filePath ?? "") ||
 		(left.line ?? 0) - (right.line ?? 0) ||

@@ -1,0 +1,4 @@
+{
+	"ignore": ["src/ignored.fixture"],
+	"include": ["src/**/*"]
+}

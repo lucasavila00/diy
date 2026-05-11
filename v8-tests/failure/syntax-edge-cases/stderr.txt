@@ -1,0 +1,80 @@
+src/main.ts:11:8 unused capability
+   9 | void diy;
+  10 |
+> 11 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ Declares unused capability "read".
+  12 | 	const { ...rest } = capabilities;
+  13 | 	use(rest);
+  14 | }
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.need("read")` call if it is required
+src/main.ts:12:22 escaped capabilities
+  10 |
+  11 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {
+> 12 | 	const { ...rest } = capabilities;
+     | 	                    ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
+  13 | 	use(rest);
+  14 | }
+  15 |
+  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
+src/main.ts:17:20 escaped capabilities
+  15 |
+  16 | export function duplicateEscape(capabilities: Capabilities<ReadCapability>): void {
+> 17 | 	use(capabilities, capabilities);
+     | 	                  ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
+  18 | }
+  19 |
+  20 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
+  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
+src/main.ts:21:17 invalid capabilities parameter
+  19 |
+  20 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
+> 21 | 	function inner(capabilities: unknown): void {
+     | 	               ^ `capabilities` parameters must be typed as `Capabilities<...>`.
+  22 | 		use(capabilities);
+  23 | 	}
+  24 | 	inner(capabilities);
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+src/main.ts:29:2 invalid capabilities parameter
+  27 | export function destructuredParam(
+  28 | 	{ value }: { value: unknown },
+> 29 | 	capabilities: Capabilities<ReadCapability>,
+     | 	^ Capabilities parameters must be the first parameter.
+  30 | ): void {
+  31 | 	const { need } = other;
+  32 | 	use(value);
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+src/main.ts:37:1 re-exported diy capabilities
+  35 | }
+  36 |
+> 37 | export * from "@beff/diy/capabilities";
+     | ^ Do not re-export Capabilities from @beff/diy; import it directly where it is used.
+  38 | export * as DiyCapabilities from "@beff/diy";
+  39 | export type { Capability } from "@beff/diy";
+  40 |
+  = help: use `import type { Capabilities } from "@beff/diy"` in each module that needs it
+src/main.ts:38:1 re-exported diy capabilities
+  36 |
+  37 | export * from "@beff/diy/capabilities";
+> 38 | export * as DiyCapabilities from "@beff/diy";
+     | ^ Do not re-export Capabilities from @beff/diy; import it directly where it is used.
+  39 | export type { Capability } from "@beff/diy";
+  40 |
+  = help: use `import type { Capabilities } from "@beff/diy"` in each module that needs it
+src/main.ts:16:8 unsupported analysis
+  14 | }
+  15 |
+> 16 | export function duplicateEscape(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ unresolved capabilities forwarding target use
+  17 | 	use(capabilities, capabilities);
+  18 | }
+  19 |
+  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
+src/main.ts:20:8 unsupported analysis
+  18 | }
+  19 |
+> 20 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ unresolved capabilities forwarding target inner
+  21 | 	function inner(capabilities: unknown): void {
+  22 | 		use(capabilities);
+  23 | 	}
+  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter

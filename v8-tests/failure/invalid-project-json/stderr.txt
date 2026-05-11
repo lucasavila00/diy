@@ -1,0 +1,1 @@
+Failed to parse diy.json at invalid.fixture: SyntaxError: Expected property name or '}' in JSON at position 2 (line 2 column 1)
