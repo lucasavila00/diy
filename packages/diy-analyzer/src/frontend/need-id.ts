@@ -2,7 +2,7 @@ import type { ModuleLoader } from "./module-loader.ts";
 import { getArray, getIdentifierName, getLiteralString, getNode } from "./ast.ts";
 import type { AstNode, ModuleInfo, StringConstantBinding } from "./types.ts";
 
-export type StringConstantScope = ReadonlyMap<string, StringConstantBinding>;
+type StringConstantScope = ReadonlyMap<string, StringConstantBinding>;
 
 type NeedIdResolutionContext = {
 	readonly loader: ModuleLoader;
