@@ -1,5 +1,7 @@
+import type { ModuleLoader } from "../frontend/module-loader.ts";
 import type { UnsupportedReason } from "../frontend/types.ts";
-import type { ArenaFunction, FunctionIndex, MiddleEndArena } from "./arena.ts";
+import type { ArenaCall, ArenaFunction, FunctionIndex, MiddleEndArena } from "./arena.ts";
+import { resolveCapabilityIds } from "./capabilities.ts";
 import type { DiyAnalyzerNote, DiyAnalyzerUnsupported } from "./types.ts";
 
 type RequiredCapabilitiesAnalysis = {
@@ -8,7 +10,10 @@ type RequiredCapabilitiesAnalysis = {
 	readonly unsupportedFunctionIndices: ReadonlySet<FunctionIndex>;
 };
 
-export function analyzeRequiredCapabilities(arena: MiddleEndArena): RequiredCapabilitiesAnalysis {
+export function analyzeRequiredCapabilities(
+	loader: ModuleLoader,
+	arena: MiddleEndArena,
+): RequiredCapabilitiesAnalysis {
 	const requiredByFunction = arena.functions.map((functionInfo) => baseRequired(functionInfo));
 	let changed = true;
 	while (changed) {
@@ -26,7 +31,11 @@ export function analyzeRequiredCapabilities(arena: MiddleEndArena): RequiredCapa
 				if (calleeRequired == null) {
 					continue;
 				}
+				const provided = resolveProvidedCapabilities(loader, arena, functionInfo, call);
 				for (const id of calleeRequired) {
+					if (provided.has(id)) {
+						continue;
+					}
 					if (!required.has(id)) {
 						required.add(id);
 						changed = true;
@@ -39,6 +48,26 @@ export function analyzeRequiredCapabilities(arena: MiddleEndArena): RequiredCapa
 		requiredByFunction,
 		...buildUnsupported(arena),
 	};
+}
+
+function resolveProvidedCapabilities(
+	loader: ModuleLoader,
+	arena: MiddleEndArena,
+	functionInfo: ArenaFunction,
+	call: ArenaCall,
+): ReadonlySet<string> {
+	if (call.providedType == null) {
+		return new Set();
+	}
+	const moduleInfo = arena.modules[functionInfo.moduleIndex];
+	if (moduleInfo == null) {
+		return new Set();
+	}
+	const provided = resolveCapabilityIds(loader, moduleInfo, call.providedType, []);
+	if (provided.reasons.length > 0) {
+		return new Set();
+	}
+	return provided.ids;
 }
 
 function baseRequired(functionInfo: ArenaFunction): Set<string> {

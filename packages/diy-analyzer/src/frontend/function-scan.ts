@@ -15,7 +15,7 @@ import {
 import type { AstNode, UnsupportedReason } from "./types.ts";
 
 type FunctionScan = {
-	readonly calleeNames: ReadonlySet<string>;
+	readonly calls: readonly ScannedCapabilitiesForwardingCall[];
 	readonly direct: ReadonlySet<string>;
 	readonly provideChecks: readonly ScannedCapabilitiesProvideCheck[];
 	readonly forwardsTransformedCapabilities: boolean;
@@ -27,10 +27,16 @@ type ScannedCapabilitiesProvideCheck = {
 	readonly start: number | undefined;
 };
 
+type ScannedCapabilitiesForwardingCall = {
+	readonly calleeName: string;
+	readonly providedType: unknown | null;
+};
+
 export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 	const direct = new Set<string>();
-	const calleeNames = new Set<string>();
+	const calls: ScannedCapabilitiesForwardingCall[] = [];
 	const provideChecks: ScannedCapabilitiesProvideCheck[] = [];
+	const inlineForwardedProvideCalls = new WeakSet<AstNode>();
 	let forwardsTransformedCapabilities = false;
 	const unsupportedReasons: UnsupportedReason[] = [];
 	const body = functionNode["body"];
@@ -59,7 +65,7 @@ export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 			}
 			return;
 		}
-		if (isCapabilitiesTransformCall(node)) {
+		if (isCapabilitiesTransformCall(node) && !inlineForwardedProvideCalls.has(node)) {
 			forwardsTransformedCapabilities = true;
 		}
 		if (isCapabilitiesProvideCall(node)) {
@@ -68,15 +74,26 @@ export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 				start: node.start,
 			});
 		}
-		if (node.type === "CallExpression" && isCapabilitiesFirstArgument(node)) {
-			const calleeName = getIdentifierName(node["callee"]);
-			if (calleeName == null) {
-				unsupportedReasons.push({
-					kind: "unresolved-forwarding-callee",
-					message: "unresolved capabilities forwarding callee",
-				});
+		if (node.type === "CallExpression") {
+			const forwarded = getForwardedCapabilitiesArgument(node);
+			if (forwarded == null) {
+				// Continue traversal below.
 			} else {
-				calleeNames.add(calleeName);
+				if (forwarded.provideCall != null) {
+					inlineForwardedProvideCalls.add(forwarded.provideCall);
+				}
+				const calleeName = getIdentifierName(node["callee"]);
+				if (calleeName == null) {
+					unsupportedReasons.push({
+						kind: "unresolved-forwarding-callee",
+						message: "unresolved capabilities forwarding callee",
+					});
+				} else {
+					calls.push({
+						calleeName,
+						providedType: forwarded.providedType,
+					});
+				}
 			}
 		}
 		for (const [key, child] of Object.entries(node)) {
@@ -89,7 +106,7 @@ export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 
 	visit(body);
 	return {
-		calleeNames,
+		calls,
 		direct,
 		forwardsTransformedCapabilities,
 		provideChecks,
@@ -97,7 +114,22 @@ export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 	};
 }
 
-function isCapabilitiesFirstArgument(node: AstNode): boolean {
+type ForwardedCapabilitiesArgument = {
+	readonly provideCall: AstNode | null;
+	readonly providedType: unknown | null;
+};
+
+function getForwardedCapabilitiesArgument(node: AstNode): ForwardedCapabilitiesArgument | null {
 	const firstArgument = getArray(node["arguments"])[0];
-	return getIdentifierName(firstArgument) === "capabilities";
+	if (getIdentifierName(firstArgument) === "capabilities") {
+		return { provideCall: null, providedType: null };
+	}
+	const firstArgumentNode = getNode(firstArgument);
+	if (firstArgumentNode == null || !isCapabilitiesProvideCall(firstArgumentNode)) {
+		return null;
+	}
+	return {
+		provideCall: firstArgumentNode,
+		providedType: getTypeArguments(firstArgumentNode)[0] ?? null,
+	};
 }

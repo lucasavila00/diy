@@ -1,0 +1,12 @@
+Module graph
+
+src/main.ts
++-- readRenamed: app.clock
+|
++-- fromStaticProvider: audit
+|
++-- fromTopLevelObject: audit
+|  `-- calls: readRenamed
+|
+`-- fromExistingCapability: legacy.clock
+   `-- calls: readRenamed

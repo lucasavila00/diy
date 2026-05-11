@@ -29,7 +29,7 @@ export type ParseErrorInfo = {
 };
 
 export type FunctionInfo = {
-	readonly calleeNames: ReadonlySet<string>;
+	readonly calls: readonly CapabilitiesForwardingCall[];
 	readonly declared: ReadonlySet<string>;
 	readonly direct: ReadonlySet<string>;
 	readonly provideChecks: readonly CapabilitiesProvideCheck[];
@@ -39,6 +39,11 @@ export type FunctionInfo = {
 	readonly line: number;
 	readonly name: string;
 	readonly unsupportedReasons: readonly UnsupportedReason[];
+};
+
+export type CapabilitiesForwardingCall = {
+	readonly calleeName: string;
+	readonly providedType: unknown | null;
 };
 
 export type CapabilitiesProvideCheck = {

@@ -27,7 +27,7 @@ export function analyzeUnusedCapabilities(
 	const unsupported: DiyAnalyzerUnsupported[] = [];
 	const violations: DiyAnalyzerViolation[] = [];
 	const arena = buildMiddleEndArena(loader, modules);
-	const requiredCapabilities = analyzeRequiredCapabilities(arena);
+	const requiredCapabilities = analyzeRequiredCapabilities(loader, arena);
 	unsupported.push(...requiredCapabilities.unsupported);
 	for (const moduleInfo of arena.modules) {
 		if (!moduleInfo.reportable) {

@@ -146,7 +146,7 @@ export class ModuleLoader {
 		const scan = scanFunctionBody(functionNode);
 		const functionLocation = locationForOffset(moduleInfo.lineStarts, functionNode.start);
 		return {
-			calleeNames: scan.calleeNames,
+			calls: scan.calls,
 			column: functionLocation.column,
 			declared: declared.ids,
 			direct: scan.direct,

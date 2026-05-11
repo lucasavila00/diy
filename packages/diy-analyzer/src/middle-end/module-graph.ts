@@ -16,7 +16,7 @@ export function analyzeModuleGraph(
 	modules: readonly ModuleInfo[],
 ): DiyModuleGraph {
 	const arena = buildMiddleEndArena(loader, modules);
-	const requiredCapabilities = analyzeRequiredCapabilities(arena);
+	const requiredCapabilities = analyzeRequiredCapabilities(loader, arena);
 	return {
 		modules: Array.from(arena.modules)
 			.sort(compareModules)

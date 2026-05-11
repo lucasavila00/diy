@@ -44,6 +44,7 @@ export type ArenaFunction = {
 
 export type ArenaCall = {
 	readonly calleeName: string;
+	readonly providedType: unknown | null;
 	readonly target?: FunctionIndex;
 };
 
@@ -108,18 +109,21 @@ export function buildMiddleEndArena(
 		if (moduleInfo == null) {
 			continue;
 		}
-		const calls = Array.from(moduleInfo.functions.get(functionInfo.name)?.calleeNames ?? [])
-			.sort()
-			.map((calleeName) => {
+		const calls = Array.from(moduleInfo.functions.get(functionInfo.name)?.calls ?? [])
+			.sort((left, right) => left.calleeName.localeCompare(right.calleeName))
+			.map((call) => {
 				const target = resolveArenaCallee(
 					loader,
 					modules,
 					moduleIndexByPath,
 					functionIndexByModule,
 					functionInfo.moduleIndex,
-					calleeName,
+					call.calleeName,
 				);
-				return target == null ? { calleeName } : { calleeName, target };
+				if (target == null) {
+					return call;
+				}
+				return { ...call, target };
 			});
 		functions[functionPosition] = { ...functionInfo, calls };
 	}
