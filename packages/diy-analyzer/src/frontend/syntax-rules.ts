@@ -19,7 +19,6 @@ import {
 	capabilityMethodNames,
 } from "./ast.ts";
 import { isDiyCapabilitiesType, publicDiyImportSources } from "./diy-imports.ts";
-import type { ModuleLoader } from "./module-loader.ts";
 import type { AstNode, ModuleInfo } from "./types.ts";
 
 type FunctionFrame = {
@@ -28,10 +27,7 @@ type FunctionFrame = {
 	readonly name: string | null;
 };
 
-export function analyzeDiySyntax(
-	loader: ModuleLoader,
-	moduleInfo: ModuleInfo,
-): readonly DiyAnalyzerViolation[] {
+export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerViolation[] {
 	if (!moduleInfo.reportable) {
 		return [];
 	}
@@ -109,7 +105,7 @@ export function analyzeDiySyntax(
 				const identifier = getIdentifierFromParam(param);
 				return (
 					getIdentifierName(identifier) === "capabilities" &&
-					isDiyCapabilitiesType(loader, moduleInfo, getParamType(getNode(param)))
+					isDiyCapabilitiesType(moduleInfo, getParamType(getNode(param)))
 				);
 			}),
 			name: getFunctionName(node, parent),
@@ -122,9 +118,8 @@ export function analyzeDiySyntax(
 			}
 
 			const typeNode = getParamType(param);
-			const hasDiyCapabilitiesType = isDiyCapabilitiesType(loader, moduleInfo, typeNode);
-			const hasUnrelatedCapabilitiesType =
-				isCapabilitiesType(typeNode) && !hasDiyCapabilitiesType;
+			const hasDiyCapabilitiesType = isDiyCapabilitiesType(moduleInfo, typeNode);
+			const hasUnrelatedCapabilitiesType = isCapabilitiesType(typeNode) && !hasDiyCapabilitiesType;
 			const name = getIdentifierName(identifier);
 			if (!hasDiyCapabilitiesType && name !== "capabilities") {
 				continue;
@@ -305,6 +300,41 @@ export function analyzeDiySyntax(
 		}
 	};
 
+	const checkNoCapabilitiesReexport = (node: AstNode): void => {
+		if (!publicDiyImportSources.has(getLiteralString(node["source"]) ?? "")) {
+			return;
+		}
+		if (node.type === "ExportAllDeclaration") {
+			report(
+				node,
+				"re-exported diy capabilities",
+				"Do not re-export Capabilities from @beff/diy; import it directly where it is used.",
+				[capabilitiesImportHelp()],
+			);
+			return;
+		}
+		if (node.type !== "ExportNamedDeclaration") {
+			return;
+		}
+		for (const specifierValue of getArray(node["specifiers"])) {
+			const specifier = getNode(specifierValue);
+			if (specifier?.type !== "ExportSpecifier") {
+				continue;
+			}
+			const localName =
+				getIdentifierName(specifier["local"]) ?? getLiteralString(specifier["local"]);
+			if (localName !== "Capabilities") {
+				continue;
+			}
+			report(
+				specifier,
+				"re-exported diy capabilities",
+				"Do not re-export Capabilities from @beff/diy; import it directly where it is used.",
+				[capabilitiesImportHelp()],
+			);
+		}
+	};
+
 	const checkCapabilityIdentifier = (
 		node: AstNode,
 		parent: AstNode | null,
@@ -352,6 +382,7 @@ export function analyzeDiySyntax(
 			checkCallExpression(node);
 		}
 		checkNoRenamedDiyImport(node);
+		checkNoCapabilitiesReexport(node);
 		checkNoNeedAlias(node);
 		if (node.type === "Identifier") {
 			checkCapabilityIdentifier(node, parent, grandparent);
@@ -381,6 +412,13 @@ function capabilitiesParameterHelp(): DiyAnalyzerNote {
 		kind: "help",
 		message:
 			"write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`",
+	};
+}
+
+function capabilitiesImportHelp(): DiyAnalyzerNote {
+	return {
+		kind: "help",
+		message: 'use `import type { Capabilities } from "@beff/diy"` in each module that needs it',
 	};
 }
 

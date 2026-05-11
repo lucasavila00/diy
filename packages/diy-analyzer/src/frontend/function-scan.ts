@@ -13,7 +13,6 @@ import {
 	isCapabilitiesTransformCall,
 } from "./ast.ts";
 import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
-import type { ModuleLoader } from "./module-loader.ts";
 import type { AstNode, ModuleInfo, UnsupportedReason } from "./types.ts";
 
 type FunctionScan = {
@@ -34,11 +33,7 @@ type ScannedCapabilitiesForwardingCall = {
 	readonly providedType: unknown | null;
 };
 
-export function scanFunctionBody(
-	loader: ModuleLoader,
-	moduleInfo: ModuleInfo,
-	functionNode: AstNode,
-): FunctionScan {
+export function scanFunctionBody(moduleInfo: ModuleInfo, functionNode: AstNode): FunctionScan {
 	const direct = new Set<string>();
 	const calls: ScannedCapabilitiesForwardingCall[] = [];
 	const provideChecks: ScannedCapabilitiesProvideCheck[] = [];
@@ -59,7 +54,7 @@ export function scanFunctionBody(
 			return;
 		}
 		if (node !== functionNode && isFunctionNode(node)) {
-			if (hasOwnCapabilitiesBinding(loader, moduleInfo, node)) {
+			if (hasOwnCapabilitiesBinding(moduleInfo, node)) {
 				return;
 			}
 		}
@@ -119,13 +114,9 @@ export function scanFunctionBody(
 	};
 }
 
-function hasOwnCapabilitiesBinding(
-	loader: ModuleLoader,
-	moduleInfo: ModuleInfo,
-	functionNode: AstNode,
-): boolean {
+function hasOwnCapabilitiesBinding(moduleInfo: ModuleInfo, functionNode: AstNode): boolean {
 	const firstParam = getFirstParam(functionNode);
-	if (getDiyCapabilitiesAllowedType(loader, moduleInfo, getParamType(firstParam)) != null) {
+	if (getDiyCapabilitiesAllowedType(moduleInfo, getParamType(firstParam)) != null) {
 		return true;
 	}
 	return getArray(functionNode["params"]).some(

@@ -84,12 +84,10 @@ export class ModuleLoader {
 			lineStarts,
 			parseErrors,
 			reportable: this.sourceFiles.has(resolvedPath),
-			reexports: new Map(),
 			source,
 		};
 		this.modules.set(resolvedPath, moduleInfo);
 		collectImports(body, moduleInfo.imports);
-		collectReexports(body, moduleInfo.reexports);
 		collectAliases(body, moduleInfo.aliases);
 		collectFunctionNodes(body, null, moduleInfo.functionNodes);
 		return moduleInfo;
@@ -146,12 +144,12 @@ export class ModuleLoader {
 		functionNode: AstNode,
 	): FunctionInfo | null {
 		const firstParam = getFirstParam(functionNode);
-		const allowedType = getDiyCapabilitiesAllowedType(this, moduleInfo, getParamType(firstParam));
+		const allowedType = getDiyCapabilitiesAllowedType(moduleInfo, getParamType(firstParam));
 		if (allowedType == null) {
 			return null;
 		}
 		const declared = resolveCapabilityIds(this, moduleInfo, allowedType, []);
-		const scan = scanFunctionBody(this, moduleInfo, functionNode);
+		const scan = scanFunctionBody(moduleInfo, functionNode);
 		const functionLocation = locationForOffset(moduleInfo.lineStarts, functionNode.start);
 		return {
 			calls: scan.calls,
@@ -270,33 +268,6 @@ function collectImports(body: readonly unknown[], imports: Map<string, ImportedB
 	}
 }
 
-function collectReexports(body: readonly unknown[], reexports: Map<string, ImportedBinding>): void {
-	for (const statement of body) {
-		const node = getNode(statement);
-		if (node?.type !== "ExportNamedDeclaration") {
-			continue;
-		}
-		const source = getLiteralString(node["source"]);
-		if (source == null) {
-			continue;
-		}
-		for (const specifierValue of getArray(node["specifiers"])) {
-			const specifier = getNode(specifierValue);
-			if (specifier?.type !== "ExportSpecifier") {
-				continue;
-			}
-			const exportedName =
-				getIdentifierName(specifier["exported"]) ?? getLiteralString(specifier["exported"]);
-			const importedName =
-				getIdentifierName(specifier["local"]) ?? getLiteralString(specifier["local"]);
-			if (exportedName == null || importedName == null) {
-				continue;
-			}
-			reexports.set(exportedName, { importedName, source });
-		}
-	}
-}
-
 function collectAliases(body: readonly unknown[], aliases: Map<string, unknown>): void {
 	for (const statement of body) {
 		const node = getNode(statement);
@@ -354,7 +325,7 @@ export async function loadResolutionDependencies(loader: ModuleLoader): Promise<
 		changed = false;
 		const modules = loader.allModules();
 		for (const moduleInfo of modules) {
-			for (const imported of [...moduleInfo.imports.values(), ...moduleInfo.reexports.values()]) {
+			for (const imported of moduleInfo.imports.values()) {
 				const resolvedPath = loader.resolveImport(moduleInfo.filePath, imported.source);
 				if (
 					resolvedPath == null ||
