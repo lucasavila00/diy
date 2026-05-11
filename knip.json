@@ -10,7 +10,6 @@
 		"v8-tests/success/unrelated-capabilities-type"
 	],
 	"ignoreIssues": {
-		"packages/diy-analyzer/src/frontend/ast.ts": ["exports"],
 		"packages/diy-analyzer/tsc-slim/out.js": ["exports"]
 	},
 	"workspaces": {
