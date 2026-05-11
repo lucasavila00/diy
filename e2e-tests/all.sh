@@ -3,6 +3,7 @@ set -u
 set -o pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PATH="$ROOT_DIR/node_modules/.bin:$PATH"
 
 if [ "$#" -gt 0 ]; then
 	echo "Usage: bash e2e-tests/all.sh" >&2
@@ -17,6 +18,7 @@ run_case() {
 	case_name="$(basename "$case_dir")"
 	local stdout_file="$case_dir/stdout.txt"
 	local stderr_file="$case_dir/stderr.txt"
+	local graph_file="$case_dir/module-graph.txt"
 	local status
 	local -a command
 
@@ -27,11 +29,14 @@ run_case() {
 	echo "Running DIY $kind CLI e2e: $case_name"
 	echo "  writing stdout to: $stdout_file"
 	echo "  writing stderr to: $stderr_file"
+	if [ "$kind" = "success" ]; then
+		echo "  writing module graph to: $graph_file"
+	fi
 
 	if [ -f "$case_dir/command.sh" ]; then
 		command=(bash command.sh)
 	else
-		command=(npm --silent --prefix "$ROOT_DIR" run diy-cli -- -p diy.json)
+		command=(diy-cli -p diy.json)
 	fi
 
 	if (cd "$case_dir" && "${command[@]}") >"$stdout_file" 2>"$stderr_file"; then
@@ -45,32 +50,39 @@ run_case() {
 		exit 1
 	fi
 
+	if [ "$kind" = "success" ]; then
+		if (cd "$case_dir" && diy-cli --graph -p diy.json) >"$graph_file" 2>"$stderr_file"; then
+			status=0
+		else
+			status=$?
+		fi
+		if [ "$status" -ne 0 ]; then
+			echo "Failed DIY success CLI graph e2e: $case_name (exit $status); see $graph_file and $stderr_file" >&2
+			exit 1
+		fi
+	fi
+
 	echo "Passed DIY $kind CLI e2e: $case_name"
 }
 
-found_failure=0
-for case_dir in "$ROOT_DIR/failure"/*; do
-	if [ ! -d "$case_dir" ]; then
-		continue
-	fi
-	run_case "$case_dir" "failure" 1
-	found_failure=1
-done
+run_cases() {
+	local kind="$1"
+	local expected_status="$2"
+	local found=0
 
-found_success=0
-for case_dir in "$ROOT_DIR/success"/*; do
-	if [ ! -d "$case_dir" ]; then
-		continue
-	fi
-	run_case "$case_dir" "success" 0
-	found_success=1
-done
+	for case_dir in "$ROOT_DIR/$kind"/*; do
+		if [ ! -d "$case_dir" ]; then
+			continue
+		fi
+		run_case "$case_dir" "$kind" "$expected_status"
+		found=1
+	done
 
-if [ "$found_failure" -eq 0 ]; then
-	echo "No DIY CLI failure e2e cases found under $ROOT_DIR/failure" >&2
-	exit 1
-fi
-if [ "$found_success" -eq 0 ]; then
-	echo "No DIY CLI success e2e cases found under $ROOT_DIR/success" >&2
-	exit 1
-fi
+	if [ "$found" -eq 0 ]; then
+		echo "No DIY CLI $kind e2e cases found under $ROOT_DIR/$kind" >&2
+		exit 1
+	fi
+}
+
+run_cases "failure" 1
+run_cases "success" 0

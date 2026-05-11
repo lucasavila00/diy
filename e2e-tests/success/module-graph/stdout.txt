@@ -1,4 +1,1 @@
-Module graph
-
-src/main.ts
-`-- load: core.read
+DIY analyzer passed: 1 files analyzed.

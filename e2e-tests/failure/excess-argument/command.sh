@@ -1,1 +1,1 @@
-npm --silent --prefix ../.. run diy-cli -- -p diy.json extra
+diy-cli -p diy.json extra
