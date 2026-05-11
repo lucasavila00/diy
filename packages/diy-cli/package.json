@@ -1,0 +1,14 @@
+{
+	"name": "@beff/diy-cli",
+	"version": "0.0.0",
+	"bin": {
+		"diy-cli": "./bin/index.js"
+	},
+	"files": [
+		"bin",
+		"dist-cli"
+	],
+	"dependencies": {
+		"oxc-parser": "^0.129.0"
+	}
+}

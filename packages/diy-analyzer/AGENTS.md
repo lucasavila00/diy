@@ -2,7 +2,7 @@
 
 ## Architecture
 
-`@beff/diy-cli` is a TypeScript analyzer for the DIY dependency-injection style used in this repo. The pipeline is:
+`@beff/diy-analyzer` is a TypeScript analyzer for the DIY dependency-injection style used in this repo. The published `@beff/diy-cli` package is a thin binary wrapper around its bundled CLI. The pipeline is:
 
 1. `src/frontend/program.ts` builds the analyzer program from CLI inputs.
 2. `src/frontend/module-loader.ts` parses files with `oxc-parser`, records imports, aliases, and function nodes, then materializes effectful function metadata.
@@ -34,11 +34,11 @@
 ## Tests
 
 - Analyzer behavior, syntax-rule failures, unused-capability failures, module graph behavior, config loading, and CLI errors should be covered through `e2e-tests/` so tests exercise the real CLI and `diy.json` loading path.
-- Do not add `packages/diy-cli/test/` unit tests unless the behavior is a small internal edge case that cannot be validated through e2e.
+- Do not add `packages/diy-analyzer/test/` unit tests unless the behavior is a small internal edge case that cannot be validated through e2e.
 
 ## Validation
 
 Run these from the repository root after analyzer changes:
 
-- `pnpm --filter @beff/diy-cli run typecheck`
+- `pnpm --filter @beff/diy-analyzer run typecheck`
 - `pnpm run check`

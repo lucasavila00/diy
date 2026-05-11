@@ -1,1 +1,1 @@
-pnpm --silent --filter @beff/diy-cli run analyze -p missing-diy.json
+node ../../../packages/diy-cli/bin/index.js -p missing-diy.json

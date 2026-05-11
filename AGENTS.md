@@ -71,10 +71,11 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 This is a pnpm workspace for DIY dependency-injection packages.
 
 - `packages/diy/` contains the small public runtime package. Source files live in `src/`, build helpers in `script/`, and generated package output in `dist/`.
-- `packages/diy-cli/` contains the TypeScript analyzer CLI. Its code is split into `src/frontend/`, `src/middle-end/`, `src/backend/`, and `src/app/`; tests and snapshots live in `test/`.
+- `packages/diy-analyzer/` contains the TypeScript analyzer implementation. Its code is split into `src/frontend/`, `src/middle-end/`, `src/backend/`, and `src/app/`; analyzer e2e cases live in `e2e-tests/`.
+- `packages/diy-cli/` contains the thin publishable CLI package. Its `bin/index.js` requires the generated CJS bundle copied from `packages/diy-analyzer/dist-cli/`.
 - Root files (`package.json`, `pnpm-workspace.yaml`, `tsconfig.packages.json`) coordinate workspace builds and checks.
 
-For analyzer internals, read `packages/diy-cli/AGENTS.md` before changing `packages/diy-cli/src/`.
+For analyzer internals, read `packages/diy-analyzer/AGENTS.md` before changing `packages/diy-analyzer/src/`.
 
 ## Build, Test, and Development Commands
 
@@ -95,9 +96,9 @@ Do not commit generated `dist/` churn unless the change intentionally updates pa
 
 ## Testing Guidelines
 
-`packages/diy-cli` uses Vitest. Name tests `*.test.ts` and place shared fixtures in `packages/diy-cli/test/helpers.ts`. Snapshot files belong under `packages/diy-cli/test/__snapshots__/`.
+Analyzer behavior is covered through `e2e-tests/` so tests exercise real CLI and `diy.json` loading paths.
 
-Run focused CLI tests with `pnpm --filter @beff/diy-cli run test`. Use `pnpm --filter @beff/diy-cli run test-fix` only when intentionally updating snapshots.
+Run focused analyzer checks with `pnpm --filter @beff/diy-analyzer run typecheck` and `pnpm run test:e2e`.
 
 ## Commit & Pull Request Guidelines
 

@@ -1,6 +1,10 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
-	"ignoreWorkspaces": ["e2e-tests/failure", "e2e-tests/success/module-graph"],
+	"ignoreWorkspaces": [
+		"e2e-tests/failure",
+		"e2e-tests/success/module-graph",
+		"e2e-tests/success/module-resolution"
+	],
 	"workspaces": {
 		".": {
 			"entry": ["oxlint-plugin-local.mjs", "scripts/check-knip-workspaces.mjs"],
@@ -10,9 +14,13 @@
 			"entry": ["src/index.ts!", "src/capabilities.ts!", "script/fixup-package.mjs!"],
 			"project": ["src/**/*.ts!", "script/**/*.mjs!"]
 		},
+		"packages/diy-analyzer": {
+			"entry": ["src/app/cli.ts!", "script/build.mjs!"],
+			"project": ["src/**/*.ts!", "script/**/*.mjs!", "tsc-slim/**/*!"]
+		},
 		"packages/diy-cli": {
-			"entry": ["bin/index.cjs!", "src/app/cli.ts!", "script/fixup-package.mjs!"],
-			"project": ["src/**/*.ts!", "script/**/*.mjs!", "bin/**/*.cjs!"]
+			"entry": ["bin/index.js!"],
+			"project": ["bin/**/*.js!"]
 		}
 	}
 }

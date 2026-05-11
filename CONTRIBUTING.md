@@ -12,4 +12,4 @@ pnpm run build
 
 Useful workspace commands:
 
-- `pnpm --filter @beff/diy-cli run test`: Run the analyzer test suite.
+- `pnpm --filter @beff/diy-analyzer run typecheck`: Typecheck the analyzer implementation.

@@ -1,4 +1,4 @@
-import { extname, resolve } from "node:path";
+import { resolve } from "node:path";
 
 import { glob } from "tinyglobby";
 
@@ -25,10 +25,4 @@ export async function expandSourceFiles(
 		files.add(resolve(match));
 	}
 	return Array.from(files).sort();
-}
-
-export function sourceExtensions(filePaths: Iterable<string>): readonly string[] {
-	return Array.from(
-		new Set(Array.from(filePaths, (filePath) => extname(filePath)).filter(Boolean)),
-	).sort();
 }

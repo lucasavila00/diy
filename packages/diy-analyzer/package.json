@@ -1,17 +1,14 @@
 {
-	"name": "@beff/diy-cli",
+	"name": "@beff/diy-analyzer",
 	"version": "0.0.0",
-	"bin": {
-		"diy-cli": "./bin/index.cjs"
-	},
 	"files": [
-		"bin",
-		"dist/cjs"
+		"dist-cli",
+		"src",
+		"tsc-slim"
 	],
 	"type": "module",
 	"scripts": {
-		"analyze": "node src/app/cli.ts",
-		"build": "tsc -b ./tsconfig.cjs.json && node ./script/fixup-package.mjs",
+		"build": "node ./script/build.mjs",
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},
 	"dependencies": {
@@ -23,6 +20,7 @@
 	"devDependencies": {
 		"@types/babel__code-frame": "^7.27.0",
 		"@types/node": "^24.9.0",
+		"esbuild": "^0.27.0",
 		"typescript": "^6.0.3"
 	}
 }

@@ -23,7 +23,7 @@ for case_dir in "$FAILURE_DIR"/*; do
 	if [ -f "$case_dir/command.sh" ]; then
 		command=(bash command.sh)
 	else
-		command=(pnpm --silent --filter @beff/diy-cli run analyze -p diy.json)
+		command=(node "$ROOT_DIR/../packages/diy-cli/bin/index.js" -p diy.json)
 	fi
 
 	if (cd "$case_dir" && "${command[@]}") >"$stdout_file" 2>"$stderr_file"; then

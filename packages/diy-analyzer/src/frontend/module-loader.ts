@@ -1,9 +1,17 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 
 import { parseSync } from "oxc-parser";
+import type { CompilerOptions, ModuleResolutionHost } from "typescript";
 
+import {
+	findConfigFile,
+	parseJsonConfigFileContent,
+	readConfigFile,
+	resolveModuleName,
+	sys as tsSys,
+} from "../../tsc-slim/out.js";
 import { resolveCapabilityIds } from "../middle-end/capabilities.ts";
 import {
 	getArray,
@@ -22,19 +30,19 @@ import {
 	unwrapDeclaration,
 } from "./ast.ts";
 import { scanFunctionBody } from "./function-scan.ts";
-import { sourceExtensions } from "./source-files.ts";
 import type { AstNode, FunctionInfo, ImportedBinding, ModuleInfo } from "./types.ts";
 
 export class ModuleLoader {
 	private readonly modules = new Map<string, ModuleInfo>();
 
-	private readonly sourceFiles: ReadonlySet<string>;
+	private compilerOptions: CompilerOptions | null = null;
 
-	private readonly extensions: readonly string[];
+	private readonly resolutionCache = new Map<string, string | null>();
+
+	private readonly sourceFiles: ReadonlySet<string>;
 
 	constructor(sourceFiles: ReadonlySet<string>) {
 		this.sourceFiles = sourceFiles;
-		this.extensions = sourceExtensions(sourceFiles);
 	}
 
 	async load(filePath: string): Promise<ModuleInfo | null> {
@@ -81,7 +89,26 @@ export class ModuleLoader {
 	}
 
 	resolveImport(fromFilePath: string, source: string): string | null {
-		return resolveImportPath(this, fromFilePath, source);
+		const resolvedFromFilePath = resolve(fromFilePath);
+		const cacheKey = `${resolvedFromFilePath}\0${source}`;
+		if (this.resolutionCache.has(cacheKey)) {
+			return this.resolutionCache.get(cacheKey) ?? null;
+		}
+
+		const resolved = resolveModuleName(
+			source,
+			resolvedFromFilePath,
+			this.resolveCompilerOptions(),
+			moduleResolutionHost,
+		);
+		const resolvedFileName = resolved.resolvedModule?.resolvedFileName;
+		const resolvedPath =
+			resolvedFileName != null && isAnalyzableTypeScriptFile(resolvedFileName)
+				? resolve(resolvedFileName)
+				: null;
+		const result = resolvedPath != null && this.isSourceFile(resolvedPath) ? resolvedPath : null;
+		this.resolutionCache.set(cacheKey, result);
+		return result;
 	}
 
 	allModules(): readonly ModuleInfo[] {
@@ -90,10 +117,6 @@ export class ModuleLoader {
 
 	isSourceFile(filePath: string): boolean {
 		return this.sourceFiles.has(resolve(filePath));
-	}
-
-	sourceExtensions(): readonly string[] {
-		return this.extensions;
 	}
 
 	materializeFunctions(): void {
@@ -143,7 +166,35 @@ export class ModuleLoader {
 			unsupportedReasons: [...declared.reasons, ...scan.unsupportedReasons],
 		};
 	}
+
+	private resolveCompilerOptions(): CompilerOptions {
+		if (this.compilerOptions != null) {
+			return this.compilerOptions;
+		}
+
+		const tsconfigPath = findConfigFile(process.cwd(), tsSys.fileExists, "tsconfig.json");
+		if (tsconfigPath == null) {
+			const compilerOptions = {};
+			this.compilerOptions = compilerOptions;
+			return compilerOptions;
+		}
+
+		const tsconfigFile = readConfigFile(tsconfigPath, tsSys.readFile);
+		const parsedTsconfig = parseJsonConfigFileContent(
+			tsconfigFile.config ?? {},
+			tsSys,
+			dirname(tsconfigPath),
+		);
+		const compilerOptions = parsedTsconfig.options;
+		this.compilerOptions = compilerOptions;
+		return compilerOptions;
+	}
 }
+
+const moduleResolutionHost: ModuleResolutionHost = {
+	fileExists: tsSys.fileExists,
+	readFile: tsSys.readFile,
+};
 
 function getFirstErrorLabel(error: {
 	readonly labels?: readonly { readonly start?: number }[];
@@ -231,35 +282,8 @@ function collectFunctionNodes(
 	}
 }
 
-function resolveImportPath(
-	loader: ModuleLoader,
-	fromFilePath: string,
-	source: string,
-): string | null {
-	if (!source.startsWith(".")) {
-		return null;
-	}
-	return resolveCandidate(loader, resolve(dirname(fromFilePath), source));
-}
-
-function resolveCandidate(loader: ModuleLoader, candidate: string): string | null {
-	if (existsSync(candidate) && loader.isSourceFile(candidate)) {
-		return candidate;
-	}
-	for (const extension of loader.sourceExtensions()) {
-		const withExtension = `${candidate}${extension}`;
-		if (existsSync(withExtension) && loader.isSourceFile(withExtension)) {
-			return withExtension;
-		}
-	}
-	for (const extension of loader.sourceExtensions()) {
-		const indexFile = `index${extension}`;
-		const nested = join(candidate, indexFile);
-		if (existsSync(nested) && loader.isSourceFile(nested)) {
-			return nested;
-		}
-	}
-	return null;
+function isAnalyzableTypeScriptFile(filePath: string): boolean {
+	return (filePath.endsWith(".ts") && !filePath.endsWith(".d.ts")) || filePath.endsWith(".tsx");
 }
 
 export async function loadResolutionDependencies(loader: ModuleLoader): Promise<void> {

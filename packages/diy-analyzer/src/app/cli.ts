@@ -6,7 +6,7 @@ import { analyzeDiy } from "./analyze.ts";
 import { resolveDiyProject } from "./config.ts";
 import { analyzeDiyModuleGraph } from "./module-graph.ts";
 
-async function main(): Promise<void> {
+export async function runCli(): Promise<void> {
 	const command = new Command()
 		.name("diy-cli")
 		.description("Analyze DIY capability usage")
@@ -15,9 +15,10 @@ async function main(): Promise<void> {
 		.allowExcessArguments(false)
 		.parse();
 	const options = command.opts<{ readonly graph?: boolean; readonly project: string }>();
-	const cwd = process.env["INIT_CWD"] ?? process.env["npm_config_local_prefix"] ?? process.cwd();
+	const cwd = process.cwd();
 	const project = await resolveDiyProject(options.project, cwd);
 	const projectCwd = project.cwd;
+	process.chdir(projectCwd);
 	const analyzeOptions = { cwd: projectCwd };
 
 	if (options.graph === true) {
@@ -50,12 +51,3 @@ async function main(): Promise<void> {
 		process.stdout.write(`DIY analyzer passed: ${analysis.coveredFiles.length} files analyzed.\n`);
 	}
 }
-
-void main().catch((error: unknown) => {
-	if (error instanceof Error) {
-		process.stderr.write(`${error.message}\n`);
-	} else {
-		process.stderr.write(`${String(error)}\n`);
-	}
-	process.exitCode = 1;
-});

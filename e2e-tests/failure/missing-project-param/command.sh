@@ -1,1 +1,1 @@
-pnpm --silent --filter @beff/diy-cli run analyze
+node ../../../packages/diy-cli/bin/index.js

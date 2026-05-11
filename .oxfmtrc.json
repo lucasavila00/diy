@@ -4,7 +4,9 @@
 	"singleQuote": false,
 	"ignorePatterns": [
 		"**/dist/**",
+		"**/dist-cli/**",
 		"**/node_modules/**",
+		"**/tsc-slim/**",
 		"**/coverage/**",
 		"**/.turbo/**",
 		"**/.cache/**",
