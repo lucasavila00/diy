@@ -1,4 +1,4 @@
-# @beff/diy-e2e-module-graph
+# @private/diy-e2e-module-graph
 
 ## 0.0.1
 

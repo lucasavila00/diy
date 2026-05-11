@@ -1,5 +1,5 @@
 {
-	"name": "@beff/diy-e2e-failure",
+	"name": "@private/diy-e2e-failure",
 	"version": "0.0.1",
 	"private": true,
 	"type": "module",

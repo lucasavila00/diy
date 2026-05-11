@@ -1,4 +1,4 @@
-# @beff/diy-e2e-module-resolution
+# @private/diy-e2e-module-resolution
 
 ## 0.0.1
 

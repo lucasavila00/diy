@@ -6,10 +6,5 @@ This repo uses pnpm workspaces. Tooling dependencies live in the packages that u
 
 ```shell
 pnpm install
-pnpm run check
-pnpm run build
+pnpm run all
 ```
-
-Useful workspace commands:
-
-- `pnpm --filter @beff/diy-analyzer run typecheck`: Typecheck the analyzer implementation.

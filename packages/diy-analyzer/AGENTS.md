@@ -2,7 +2,7 @@
 
 ## Architecture
 
-`@beff/diy-analyzer` is a TypeScript analyzer for the DIY dependency-injection style used in this repo. The published `@beff/diy-cli` package is a thin binary wrapper around its bundled CLI. The pipeline is:
+`@private/diy-analyzer` is a TypeScript analyzer for the DIY dependency-injection style used in this repo. The published `@beff/diy-cli` package is a thin binary wrapper around its bundled CLI. The pipeline is:
 
 1. `src/frontend/program.ts` builds the analyzer program from CLI inputs.
 2. `src/frontend/module-loader.ts` parses files with `oxc-parser`, records imports, aliases, and function nodes, then materializes effectful function metadata.
@@ -40,5 +40,5 @@
 
 Run these from the repository root after analyzer changes:
 
-- `pnpm --filter @beff/diy-analyzer run typecheck`
+- `pnpm --filter @private/diy-analyzer run typecheck`
 - `pnpm run check`

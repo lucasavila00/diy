@@ -96,15 +96,7 @@ Do not commit generated `dist/` churn unless the change intentionally updates pa
 
 ## Testing Guidelines
 
-Analyzer behavior is covered through `e2e-tests/` so tests exercise real CLI and `diy.json` loading paths.
-
-Run focused analyzer checks with `pnpm --filter @beff/diy-analyzer run typecheck` and `pnpm run test:e2e`.
-
-## Commit & Pull Request Guidelines
-
-Git history uses short imperative commit subjects, for example `Add regular CI testing` and `Remove dead code`. Keep subjects concise and describe the behavior or maintenance change.
-
-Pull requests should include a clear summary, commands run, linked issues when applicable, and screenshots or terminal output only when they clarify user-visible behavior. Mention snapshot or graph artifact updates explicitly.
+Run the `npm run all`
 
 ## Security & Configuration Tips
 

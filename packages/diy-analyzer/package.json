@@ -1,6 +1,7 @@
 {
-	"name": "@beff/diy-analyzer",
+	"name": "@private/diy-analyzer",
 	"version": "0.0.0",
+	"private": true,
 	"files": [
 		"dist-cli",
 		"src",

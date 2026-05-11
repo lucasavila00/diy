@@ -1,4 +1,4 @@
-# @beff/diy-e2e-failure
+# @private/diy-e2e-failure
 
 ## 0.0.1
 
