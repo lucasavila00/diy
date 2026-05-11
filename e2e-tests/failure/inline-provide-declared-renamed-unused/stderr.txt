@@ -1,0 +1,19 @@
+src/main.ts:12:8 unused capability
+  10 | }
+  11 |
+> 12 | export function load(capabilities: Capabilities<LegacyClockCapability | AppClockCapability>): Date {
+     |        ^ Declares unused capability "app.clock".
+  13 | 	return readRenamed(
+  14 | 		capabilities.provide<AppClockCapability>({
+  15 | 			"app.clock": capabilities.need("legacy.clock"),
+  = help: remove "app.clock" from `Capabilities<...>`, or add a real `capabilities.need("app.clock")` call if it is required
+src/main.ts:14:3 redundant capability provider
+  12 | export function load(capabilities: Capabilities<LegacyClockCapability | AppClockCapability>): Date {
+  13 | 	return readRenamed(
+> 14 | 		capabilities.provide<AppClockCapability>({
+     | 		^ capabilities.provide adds capabilities already present on capabilities: app.clock
+  15 | 			"app.clock": capabilities.need("legacy.clock"),
+  16 | 		}),
+  17 | 	);
+  = note: `app.clock` is already allowed by this function's `capabilities` parameter
+  = help: use `capabilities.override(...)` when replacing an existing capability is intentional

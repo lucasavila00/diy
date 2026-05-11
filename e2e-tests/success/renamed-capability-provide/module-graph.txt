@@ -3,10 +3,15 @@ Module graph
 src/main.ts
 +-- readRenamed: app.clock
 |
++-- readRenamedWithAudit: app.clock, audit
+|
 +-- fromStaticProvider: audit
 |
 +-- fromTopLevelObject: audit
 |  `-- calls: readRenamed
 |
-`-- fromExistingCapability: legacy.clock
-   `-- calls: readRenamed
++-- fromExistingCapability: legacy.clock
+|  `-- calls: readRenamed
+|
+`-- fromPartialInlineProvide: audit, legacy.clock
+   `-- calls: readRenamedWithAudit

@@ -1,0 +1,9 @@
+src/main.ts:15:3 unsupported analysis
+  13 | export function load(capabilities: Capabilities<LegacyClockCapability>): Date {
+  14 | 	return readRenamed(
+> 15 | 		capabilities.provide<AnyClockCapability>({
+     | 		^ capabilities.provide extra capability type: Capability first type argument is not a string literal
+  16 | 			"app.clock": capabilities.need("legacy.clock"),
+  17 | 		}),
+  18 | 	);
+  = help: use a resolvable `Capability<"id", ...>` type or union for the `capabilities.provide<...>` extra capability type

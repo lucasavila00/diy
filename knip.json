@@ -4,7 +4,8 @@
 		"e2e-tests/failure",
 		"e2e-tests/success/module-graph",
 		"e2e-tests/success/module-resolution",
-		"e2e-tests/success/nested-callback-need"
+		"e2e-tests/success/nested-callback-need",
+		"e2e-tests/success/renamed-capability-provide"
 	],
 	"ignoreIssues": {
 		"packages/diy-analyzer/tsc-slim/out.js": ["exports"]
