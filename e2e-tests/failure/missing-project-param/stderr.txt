@@ -1,0 +1,1 @@
+error: required option '-p, --project <path>' not specified

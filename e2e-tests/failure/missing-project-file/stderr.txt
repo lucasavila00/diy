@@ -1,0 +1,1 @@
+Failed to read diy.json at /home/lucas/fluff/diy/e2e-tests/failure/missing-project-file/missing-diy.json: Error: ENOENT: no such file or directory, open '/home/lucas/fluff/diy/e2e-tests/failure/missing-project-file/missing-diy.json'

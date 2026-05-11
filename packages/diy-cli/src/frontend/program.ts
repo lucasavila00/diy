@@ -1,5 +1,6 @@
 import { loadResolutionDependencies, ModuleLoader } from "./module-loader.ts";
-import { expandInputs } from "./source-files.ts";
+import { expandSourceFiles } from "./source-files.ts";
+import type { DiySourceConfig } from "./source-files.ts";
 import type { ModuleInfo } from "./types.ts";
 
 type DiyProgram = {
@@ -8,8 +9,8 @@ type DiyProgram = {
 	readonly modules: readonly ModuleInfo[];
 };
 
-export async function buildDiyProgram(inputs: readonly string[], cwd: string): Promise<DiyProgram> {
-	const coveredFiles = await expandInputs(inputs, cwd);
+export async function buildDiyProgram(config: DiySourceConfig, cwd: string): Promise<DiyProgram> {
+	const coveredFiles = await expandSourceFiles(config, cwd);
 	const coveredSet = new Set(coveredFiles);
 	const loader = new ModuleLoader(coveredSet);
 	for (const filePath of coveredFiles) {

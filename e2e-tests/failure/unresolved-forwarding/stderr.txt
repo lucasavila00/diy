@@ -1,0 +1,8 @@
+src/main.ts:7:8 unsupported analysis
+   5 | declare const registry: { run(capabilities: Capabilities<ReadCapability>): void };
+   6 |
+>  7 | export function load(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ unresolved capabilities forwarding callee
+   8 | 	registry.run(capabilities);
+   9 | }
+  10 |

@@ -1,0 +1,8 @@
+packages/app/src/main.ts:8:8 unused capability
+   6 | type AppCapability = Exclude<ModelCapability, SpawnCapability>;
+   7 |
+>  8 | export function run(capabilities: Capabilities<AppCapability>): void {
+     |        ^ Declares unused capability "core.clock".
+   9 | 	capabilities.need("core.fs");
+  10 | }
+  11 |

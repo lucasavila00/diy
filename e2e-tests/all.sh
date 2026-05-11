@@ -20,7 +20,13 @@ for case_dir in "$FAILURE_DIR"/*; do
 	echo "  writing stdout to: $stdout_file"
 	echo "  writing stderr to: $stderr_file"
 
-	if (cd "$case_dir" && pnpm --silent --filter @beff/diy-cli run analyze src) >"$stdout_file" 2>"$stderr_file"; then
+	if [ -f "$case_dir/command.sh" ]; then
+		command=(bash command.sh)
+	else
+		command=(pnpm --silent --filter @beff/diy-cli run analyze -p diy.json)
+	fi
+
+	if (cd "$case_dir" && "${command[@]}") >"$stdout_file" 2>"$stderr_file"; then
 		echo "Expected DIY analyzer to fail for $case_name, but it passed." >&2
 		exit 1
 	else

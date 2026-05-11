@@ -1,0 +1,40 @@
+src/main.ts:8:25 invalid capabilities parameter
+   6 | declare function use(value: unknown): void;
+   7 |
+>  8 | export function renamed(svc: Capabilities<FsCapability>): void {
+     |                         ^ Capabilities parameters must be named `capabilities`.
+   9 | 	use(svc);
+  10 | }
+  11 |
+src/main.ts:12:38 invalid capabilities parameter
+  10 | }
+  11 |
+> 12 | export function second(path: string, capabilities: Capabilities<FsCapability>): void {
+     |                                      ^ Capabilities parameters must be the first parameter.
+  13 | 	use(path);
+  14 | 	use(capabilities);
+  15 | }
+src/main.ts:17:27 invalid capabilities parameter
+  15 | }
+  16 |
+> 17 | export function defaulted(capabilities: Capabilities<FsCapability> = defaultCapabilities): void {
+     |                           ^ Do not default `capabilities` parameters.
+  18 | 	use(capabilities);
+  19 | }
+  20 |
+src/main.ts:21:25 invalid capabilities parameter
+  19 | }
+  20 |
+> 21 | export function untyped(capabilities: unknown): void {
+     |                         ^ `capabilities` parameters must be typed as `Capabilities<...>`.
+  22 | 	use(capabilities);
+  23 | }
+  24 |
+src/main.ts:17:8 unsupported analysis
+  15 | }
+  16 |
+> 17 | export function defaulted(capabilities: Capabilities<FsCapability> = defaultCapabilities): void {
+     |        ^ unresolved capabilities forwarding target use
+  18 | 	use(capabilities);
+  19 | }
+  20 |

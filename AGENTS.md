@@ -85,10 +85,7 @@ Use pnpm 10, matching the root `packageManager` field.
 - `pnpm run test` runs package tests where present.
 - `pnpm run check` runs typecheck and tests.
 - `pnpm run build` builds all packages and runs package fixup scripts.
-- `pnpm run diy:check` runs the local analyzer against `packages/`.
-- `pnpm run diy:graph` writes `diy-module-graph.txt` for graph inspection.
-
-Run the CI-equivalent sequence before broad changes: `pnpm run diy:check && pnpm run check && pnpm run build`.
+Run the CI-equivalent sequence before broad changes: `pnpm run check && pnpm run build`.
 
 ## Coding Style & Naming Conventions
 

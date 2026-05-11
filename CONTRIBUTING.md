@@ -12,6 +12,4 @@ pnpm run build
 
 Useful workspace commands:
 
-- `pnpm run diy:check`: Run the local analyzer against `packages/`.
-- `pnpm run diy:graph`: Write `diy-module-graph.txt` for graph inspection.
 - `pnpm --filter @beff/diy-cli run test`: Run the analyzer test suite.

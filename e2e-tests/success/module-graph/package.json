@@ -4,8 +4,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"diy:check": "diy-cli src",
-		"diy:graph": "diy-cli --graph src > module-graph.txt",
+		"diy:check": "diy-cli -p diy.json",
+		"diy:graph": "diy-cli --graph -p diy.json > module-graph.txt",
 		"e2e": "pnpm run diy:check && pnpm run diy:graph",
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},

@@ -79,15 +79,24 @@ export async function readConfig(
 }
 ```
 
-### 5. Add analyzer scripts
+### 5. Add analyzer config and scripts
 
-Add scripts that run `diy-cli` over your package source:
+Add a `diy.json` file that selects the source files to analyze:
+
+```json
+{
+	"include": ["packages/**/*.ts", "packages/**/*.tsx"],
+	"ignore": ["**/dist/**", "**/node_modules/**"]
+}
+```
+
+Then add scripts that run `diy-cli` with that project file:
 
 ```json
 {
 	"scripts": {
-		"diy:check": "diy-cli packages",
-		"diy:graph": "diy-cli --graph packages > diy-module-graph.txt"
+		"diy:check": "diy-cli -p diy.json",
+		"diy:graph": "diy-cli --graph -p diy.json > diy-module-graph.txt"
 	}
 }
 ```
@@ -120,24 +129,29 @@ packages/app/src/main.ts
 
 ## CLI Options
 
-The `diy-cli` binary analyzes TypeScript source files and directories.
+The `diy-cli` binary analyzes files matched by a required `diy.json` project file.
 
 ```shell
-$ npx diy-cli packages
+$ npx diy-cli -p diy.json
 DIY analyzer passed: 42 files analyzed.
 ```
 
-Run without paths to print usage:
+Run `--help` to print usage:
 
 ```shell
-$ npx diy-cli
-Usage: diy-cli [--graph] <paths...>
+$ npx diy-cli --help
+Usage: diy-cli [options]
 ```
 
 Options:
 
+- `-p, --project <path>`: Required path to `diy.json`.
 - `--graph`: Print a capability module graph instead of normal analyzer diagnostics.
-- `<paths...>`: Files, directories, or glob patterns to analyze. DIY reads `.ts` and `.tsx` files and skips common generated or build output directories.
+
+`diy.json` fields:
+
+- `include`: Required string array of glob patterns to analyze.
+- `ignore`: Optional string array of glob patterns to skip.
 
 ## Analyzer Rules
 

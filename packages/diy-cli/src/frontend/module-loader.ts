@@ -22,16 +22,19 @@ import {
 	unwrapDeclaration,
 } from "./ast.ts";
 import { scanFunctionBody } from "./function-scan.ts";
-import { isSourceFile } from "./source-files.ts";
+import { sourceExtensions } from "./source-files.ts";
 import type { AstNode, FunctionInfo, ImportedBinding, ModuleInfo } from "./types.ts";
 
 export class ModuleLoader {
 	private readonly modules = new Map<string, ModuleInfo>();
 
-	private readonly reportableFiles: ReadonlySet<string>;
+	private readonly sourceFiles: ReadonlySet<string>;
 
-	constructor(reportableFiles: ReadonlySet<string>) {
-		this.reportableFiles = reportableFiles;
+	private readonly extensions: readonly string[];
+
+	constructor(sourceFiles: ReadonlySet<string>) {
+		this.sourceFiles = sourceFiles;
+		this.extensions = sourceExtensions(sourceFiles);
 	}
 
 	async load(filePath: string): Promise<ModuleInfo | null> {
@@ -40,7 +43,7 @@ export class ModuleLoader {
 		if (existing != null) {
 			return existing;
 		}
-		if (!isSourceFile(resolvedPath) || !existsSync(resolvedPath)) {
+		if (!this.isSourceFile(resolvedPath) || !existsSync(resolvedPath)) {
 			return null;
 		}
 
@@ -67,7 +70,7 @@ export class ModuleLoader {
 			imports: new Map(),
 			lineStarts,
 			parseErrors,
-			reportable: this.reportableFiles.has(resolvedPath),
+			reportable: this.sourceFiles.has(resolvedPath),
 			source,
 		};
 		this.modules.set(resolvedPath, moduleInfo);
@@ -78,11 +81,19 @@ export class ModuleLoader {
 	}
 
 	resolveImport(fromFilePath: string, source: string): string | null {
-		return resolveImportPath(fromFilePath, source);
+		return resolveImportPath(this, fromFilePath, source);
 	}
 
 	allModules(): readonly ModuleInfo[] {
 		return Array.from(this.modules.values());
+	}
+
+	isSourceFile(filePath: string): boolean {
+		return this.sourceFiles.has(resolve(filePath));
+	}
+
+	sourceExtensions(): readonly string[] {
+		return this.extensions;
 	}
 
 	materializeFunctions(): void {
@@ -220,26 +231,31 @@ function collectFunctionNodes(
 	}
 }
 
-function resolveImportPath(fromFilePath: string, source: string): string | null {
+function resolveImportPath(
+	loader: ModuleLoader,
+	fromFilePath: string,
+	source: string,
+): string | null {
 	if (!source.startsWith(".")) {
 		return null;
 	}
-	return resolveCandidate(resolve(dirname(fromFilePath), source));
+	return resolveCandidate(loader, resolve(dirname(fromFilePath), source));
 }
 
-function resolveCandidate(candidate: string): string | null {
-	if (existsSync(candidate) && isSourceFile(candidate)) {
+function resolveCandidate(loader: ModuleLoader, candidate: string): string | null {
+	if (existsSync(candidate) && loader.isSourceFile(candidate)) {
 		return candidate;
 	}
-	for (const extension of [".ts", ".tsx"]) {
+	for (const extension of loader.sourceExtensions()) {
 		const withExtension = `${candidate}${extension}`;
-		if (existsSync(withExtension) && isSourceFile(withExtension)) {
+		if (existsSync(withExtension) && loader.isSourceFile(withExtension)) {
 			return withExtension;
 		}
 	}
-	for (const indexFile of ["index.ts", "index.tsx"]) {
+	for (const extension of loader.sourceExtensions()) {
+		const indexFile = `index${extension}`;
 		const nested = join(candidate, indexFile);
-		if (existsSync(nested) && isSourceFile(nested)) {
+		if (existsSync(nested) && loader.isSourceFile(nested)) {
 			return nested;
 		}
 	}

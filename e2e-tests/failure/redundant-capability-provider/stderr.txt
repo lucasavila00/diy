@@ -1,0 +1,7 @@
+src/main.ts:9:9 redundant capability provider
+   7 | 	capabilities: Capabilities<ReadCapability | WriteCapability>,
+   8 | ): Capabilities<ReadCapability | WriteCapability> {
+>  9 | 	return capabilities.provide<WriteCapability>({ write: {} });
+     | 	       ^ capabilities.provide adds capabilities already present on capabilities: write
+  10 | }
+  11 |
