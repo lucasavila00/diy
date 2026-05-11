@@ -1,11 +1,11 @@
 Module graph
 
-packages/app/src/main.ts
-`-- run: core.clock, core.fs
-   `-- calls: readClock, readConfig
-
-packages/core/src/clock.ts
+src/clock.ts
 `-- readClock: core.clock
 
-packages/core/src/config.ts
+src/config.ts
 `-- readConfig: core.fs
+
+src/main.ts
+`-- run: core.clock, core.fs
+   `-- calls: readClock, readConfig

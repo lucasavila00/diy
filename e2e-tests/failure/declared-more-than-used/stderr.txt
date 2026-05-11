@@ -1,8 +1,8 @@
-packages/app/src/main.ts:9:8 unused capability
-   7 | type WriteCapability = Capability<"core.write", unknown>;
-   8 |
->  9 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
-     |        ^ Declares unused capability "core.write".
-  10 | 	capabilities.need("core.read");
-  11 | }
-  12 |
+src/main.ts:6:8 unused capability
+  4 | type WriteCapability = Capability<"core.write", unknown>;
+  5 |
+> 6 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
+    |        ^ Declares unused capability "core.write".
+  7 | 	capabilities.need("core.read");
+  8 | }
+  9 |

@@ -17,12 +17,22 @@ importers:
       oxlint:
         specifier: ^1.61.0
         version: 1.63.0
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
   e2e-tests/success/module-graph:
     dependencies:
+      '@beff/diy':
+        specifier: workspace:*
+        version: link:../../../packages/diy
       '@beff/diy-cli':
         specifier: workspace:*
         version: link:../../../packages/diy-cli
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
   packages/diy:
     devDependencies:

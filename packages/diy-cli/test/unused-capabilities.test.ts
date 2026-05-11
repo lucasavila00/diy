@@ -237,7 +237,7 @@ export type SpawnCapability = Capability<"core.spawn", unknown>;
 			root,
 			"packages/model/src/types.ts",
 			`
-import type { ClockCapability, FsCapability, SpawnCapability } from "@q/core/src/deps.ts";
+import type { ClockCapability, FsCapability, SpawnCapability } from "../../core/src/deps.ts";
 
 export type ModelCapability = ClockCapability | FsCapability | SpawnCapability;
 `,
@@ -247,8 +247,8 @@ export type ModelCapability = ClockCapability | FsCapability | SpawnCapability;
 			"packages/app/src/main.ts",
 			`
 import type { Capabilities } from "@beff/diy/capabilities";
-import type { SpawnCapability } from "@q/core/src/deps.ts";
-import type { ModelCapability } from "@q/model/src/types.ts";
+import type { SpawnCapability } from "../../core/src/deps.ts";
+import type { ModelCapability } from "../../model/src/types.ts";
 
 type AppCapability = Exclude<ModelCapability, SpawnCapability>;
 

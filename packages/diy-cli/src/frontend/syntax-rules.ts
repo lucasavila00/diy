@@ -17,7 +17,6 @@ import {
 	locationForOffset,
 	capabilityMethodNames,
 } from "./ast.ts";
-import { isPackageSrcFile } from "./source-files.ts";
 import type { AstNode, ModuleInfo } from "./types.ts";
 
 type FunctionFrame = {
@@ -26,7 +25,7 @@ type FunctionFrame = {
 };
 
 export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerViolation[] {
-	if (!moduleInfo.reportable || !isPackageSrcFile(moduleInfo.filePath)) {
+	if (!moduleInfo.reportable) {
 		return [];
 	}
 

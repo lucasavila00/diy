@@ -31,10 +31,6 @@ export function isSourceFile(filePath: string): boolean {
 	return sourceExtensions.has(extname(filePath)) && !isIgnoredPath(filePath);
 }
 
-export function isPackageSrcFile(filePath: string): boolean {
-	return /\/packages\/[^/]+\/src\//.test(normalizePath(filePath));
-}
-
 async function collectDirectorySourceFiles(dirPath: string): Promise<readonly string[]> {
 	const entries = await readdir(dirPath, { withFileTypes: true });
 	const files = await Promise.all(

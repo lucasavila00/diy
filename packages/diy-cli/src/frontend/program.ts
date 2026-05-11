@@ -11,7 +11,7 @@ type DiyProgram = {
 export async function buildDiyProgram(inputs: readonly string[], cwd: string): Promise<DiyProgram> {
 	const coveredFiles = await expandInputs(inputs, cwd);
 	const coveredSet = new Set(coveredFiles);
-	const loader = new ModuleLoader(cwd, coveredSet);
+	const loader = new ModuleLoader(coveredSet);
 	for (const filePath of coveredFiles) {
 		await loader.load(filePath);
 	}

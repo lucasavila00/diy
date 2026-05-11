@@ -1,8 +1,5 @@
-type Capabilities<T> = {
-	readonly __allowed?: T;
-	readonly need: (id: string) => unknown;
-};
-type Capability<Id extends string, _Service> = { readonly id: Id };
+import type { Capabilities, Capability } from "@beff/diy";
+
 type ReadCapability = Capability<"core.read", unknown>;
 type WriteCapability = Capability<"core.write", unknown>;
 

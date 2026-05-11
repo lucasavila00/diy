@@ -1,0 +1,11 @@
+{
+	"extends": "../../../tsconfig.packages.json",
+	"compilerOptions": {
+		"paths": {
+			"@beff/diy": ["../../../packages/diy/src/index.ts"],
+			"@beff/diy/capabilities": ["../../../packages/diy/src/capabilities.ts"]
+		},
+		"types": []
+	},
+	"include": ["src/**/*.ts"]
+}

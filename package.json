@@ -17,12 +17,14 @@
 		"lint:fix": "oxlint packages oxlint-plugin-local.mjs --fix",
 		"test": "pnpm -r --if-present run test",
 		"test-fix": "pnpm -r --if-present run test-fix",
-		"typecheck": "pnpm -r run typecheck"
+		"typecheck": "pnpm -r run typecheck && pnpm run typecheck:e2e:failure",
+		"typecheck:e2e:failure": "tsc --noEmit -p e2e-tests/failure/tsconfig.json"
 	},
 	"devDependencies": {
 		"knip": "^5.63.1",
 		"oxfmt": "^0.46.0",
-		"oxlint": "^1.61.0"
+		"oxlint": "^1.61.0",
+		"typescript": "^6.0.3"
 	},
 	"packageManager": "pnpm@10.27.0"
 }

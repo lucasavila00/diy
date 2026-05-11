@@ -28,12 +28,9 @@ import type { AstNode, FunctionInfo, ImportedBinding, ModuleInfo } from "./types
 export class ModuleLoader {
 	private readonly modules = new Map<string, ModuleInfo>();
 
-	private readonly cwd: string;
-
 	private readonly reportableFiles: ReadonlySet<string>;
 
-	constructor(cwd: string, reportableFiles: ReadonlySet<string>) {
-		this.cwd = cwd;
+	constructor(reportableFiles: ReadonlySet<string>) {
 		this.reportableFiles = reportableFiles;
 	}
 
@@ -81,7 +78,7 @@ export class ModuleLoader {
 	}
 
 	resolveImport(fromFilePath: string, source: string): string | null {
-		return resolveImportPath(this.cwd, fromFilePath, source);
+		return resolveImportPath(fromFilePath, source);
 	}
 
 	allModules(): readonly ModuleInfo[] {
@@ -223,16 +220,7 @@ function collectFunctionNodes(
 	}
 }
 
-function resolveImportPath(cwd: string, fromFilePath: string, source: string): string | null {
-	if (source.startsWith("@q/")) {
-		const parts = source.split("/");
-		const packageName = parts[1];
-		if (packageName == null) {
-			return null;
-		}
-		const rest = parts.slice(2);
-		return resolveCandidate(resolve(cwd, "packages", packageName, ...rest));
-	}
+function resolveImportPath(fromFilePath: string, source: string): string | null {
 	if (!source.startsWith(".")) {
 		return null;
 	}

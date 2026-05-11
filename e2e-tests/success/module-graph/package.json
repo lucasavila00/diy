@@ -4,11 +4,16 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"diy:check": "diy-cli packages",
-		"diy:graph": "diy-cli --graph packages > module-graph.txt",
-		"e2e": "pnpm run diy:check && pnpm run diy:graph"
+		"diy:check": "diy-cli src",
+		"diy:graph": "diy-cli --graph src > module-graph.txt",
+		"e2e": "pnpm run diy:check && pnpm run diy:graph",
+		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},
 	"dependencies": {
+		"@beff/diy": "workspace:*",
 		"@beff/diy-cli": "workspace:*"
+	},
+	"devDependencies": {
+		"typescript": "^6.0.3"
 	}
 }

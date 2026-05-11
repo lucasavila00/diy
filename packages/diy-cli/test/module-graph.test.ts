@@ -29,10 +29,10 @@ describe("DIY module graph", () => {
 		const output = await snapshotGraph(
 			{
 				"packages/app/src/main.ts": `
-import type { Capabilities } from "@q/core/src/deps.ts";
-import type { AppCapability } from "@q/app/src/types.ts";
-import { readConfig } from "@q/core/src/config.ts";
-import { readClock } from "@q/core/src/clock.ts";
+import type { AppCapability } from "./types.ts";
+import { readClock } from "../../core/src/clock.ts";
+import { readConfig } from "../../core/src/config.ts";
+import type { Capabilities } from "../../core/src/deps.ts";
 
 export function run(capabilities: Capabilities<AppCapability>): void {
 	capabilities.need("core.fs");
@@ -41,19 +41,19 @@ export function run(capabilities: Capabilities<AppCapability>): void {
 }
 `,
 				"packages/app/src/types.ts": `
-import type { ClockCapability, FsCapability, LogCapability } from "@q/core/src/deps.ts";
+import type { ClockCapability, FsCapability, LogCapability } from "../../core/src/deps.ts";
 
 export type AppCapability = ClockCapability | FsCapability | LogCapability;
 `,
 				"packages/core/src/clock.ts": `
-import type { Capabilities, ClockCapability } from "@q/core/src/deps.ts";
+import type { Capabilities, ClockCapability } from "./deps.ts";
 
 export function readClock(capabilities: Capabilities<ClockCapability>): void {
 	capabilities.need("core.clock");
 }
 `,
 				"packages/core/src/config.ts": `
-import type { Capabilities, FsCapability } from "@q/core/src/deps.ts";
+import type { Capabilities, FsCapability } from "./deps.ts";
 
 export function readConfig(capabilities: Capabilities<FsCapability>): void {
 	capabilities.need("core.fs");
