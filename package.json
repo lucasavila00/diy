@@ -4,13 +4,14 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"all": "pnpm run format && pnpm run lint:fix && pnpm run build && pnpm run typecheck && pnpm run test-fix && pnpm run test:e2e && pnpm run knip",
+		"all": "pnpm run format && pnpm run lint:fix && pnpm run build && pnpm run typecheck && pnpm run test-fix && pnpm run test:e2e:update && pnpm run knip",
 		"build": "pnpm -r --if-present run build",
 		"check": "pnpm run typecheck && pnpm run test",
 		"changeset": "changeset",
-		"test:e2e": "pnpm -r --if-present run e2e && bash e2e-tests/all.sh",
-		"format": "oxfmt --write package.json knip.json tsconfig.packages.json .oxlintrc.json .oxfmtrc.json oxlint-plugin-local.mjs scripts packages e2e-tests",
-		"format:check": "oxfmt --check package.json knip.json tsconfig.packages.json .oxlintrc.json .oxfmtrc.json oxlint-plugin-local.mjs scripts packages e2e-tests",
+		"test:e2e": "vitest run --coverage",
+		"test:e2e:update": "vitest run --coverage --update",
+		"format": "oxfmt --write package.json knip.json tsconfig.packages.json vitest.config.ts .oxlintrc.json .oxfmtrc.json oxlint-plugin-local.mjs scripts packages e2e-tests",
+		"format:check": "oxfmt --check package.json knip.json tsconfig.packages.json vitest.config.ts .oxlintrc.json .oxfmtrc.json oxlint-plugin-local.mjs scripts packages e2e-tests",
 		"knip": "node scripts/check-knip-workspaces.mjs && knip --no-progress --no-config-hints && knip --production --no-progress",
 		"lint": "oxlint packages oxlint-plugin-local.mjs",
 		"lint:fix": "oxlint packages oxlint-plugin-local.mjs --fix",
@@ -20,10 +21,12 @@
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.31.0",
+		"@vitest/coverage-v8": "^4.1.5",
 		"knip": "^5.63.1",
 		"oxfmt": "^0.46.0",
 		"oxlint": "^1.61.0",
-		"typescript": "^6.0.3"
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.5"
 	},
 	"packageManager": "pnpm@10.27.0"
 }
