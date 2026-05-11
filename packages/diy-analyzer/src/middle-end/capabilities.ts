@@ -1,5 +1,6 @@
 import {
 	getArray,
+	getIdentifierName,
 	getLiteralString,
 	getNode,
 	getTypeArguments,
@@ -7,10 +8,12 @@ import {
 	locationForOffset,
 } from "../frontend/ast.ts";
 import type { ModuleLoader } from "../frontend/module-loader.ts";
+import { resolveStringConstantName } from "../frontend/need-id.ts";
+import type { StringConstantModule } from "../frontend/need-id.ts";
 import type { ImportedBinding } from "../frontend/types.ts";
 import type { TypeResolution, TypeResolutionReason } from "./types.ts";
 
-type CapabilityModule = {
+type CapabilityModule = StringConstantModule & {
 	readonly aliases: Map<string, unknown>;
 	readonly filePath: string;
 	readonly imports: Map<string, ImportedBinding>;
@@ -74,12 +77,9 @@ function resolveCapabilityIdsInner(
 	}
 	const typeArguments = getTypeArguments(node);
 	if (typeName === "Capability") {
-		const id = getTokenCapabilityId(typeArguments[0]);
+		const id = getCapabilityId(loader, moduleInfo, typeArguments[0]);
 		return id == null
-			? makeResolution(
-					[],
-					[makeReason(moduleInfo, node, "Capability first type argument is not a string literal")],
-				)
+			? makeResolution([], [makeReason(moduleInfo, node, capabilityIdNotStringConstantMessage)])
 			: makeResolution([id]);
 	}
 	if (typeName === "Exclude") {
@@ -195,13 +195,13 @@ function makeReason(
 		filePath: moduleInfo.filePath,
 		line: location.line,
 		message,
-		...(message === capabilityIdNotStringLiteralMessage
+		...(message === capabilityIdNotStringConstantMessage
 			? {
 					notes: [
 						{
 							kind: "help" as const,
 							message:
-								'use a string literal capability ID, for example `Capability<"app.clock", Clock>`',
+								'use a string literal or const reference, for example `Capability<"app.clock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`',
 						},
 					],
 				}
@@ -228,13 +228,21 @@ function compareReasons(left: TypeResolutionReason, right: TypeResolutionReason)
 	);
 }
 
-function getTokenCapabilityId(typeNode: unknown): string | null {
+function getCapabilityId(
+	loader: ModuleLoader,
+	moduleInfo: CapabilityModule,
+	typeNode: unknown,
+): string | null {
 	const node = getNode(typeNode);
-	if (node?.type !== "TSLiteralType") {
-		return null;
+	if (node?.type === "TSLiteralType") {
+		return getLiteralString(node["literal"]);
 	}
-	return getLiteralString(node["literal"]);
+	if (node?.type === "TSTypeQuery") {
+		const name = getIdentifierName(node["exprName"]);
+		return name == null ? null : resolveStringConstantName({ loader, moduleInfo }, name);
+	}
+	return null;
 }
 
-const capabilityIdNotStringLiteralMessage =
-	"Capability first type argument is not a string literal";
+const capabilityIdNotStringConstantMessage =
+	"Capability first type argument is not a string literal or typeof string constant";

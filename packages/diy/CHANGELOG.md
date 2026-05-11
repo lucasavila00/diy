@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.3
+
+### Patch Changes
+
+- typeof ID
+
 ## 0.0.2
 
 ### Patch Changes

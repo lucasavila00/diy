@@ -66,7 +66,12 @@ function resolveProvidedCapabilities(
 	if (moduleInfo == null) {
 		return new Set();
 	}
-	const provided = resolveCapabilityIds(loader, moduleInfo, call.providedType, []);
+	const sourceModule = loader.getModule(moduleInfo.filePath);
+	/* istanbul ignore next -- arena modules are backed by loaded source modules. */
+	if (sourceModule == null) {
+		return new Set();
+	}
+	const provided = resolveCapabilityIds(loader, sourceModule, call.providedType, []);
 	if (provided.reasons.length > 0) {
 		return new Set();
 	}

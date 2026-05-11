@@ -40,8 +40,13 @@ export function analyzeUnusedCapabilities(
 			if (functionInfo == null) {
 				continue;
 			}
+			const sourceModule = loader.getModule(moduleInfo.filePath);
+			/* istanbul ignore next -- arena modules are backed by loaded source modules. */
+			if (sourceModule == null) {
+				continue;
+			}
 			for (const check of functionInfo.provideChecks) {
-				const extra = resolveCapabilityIds(loader, moduleInfo, check.extraType, []);
+				const extra = resolveCapabilityIds(loader, sourceModule, check.extraType, []);
 				if (extra.reasons.length > 0) {
 					for (const reason of extra.reasons) {
 						unsupported.push({

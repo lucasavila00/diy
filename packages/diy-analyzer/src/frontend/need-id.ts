@@ -1,13 +1,20 @@
-import type { ModuleLoader } from "./module-loader.ts";
 import { getArray, getIdentifierName, getLiteralString, getNode } from "./ast.ts";
-import type { AstNode, ModuleInfo, StringConstantBinding } from "./types.ts";
+import type { ModuleLoader } from "./module-loader.ts";
+import type { AstNode, ImportedBinding, StringConstantBinding } from "./types.ts";
 
-type StringConstantScope = ReadonlyMap<string, StringConstantBinding>;
+export type StringConstantScope = ReadonlyMap<string, StringConstantBinding>;
 
-type NeedIdResolutionContext = {
+export type StringConstantModule = {
+	readonly constantExports: Map<string, string>;
+	readonly constants: Map<string, StringConstantBinding>;
+	readonly filePath: string;
+	readonly imports: Map<string, ImportedBinding>;
+};
+
+export type StringConstantResolutionContext = {
 	readonly loader: ModuleLoader;
 	readonly localConstants?: readonly StringConstantScope[];
-	readonly moduleInfo: ModuleInfo;
+	readonly moduleInfo: StringConstantModule;
 };
 
 export function collectStringConstantBindings(
@@ -67,7 +74,10 @@ export function collectVariableDeclarationConstants(
 	}
 }
 
-export function resolveNeedId(context: NeedIdResolutionContext, argument: unknown): string | null {
+export function resolveNeedId(
+	context: StringConstantResolutionContext,
+	argument: unknown,
+): string | null {
 	const literal = getLiteralString(argument);
 	if (literal != null) {
 		return literal;
@@ -76,6 +86,13 @@ export function resolveNeedId(context: NeedIdResolutionContext, argument: unknow
 	if (name == null) {
 		return null;
 	}
+	return resolveStringConstantName(context, name);
+}
+
+export function resolveStringConstantName(
+	context: StringConstantResolutionContext,
+	name: string,
+): string | null {
 	return resolveStringConstantIdentifier(context, name, []);
 }
 
@@ -106,7 +123,7 @@ function getStaticStringConstant(value: unknown): string | null {
 }
 
 function resolveStringConstantIdentifier(
-	context: NeedIdResolutionContext,
+	context: StringConstantResolutionContext,
 	name: string,
 	seen: readonly string[],
 ): string | null {

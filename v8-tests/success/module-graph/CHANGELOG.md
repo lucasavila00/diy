@@ -1,5 +1,13 @@
 # @private/diy-e2e-module-graph
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @beff/diy@0.0.3
+  - @beff/diy-cli@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes
