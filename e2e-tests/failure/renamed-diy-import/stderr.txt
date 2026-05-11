@@ -1,0 +1,16 @@
+src/main.ts:1:15 renamed diy import
+> 1 | import type { Capabilities as CapabilitySet, Capability } from "@beff/diy";
+    |               ^ Do not rename imports from @beff/diy; import exported names directly.
+  2 | import type { Capabilities } from "@beff/diy";
+  3 | import type { Capabilities as CapabilityBag } from "@beff/diy/capabilities";
+  4 |
+  = help: use `import type { Capabilities, Capability } from "@beff/diy"`
+src/main.ts:3:15 renamed diy import
+  1 | import type { Capabilities as CapabilitySet, Capability } from "@beff/diy";
+  2 | import type { Capabilities } from "@beff/diy";
+> 3 | import type { Capabilities as CapabilityBag } from "@beff/diy/capabilities";
+    |               ^ Do not rename imports from @beff/diy; import exported names directly.
+  4 |
+  5 | import type { External as RenamedExternal } from "./external.ts";
+  6 |
+  = help: use `import type { Capabilities, Capability } from "@beff/diy"`

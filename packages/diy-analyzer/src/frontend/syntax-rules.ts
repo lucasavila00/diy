@@ -4,6 +4,7 @@ import {
 	getFunctionName,
 	getIdentifierFromParam,
 	getIdentifierName,
+	getLiteralString,
 	getMemberPropertyName,
 	getNode,
 	getParamType,
@@ -23,6 +24,8 @@ type FunctionFrame = {
 	readonly hasCapabilitiesParam: boolean;
 	readonly name: string | null;
 };
+
+const publicDiyImportSources = new Set(["@beff/diy", "@beff/diy/capabilities"]);
 
 export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerViolation[] {
 	if (!moduleInfo.reportable) {
@@ -238,6 +241,38 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 		}
 	};
 
+	const checkNoRenamedDiyImport = (node: AstNode): void => {
+		if (node.type !== "ImportDeclaration") {
+			return;
+		}
+		if (!publicDiyImportSources.has(getLiteralString(node["source"]) ?? "")) {
+			return;
+		}
+		for (const specifierValue of getArray(node["specifiers"])) {
+			const specifier = getNode(specifierValue);
+			if (specifier?.type !== "ImportSpecifier") {
+				continue;
+			}
+			const importedName =
+				getIdentifierName(specifier["imported"]) ?? getLiteralString(specifier["imported"]);
+			const localName = getIdentifierName(specifier["local"]);
+			if (importedName == null || localName == null || importedName === localName) {
+				continue;
+			}
+			report(
+				specifier,
+				"renamed diy import",
+				"Do not rename imports from @beff/diy; import exported names directly.",
+				[
+					{
+						kind: "help",
+						message: 'use `import type { Capabilities, Capability } from "@beff/diy"`',
+					},
+				],
+			);
+		}
+	};
+
 	const checkCapabilityIdentifier = (
 		node: AstNode,
 		parent: AstNode | null,
@@ -284,6 +319,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 		if (node.type === "CallExpression") {
 			checkCallExpression(node);
 		}
+		checkNoRenamedDiyImport(node);
 		checkNoNeedAlias(node);
 		if (node.type === "Identifier") {
 			checkCapabilityIdentifier(node, parent, grandparent);
