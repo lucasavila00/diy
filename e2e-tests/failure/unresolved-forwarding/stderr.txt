@@ -6,3 +6,4 @@ src/main.ts:7:8 unsupported analysis
    8 | 	registry.run(capabilities);
    9 | }
   10 |
+  = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`

@@ -11,14 +11,14 @@ import {
 	isCapabilitiesNeedCall,
 	isCapabilitiesTransformCall,
 } from "./ast.ts";
-import type { AstNode } from "./types.ts";
+import type { AstNode, UnsupportedReason } from "./types.ts";
 
 type FunctionScan = {
 	readonly calleeNames: ReadonlySet<string>;
 	readonly direct: ReadonlySet<string>;
 	readonly provideChecks: readonly ScannedCapabilitiesProvideCheck[];
 	readonly forwardsTransformedCapabilities: boolean;
-	readonly unsupportedReasons: readonly string[];
+	readonly unsupportedReasons: readonly UnsupportedReason[];
 };
 
 type ScannedCapabilitiesProvideCheck = {
@@ -31,7 +31,7 @@ export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 	const calleeNames = new Set<string>();
 	const provideChecks: ScannedCapabilitiesProvideCheck[] = [];
 	let forwardsTransformedCapabilities = false;
-	const unsupportedReasons: string[] = [];
+	const unsupportedReasons: UnsupportedReason[] = [];
 	const body = functionNode["body"];
 
 	const visit = (value: unknown): void => {
@@ -70,7 +70,10 @@ export function scanFunctionBody(functionNode: AstNode): FunctionScan {
 		if (node.type === "CallExpression" && isCapabilitiesFirstArgument(node)) {
 			const calleeName = getIdentifierName(node["callee"]);
 			if (calleeName == null) {
-				unsupportedReasons.push("unresolved capabilities forwarding callee");
+				unsupportedReasons.push({
+					kind: "unresolved-forwarding-callee",
+					message: "unresolved capabilities forwarding callee",
+				});
 			} else {
 				calleeNames.add(calleeName);
 			}

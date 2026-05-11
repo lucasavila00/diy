@@ -6,3 +6,4 @@ src/main.ts:6:8 unused capability
   7 | 	capabilities.need("core.read");
   8 | }
   9 |
+  = help: remove "core.write" from `Capabilities<...>`, or add a real `capabilities.need("core.write")` call if it is required

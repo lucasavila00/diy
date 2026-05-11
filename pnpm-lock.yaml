@@ -8,9 +8,6 @@ importers:
 
   .:
     devDependencies:
-      '@beff/diy-cli':
-        specifier: workspace:*
-        version: link:packages/diy-cli
       '@changesets/cli':
         specifier: ^2.31.0
         version: 2.31.0(@types/node@24.12.3)

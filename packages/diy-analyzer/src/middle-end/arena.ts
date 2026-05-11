@@ -1,5 +1,10 @@
 import type { ModuleLoader } from "../frontend/module-loader.ts";
-import type { CapabilitiesProvideCheck, ImportedBinding, ModuleInfo } from "../frontend/types.ts";
+import type {
+	CapabilitiesProvideCheck,
+	ImportedBinding,
+	ModuleInfo,
+	UnsupportedReason,
+} from "../frontend/types.ts";
 
 export type ModuleIndex = number & {
 	readonly __brand: "ModuleIndex";
@@ -34,7 +39,7 @@ export type ArenaFunction = {
 	readonly moduleIndex: ModuleIndex;
 	readonly name: string;
 	readonly provideChecks: readonly CapabilitiesProvideCheck[];
-	readonly unsupportedReasons: readonly string[];
+	readonly unsupportedReasons: readonly UnsupportedReason[];
 };
 
 export type ArenaCall = {

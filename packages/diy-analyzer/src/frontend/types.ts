@@ -38,7 +38,7 @@ export type FunctionInfo = {
 	readonly column: number;
 	readonly line: number;
 	readonly name: string;
-	readonly unsupportedReasons: readonly string[];
+	readonly unsupportedReasons: readonly UnsupportedReason[];
 };
 
 export type CapabilitiesProvideCheck = {
@@ -46,3 +46,18 @@ export type CapabilitiesProvideCheck = {
 	readonly extraType: unknown;
 	readonly line: number;
 };
+
+export type UnsupportedReason =
+	| {
+			readonly kind: "capability-resolution";
+			readonly message: string;
+	  }
+	| {
+			readonly kind: "unresolved-forwarding-callee";
+			readonly message: "unresolved capabilities forwarding callee";
+	  }
+	| {
+			readonly calleeName: string;
+			readonly kind: "unresolved-forwarding-target";
+			readonly message: string;
+	  };

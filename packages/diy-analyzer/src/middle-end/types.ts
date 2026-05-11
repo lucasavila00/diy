@@ -10,6 +10,7 @@ export type DiyUnusedCapabilityFinding = {
 	readonly functionName: string;
 	readonly column: number;
 	readonly line: number;
+	readonly notes?: readonly DiyAnalyzerNote[];
 	readonly transitive: readonly string[];
 	readonly unused: readonly string[];
 };
@@ -19,6 +20,7 @@ export type DiyAnalyzerUnsupported = {
 	readonly column?: number;
 	readonly functionName?: string;
 	readonly line?: number;
+	readonly notes?: readonly DiyAnalyzerNote[];
 	readonly reason: string;
 };
 

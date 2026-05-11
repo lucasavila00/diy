@@ -1,5 +1,6 @@
+import type { UnsupportedReason } from "../frontend/types.ts";
 import type { ArenaFunction, FunctionIndex, MiddleEndArena } from "./arena.ts";
-import type { DiyAnalyzerUnsupported } from "./types.ts";
+import type { DiyAnalyzerNote, DiyAnalyzerUnsupported } from "./types.ts";
 
 type RequiredCapabilitiesAnalysis = {
 	readonly requiredByFunction: readonly ReadonlySet<string>[];
@@ -68,10 +69,7 @@ function buildUnsupported(
 			if (call.target == null) {
 				unsupportedFunctionIndices.add(functionInfo.index);
 				unsupported.push(
-					makeUnsupported(
-						functionInfo,
-						`unresolved capabilities forwarding target ${call.calleeName}`,
-					),
+					makeUnsupported(functionInfo, unresolvedForwardingTargetReason(call.calleeName)),
 				);
 			}
 		}
@@ -79,12 +77,53 @@ function buildUnsupported(
 	return { unsupported, unsupportedFunctionIndices };
 }
 
-function makeUnsupported(functionInfo: ArenaFunction, reason: string): DiyAnalyzerUnsupported {
+function makeUnsupported(
+	functionInfo: ArenaFunction,
+	reason: UnsupportedReason,
+): DiyAnalyzerUnsupported {
+	const notes = unsupportedNotes(reason);
 	return {
 		column: functionInfo.column,
 		filePath: functionInfo.filePath,
 		functionName: functionInfo.name,
 		line: functionInfo.line,
-		reason,
+		...(notes == null ? {} : { notes }),
+		reason: reason.message,
 	};
+}
+
+function unresolvedForwardingTargetReason(calleeName: string): UnsupportedReason {
+	return {
+		calleeName,
+		kind: "unresolved-forwarding-target",
+		message: `unresolved capabilities forwarding target ${calleeName}`,
+	};
+}
+
+function unsupportedNotes(reason: UnsupportedReason): readonly DiyAnalyzerNote[] | undefined {
+	switch (reason.kind) {
+		case "capability-resolution":
+			return undefined;
+		case "unresolved-forwarding-callee":
+			return [
+				{
+					kind: "help",
+					message:
+						"replace the dynamic callee with a named effectful function call, for example `run(capabilities)`",
+				},
+			];
+		case "unresolved-forwarding-target":
+			return [
+				{
+					kind: "help",
+					message:
+						"make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter",
+				},
+			];
+	}
+	return assertNever(reason);
+}
+
+function assertNever(value: never): never {
+	throw new Error(`Unhandled unsupported reason: ${String(value)}`);
 }

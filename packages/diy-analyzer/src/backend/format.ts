@@ -72,6 +72,21 @@ function formatNotes(notes: readonly DiyAnalyzerNote[] | undefined): string {
 	return `\n${notes.map((note) => `  = ${note.kind}: ${note.message}`).join("\n")}`;
 }
 
+function unusedCapabilityNotes(
+	id: string,
+	extraNotes: readonly DiyAnalyzerNote[] | undefined,
+): readonly DiyAnalyzerNote[] {
+	return [
+		{
+			kind: "help",
+			message:
+				`remove "${id}" from \`Capabilities<...>\`, or add a real ` +
+				`\`capabilities.need("${id}")\` call if it is required`,
+		},
+		...(extraNotes ?? []),
+	];
+}
+
 type DiagnosticLocation = {
 	readonly column?: number;
 	readonly filePath: string;
@@ -124,7 +139,13 @@ export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions
 	for (const finding of analysis.findings) {
 		for (const id of finding.unused) {
 			lines.push(
-				formatDiagnostic(cwd, finding, "unused capability", `Declares unused capability "${id}".`),
+				formatDiagnostic(
+					cwd,
+					finding,
+					"unused capability",
+					`Declares unused capability "${id}".`,
+					unusedCapabilityNotes(id, finding.notes),
+				),
 			);
 		}
 	}
@@ -142,7 +163,7 @@ export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions
 		);
 	}
 	for (const item of analysis.unsupported) {
-		lines.push(formatDiagnostic(cwd, item, "unsupported analysis", item.reason));
+		lines.push(formatDiagnostic(cwd, item, "unsupported analysis", item.reason, item.notes));
 	}
 	return lines.length === 0 ? "" : `${lines.join("\n")}\n`;
 }

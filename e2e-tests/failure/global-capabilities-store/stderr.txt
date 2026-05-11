@@ -6,3 +6,4 @@ src/main.ts:8:23 escaped capabilities
    9 | 	capabilities.need("core.fs");
   10 | }
   11 |
+  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function

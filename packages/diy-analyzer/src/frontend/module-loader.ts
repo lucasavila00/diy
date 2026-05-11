@@ -163,7 +163,13 @@ export class ModuleLoader {
 			forwardsTransformedCapabilities: scan.forwardsTransformedCapabilities,
 			line: functionLocation.line,
 			name,
-			unsupportedReasons: [...declared.reasons, ...scan.unsupportedReasons],
+			unsupportedReasons: [
+				...declared.reasons.map((message) => ({
+					kind: "capability-resolution" as const,
+					message,
+				})),
+				...scan.unsupportedReasons,
+			],
 		};
 	}
 

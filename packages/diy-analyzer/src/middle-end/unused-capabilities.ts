@@ -47,6 +47,13 @@ export function analyzeUnusedCapabilities(
 							filePath: functionInfo.filePath,
 							functionName: functionInfo.name,
 							line: check.line,
+							notes: [
+								{
+									kind: "help",
+									message:
+										'use a resolvable `Capability<"id", ...>` type or union for the `capabilities.provide<...>` extra capability type',
+								},
+							],
 							reason: `capabilities.provide extra capability type: ${reason}`,
 						});
 					}

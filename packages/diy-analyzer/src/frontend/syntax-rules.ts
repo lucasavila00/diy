@@ -1,4 +1,4 @@
-import type { DiyAnalyzerViolation } from "../middle-end/types.ts";
+import type { DiyAnalyzerNote, DiyAnalyzerViolation } from "../middle-end/types.ts";
 import {
 	getArray,
 	getFunctionName,
@@ -40,7 +40,12 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 		const name = functionStack.at(-1)?.name;
 		return name == null ? undefined : name;
 	};
-	const report = (node: AstNode, name: string, reason: string): void => {
+	const report = (
+		node: AstNode,
+		name: string,
+		reason: string,
+		notes?: DiyAnalyzerViolation["notes"],
+	): void => {
 		const functionName = currentFunctionName();
 		const location = locationForNode(node);
 		violations.push({
@@ -48,6 +53,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 			filePath: moduleInfo.filePath,
 			line: location.line,
 			name,
+			...(notes == null ? {} : { notes }),
 			reason,
 			...(functionName == null ? {} : { functionName }),
 		});
@@ -65,6 +71,13 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 			node,
 			"escaped capabilities",
 			"Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.",
+			[
+				{
+					kind: "help",
+					message:
+						"keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function",
+				},
+			],
 		);
 	};
 	const hasVisibleCapabilitiesParam = (): boolean =>
@@ -95,6 +108,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 					param ?? identifier,
 					"invalid capabilities parameter",
 					"Capabilities parameters must be named `capabilities`.",
+					[capabilitiesParameterHelp()],
 				);
 			}
 			if (name === "capabilities" && !hasCapabilitiesType) {
@@ -102,6 +116,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 					param ?? identifier,
 					"invalid capabilities parameter",
 					"`capabilities` parameters must be typed as `Capabilities<...>`.",
+					[capabilitiesParameterHelp()],
 				);
 			}
 			if (index !== 0) {
@@ -109,6 +124,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 					param ?? identifier,
 					"invalid capabilities parameter",
 					"Capabilities parameters must be the first parameter.",
+					[capabilitiesParameterHelp()],
 				);
 			}
 			if (isDefaultParam(param)) {
@@ -116,6 +132,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 					param ?? identifier,
 					"invalid capabilities parameter",
 					"Do not default `capabilities` parameters.",
+					[capabilitiesParameterHelp()],
 				);
 			}
 		}
@@ -131,6 +148,13 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 				callee ?? node,
 				"dynamic capability access",
 				"Use direct capability method calls like `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.",
+				[
+					{
+						kind: "help",
+						message:
+							'replace computed or optional access with direct property access, for example `capabilities.need("core.fs")`',
+					},
+				],
 			);
 			return;
 		}
@@ -139,6 +163,12 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 				getNode(getArray(node["arguments"])[0]) ?? node,
 				"dynamic capability access",
 				"Capability IDs must be string literals.",
+				[
+					{
+						kind: "help",
+						message: 'use a literal capability ID, for example `capabilities.need("core.fs")`',
+					},
+				],
 			);
 		}
 	};
@@ -149,6 +179,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 				getNode(node["right"]) ?? node,
 				"aliased capability method",
 				"Do not alias, rebind, return, or pass capability methods; call them directly.",
+				[capabilityMethodAliasHelp()],
 			);
 		}
 		if (node.type === "CallExpression") {
@@ -158,6 +189,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 						getNode(argument) ?? node,
 						"aliased capability method",
 						"Do not alias, rebind, return, or pass capability methods; call them directly.",
+						[capabilityMethodAliasHelp()],
 					);
 				}
 			}
@@ -167,6 +199,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 				getNode(node["argument"]) ?? node,
 				"aliased capability method",
 				"Do not alias, rebind, return, or pass capability methods; call them directly.",
+				[capabilityMethodAliasHelp()],
 			);
 		}
 		if (node.type !== "VariableDeclarator") {
@@ -177,6 +210,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 				getNode(node["init"]) ?? node,
 				"aliased capability method",
 				"Do not alias, rebind, return, or pass capability methods; call them directly.",
+				[capabilityMethodAliasHelp()],
 			);
 			return;
 		}
@@ -198,6 +232,7 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 					property,
 					"aliased capability method",
 					"Do not alias, rebind, return, or pass capability methods; call them directly.",
+					[capabilityMethodAliasHelp()],
 				);
 			}
 		}
@@ -271,6 +306,21 @@ export function analyzeDiySyntax(moduleInfo: ModuleInfo): readonly DiyAnalyzerVi
 
 function isDefaultParam(param: unknown): boolean {
 	return getNode(param)?.type === "AssignmentPattern";
+}
+
+function capabilitiesParameterHelp(): DiyAnalyzerNote {
+	return {
+		kind: "help",
+		message:
+			"write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`",
+	};
+}
+
+function capabilityMethodAliasHelp(): DiyAnalyzerNote {
+	return {
+		kind: "help",
+		message: 'inline the method call instead, for example `capabilities.need("core.fs")`',
+	};
 }
 
 function isNonValueIdentifierParent(parent: AstNode | null): boolean {

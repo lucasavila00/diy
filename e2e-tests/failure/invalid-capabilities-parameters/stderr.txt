@@ -6,6 +6,7 @@ src/main.ts:8:25 invalid capabilities parameter
    9 | 	use(svc);
   10 | }
   11 |
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
 src/main.ts:12:38 invalid capabilities parameter
   10 | }
   11 |
@@ -14,6 +15,7 @@ src/main.ts:12:38 invalid capabilities parameter
   13 | 	use(path);
   14 | 	use(capabilities);
   15 | }
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
 src/main.ts:17:27 invalid capabilities parameter
   15 | }
   16 |
@@ -22,6 +24,7 @@ src/main.ts:17:27 invalid capabilities parameter
   18 | 	use(capabilities);
   19 | }
   20 |
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
 src/main.ts:21:25 invalid capabilities parameter
   19 | }
   20 |
@@ -30,6 +33,7 @@ src/main.ts:21:25 invalid capabilities parameter
   22 | 	use(capabilities);
   23 | }
   24 |
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
 src/main.ts:17:8 unsupported analysis
   15 | }
   16 |
@@ -38,3 +42,4 @@ src/main.ts:17:8 unsupported analysis
   18 | 	use(capabilities);
   19 | }
   20 |
+  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter

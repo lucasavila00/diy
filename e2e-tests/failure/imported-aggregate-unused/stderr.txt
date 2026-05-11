@@ -6,3 +6,4 @@ packages/app/src/main.ts:8:8 unused capability
    9 | 	capabilities.need("core.fs");
   10 | }
   11 |
+  = help: remove "core.clock" from `Capabilities<...>`, or add a real `capabilities.need("core.clock")` call if it is required
