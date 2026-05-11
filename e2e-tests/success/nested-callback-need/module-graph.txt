@@ -1,0 +1,4 @@
+Module graph
+
+src/main.ts
+`-- load: items.read

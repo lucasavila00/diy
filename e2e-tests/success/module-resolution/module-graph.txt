@@ -1,0 +1,10 @@
+Module graph
+
+src/main.ts
+`-- run: audit, clock, external, store
+   `-- calls: readAudit, readStore
+
+src/store.ts
++-- readAudit: audit
+|
+`-- readStore: store
