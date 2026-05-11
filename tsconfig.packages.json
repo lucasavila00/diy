@@ -12,6 +12,6 @@
 		"isolatedModules": true,
 		"verbatimModuleSyntax": true,
 		"skipLibCheck": true,
-		"types": ["node", "vitest/globals"]
+		"types": ["node"]
 	}
 }

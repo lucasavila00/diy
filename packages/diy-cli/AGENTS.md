@@ -33,17 +33,12 @@
 
 ## Tests
 
-- Keep `packages/diy-cli/test/` for focused unit tests only: config parsing/path resolution, commander CLI option handling, formatter sorting/rendering, or small internals that are difficult to verify through the CLI.
-- Analyzer behavior, syntax-rule failures, unused-capability failures, and module graph behavior should be covered through `e2e-tests/` so the tests exercise the real CLI and `diy.json` loading path.
-- Shared unit-test fixtures belong in `test/helpers.ts`.
-- Formatter and human-output contracts belong in `test/format.test.ts`; use explicit `DiyAnalysis` fixtures rather than running the analyzer just to create formatter input.
-- Snapshot output must not include random temp directory names or absolute fixture paths. Prefer formatter output with a fixture `cwd`, or normalize paths to fixture-relative values before snapshotting structured analysis.
-- Use `pnpm --filter @beff/diy-cli run test-fix` only when intentionally updating snapshots.
+- Analyzer behavior, syntax-rule failures, unused-capability failures, module graph behavior, config loading, and CLI errors should be covered through `e2e-tests/` so tests exercise the real CLI and `diy.json` loading path.
+- Do not add `packages/diy-cli/test/` unit tests unless the behavior is a small internal edge case that cannot be validated through e2e.
 
 ## Validation
 
 Run these from the repository root after analyzer changes:
 
-- `pnpm --filter @beff/diy-cli run test`
 - `pnpm --filter @beff/diy-cli run typecheck`
 - `pnpm run check`

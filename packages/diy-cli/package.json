@@ -12,8 +12,6 @@
 	"scripts": {
 		"analyze": "node src/app/cli.ts",
 		"build": "tsc -b ./tsconfig.cjs.json && node ./script/fixup-package.mjs",
-		"test": "vitest run",
-		"test-fix": "vitest run --update",
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},
 	"dependencies": {
@@ -25,7 +23,6 @@
 	"devDependencies": {
 		"@types/babel__code-frame": "^7.27.0",
 		"@types/node": "^24.9.0",
-		"typescript": "^6.0.3",
-		"vitest": "^4.1.5"
+		"typescript": "^6.0.3"
 	}
 }

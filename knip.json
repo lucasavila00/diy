@@ -4,7 +4,6 @@
 	"workspaces": {
 		".": {
 			"entry": ["oxlint-plugin-local.mjs", "scripts/check-knip-workspaces.mjs"],
-			"ignoreUnresolved": ["vitest/globals"],
 			"project": ["*.json", "*.mjs", "scripts/**/*.mjs"]
 		},
 		"packages/diy": {
@@ -12,20 +11,8 @@
 			"project": ["src/**/*.ts!", "script/**/*.mjs!"]
 		},
 		"packages/diy-cli": {
-			"entry": [
-				"bin/index.cjs!",
-				"src/app/cli.ts!",
-				"script/fixup-package.mjs!",
-				"test/**/*.test.ts"
-			],
-			"project": [
-				"src/**/*.ts!",
-				"test/**/*.ts",
-				"test/__snapshots__/**/*.txt",
-				"vitest.config.ts",
-				"script/**/*.mjs!",
-				"bin/**/*.cjs!"
-			]
+			"entry": ["bin/index.cjs!", "src/app/cli.ts!", "script/fixup-package.mjs!"],
+			"project": ["src/**/*.ts!", "script/**/*.mjs!", "bin/**/*.cjs!"]
 		}
 	}
 }

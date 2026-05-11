@@ -9,11 +9,11 @@ type DiyProject = {
 	readonly projectPath: string;
 };
 
-export function resolveProjectPath(projectPath: string, cwd: string): string {
+function resolveProjectPath(projectPath: string, cwd: string): string {
 	return isAbsolute(projectPath) ? projectPath : join(cwd, projectPath);
 }
 
-export async function readDiyProject(projectPath: string): Promise<DiyProject> {
+async function readDiyProject(projectPath: string): Promise<DiyProject> {
 	let contents: string;
 	try {
 		contents = await readFile(projectPath, "utf8");
