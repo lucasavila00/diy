@@ -1,0 +1,15 @@
+{
+	"name": "@beff/diy-e2e-failure",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"typecheck": "tsc --noEmit -p tsconfig.json"
+	},
+	"dependencies": {
+		"@beff/diy": "workspace:*"
+	},
+	"devDependencies": {
+		"typescript": "^6.0.3"
+	}
+}

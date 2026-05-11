@@ -21,6 +21,16 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  e2e-tests/failure:
+    dependencies:
+      '@beff/diy':
+        specifier: workspace:*
+        version: link:../../packages/diy
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   e2e-tests/success/module-graph:
     dependencies:
       '@beff/diy':

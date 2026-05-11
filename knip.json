@@ -1,6 +1,6 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
-	"ignoreWorkspaces": ["e2e-tests/success/module-graph"],
+	"ignoreWorkspaces": ["e2e-tests/failure", "e2e-tests/success/module-graph"],
 	"workspaces": {
 		".": {
 			"entry": ["oxlint-plugin-local.mjs", "scripts/check-knip-workspaces.mjs"],

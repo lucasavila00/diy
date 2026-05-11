@@ -7,7 +7,7 @@ FAILURE_DIR="$ROOT_DIR/failure"
 found=0
 
 for case_dir in "$FAILURE_DIR"/*; do
-	if [ ! -d "$case_dir" ]; then
+	if [ ! -d "$case_dir/src" ]; then
 		continue
 	fi
 
