@@ -69,3 +69,7 @@ export function unresolvedDefaultImport(
 export function missingProvideType(capabilities: Capabilities<ReadCapability>): void {
 	use(Capabilities.extend(capabilities, Capabilities.create({ read: replacement })));
 }
+
+export function untypedExtend(capabilities: Capabilities<ReadCapability>): void {
+	use(Capabilities.extend(capabilities, { read: replacement }));
+}

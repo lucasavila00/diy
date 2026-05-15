@@ -40,6 +40,15 @@ src/main.ts:18:10 dynamic capability access
 > 18 | 	const { [dynamicId]: fs } = capabilities;
      | 	        ^ Capability destructuring must use a static property name.
   19 | 	use(fs);
-  20 | }
-  21 |
+  20 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  21 | 	const { [`fs${id}`]: templatedFs } = capabilities;
+  = help: use direct property names like `{ reader }`, or computed const string keys
+src/main.ts:21:10 dynamic capability access
+  19 | 	use(fs);
+  20 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 21 | 	const { [`fs${id}`]: templatedFs } = capabilities;
+     | 	        ^ Capability destructuring must use a static property name.
+  22 | 	use(templatedFs);
+  23 | }
+  24 |
   = help: use direct property names like `{ reader }`, or computed const string keys

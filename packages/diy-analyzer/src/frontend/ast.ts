@@ -143,15 +143,17 @@ export function getFunctionName(node: AstNode, parent: AstNode | null): string |
 
 export function getMemberPropertyName(property: unknown): string | null {
 	const node = getNode(property);
-	/* c8 ignore next -- regular capability fixtures prefer dot access, but helper names are parser-backed. */
-	if (node?.type === "Identifier") {
+	/* c8 ignore next -- callers pass parser-backed member or object-pattern properties. */
+	if (node == null) {
+		return null;
+	}
+	if (node.type === "Identifier") {
 		return getIdentifierName(node);
 	}
-	/* c8 ignore next -- parser member literals are covered by computed access fixtures. */
-	if (node?.type === "Literal") {
+	if (node.type === "Literal") {
 		return getLiteralString(node);
 	}
-	/* istanbul ignore next -- capability method properties are identifiers or string literals. */
+	/* c8 ignore next -- capability property nodes are identifiers or literals. */
 	return null;
 }
 

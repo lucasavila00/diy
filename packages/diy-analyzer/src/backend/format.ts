@@ -69,11 +69,9 @@ function formatList(values: readonly string[]): string {
 }
 
 function formatCapabilityRead(id: string): string {
-	/* c8 ignore next -- normal fixtures use identifier-safe capability IDs for dot access. */
 	if (/^[A-Za-z_$][\w$]*$/.test(id)) {
 		return `capabilities.${id}`;
 	}
-	/* c8 ignore next -- non-identifier capability IDs are supported but normal fixtures prefer dot access. */
 	return `capabilities["${id}"]`;
 }
 

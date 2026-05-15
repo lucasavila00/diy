@@ -85,7 +85,6 @@ function resolveStaticStringExpression(
 	argument: unknown,
 ): string | null {
 	const literal = getLiteralString(argument);
-	/* c8 ignore next -- normal fixtures use identifiers or const keys for computed access. */
 	if (literal != null) {
 		return literal;
 	}

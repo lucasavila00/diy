@@ -29,7 +29,7 @@ import {
 } from "./ast.ts";
 import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
 import { scanFunctionBody } from "./function-scan.ts";
-import { collectStringConstantBindings } from "./need-id.ts";
+import { collectStringConstantBindings } from "./string-constants.ts";
 import type {
 	AstNode,
 	FunctionInfo,

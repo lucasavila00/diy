@@ -21,7 +21,7 @@ import {
 	collectVariableDeclarationConstants,
 	resolveStaticMemberName,
 	resolveStringConstantName,
-} from "./need-id.ts";
+} from "./string-constants.ts";
 import type { AstNode, ModuleInfo, StringConstantBinding, UnsupportedReason } from "./types.ts";
 
 type FunctionScan = {
@@ -208,7 +208,6 @@ function getForwardedCapabilitiesArgument(node: AstNode): ForwardedCapabilitiesA
 
 function getCapabilitiesCreateType(value: unknown): unknown | null {
 	const node = getNode(value);
-	/* c8 ignore next -- transformed forwarding fixtures wrap extras in Capabilities.create. */
 	if (node == null || !isCapabilitiesCreateCall(node)) {
 		return null;
 	}
@@ -257,7 +256,6 @@ function resolveObjectPatternComputedKey(
 		return literal;
 	}
 	const name = getIdentifierName(key);
-	/* c8 ignore next -- computed destructuring fixtures use identifiers or literals. */
 	if (name == null) {
 		return null;
 	}

@@ -17,4 +17,7 @@ export function bad(capabilities: Capabilities<FsCapability>, id: string): void 
 	// @ts-expect-error intentionally invalid for analyzer coverage
 	const { [dynamicId]: fs } = capabilities;
 	use(fs);
+	// @ts-expect-error intentionally invalid for analyzer coverage
+	const { [`fs${id}`]: templatedFs } = capabilities;
+	use(templatedFs);
 }

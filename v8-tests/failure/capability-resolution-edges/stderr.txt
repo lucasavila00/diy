@@ -144,3 +144,12 @@ src/main.ts:69:8 unsupported analysis
   71 | }
   72 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
+src/main.ts:73:8 unsupported analysis
+  71 | }
+  72 |
+> 73 | export function untypedExtend(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ unresolved capabilities forwarding target use
+  74 | 	use(Capabilities.extend(capabilities, { read: replacement }));
+  75 | }
+  76 |
+  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter

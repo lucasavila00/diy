@@ -8,8 +8,8 @@ import {
 	locationForOffset,
 } from "../frontend/ast.ts";
 import type { ModuleLoader } from "../frontend/module-loader.ts";
-import { resolveStringConstantName } from "../frontend/need-id.ts";
-import type { StringConstantModule } from "../frontend/need-id.ts";
+import { resolveStringConstantName } from "../frontend/string-constants.ts";
+import type { StringConstantModule } from "../frontend/string-constants.ts";
 import type { ImportedBinding } from "../frontend/types.ts";
 import type { TypeResolution, TypeResolutionReason } from "./types.ts";
 
