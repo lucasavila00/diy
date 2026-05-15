@@ -17,20 +17,9 @@ export function run(capabilities: Capabilities<AppCapability>): void {
 
 	capabilities[ASSERTED_READ_ID];
 	capabilities["assertedReader"];
+	capabilities["reader-id"];
 	capabilities[IMPORTED_READ_ID];
 	capabilities[LOCAL_READ_ID];
 	capabilities[RENAMED_READ_ID];
 	capabilities[TOP_LEVEL_READ_ID];
-	const {
-		["localReader"]: localRead,
-		aliasedReader: aliasedRead,
-		"reader-id": hyphenRead,
-		[TOP_LEVEL_READ_ID]: topRead,
-		importedReader: importedRead,
-	} = capabilities;
-	void localRead;
-	void aliasedRead;
-	void hyphenRead;
-	void topRead;
-	void importedRead;
 }

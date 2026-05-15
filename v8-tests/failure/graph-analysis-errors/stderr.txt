@@ -11,7 +11,7 @@ src/main.ts:6:7 escaped capabilities
   4 |
   5 | export function run(capabilities: Capabilities<ClockCapability>): void {
 > 6 | 	void capabilities;
-    | 	     ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
+    | 	     ^ Use `capabilities` only for static service property access or as the first argument to another effectful function.
   7 | }
   8 |
-  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
+  = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function

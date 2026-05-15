@@ -1,26 +1,53 @@
-src/main.ts:9:17 escaped capabilities
+src/main.ts:8:13 aliased capability service
+   6 |
+   7 | export function bad(capabilities: Capabilities<FsCapability>): void {
+>  8 | 	const fs = capabilities.fs;
+     | 	           ^ Do not create local aliases for capability services.
+   9 | 	const bracketFs = capabilities["fs"];
+  10 | 	const direct = capabilities;
+  11 | 	let rebound: unknown = direct;
+  = help: read services inline from `capabilities`, for example `capabilities.reader`
+src/main.ts:9:20 aliased capability service
    7 | export function bad(capabilities: Capabilities<FsCapability>): void {
    8 | 	const fs = capabilities.fs;
->  9 | 	const direct = capabilities;
-     | 	               ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
-  10 | 	let rebound: unknown = direct;
-  11 | 	rebound = capabilities;
-  12 | 	use(fs);
-  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:11:12 escaped capabilities
-   9 | 	const direct = capabilities;
-  10 | 	let rebound: unknown = direct;
-> 11 | 	rebound = capabilities;
-     | 	          ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
-  12 | 	use(fs);
-  13 | 	use(direct);
-  14 | 	use(rebound);
-  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:19:9 escaped capabilities
-  17 | export function returns(capabilities: Capabilities<FsCapability>) {
-  18 | 	capabilities.fs;
-> 19 | 	return capabilities;
-     | 	       ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
-  20 | }
-  21 |
-  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
+>  9 | 	const bracketFs = capabilities["fs"];
+     | 	                  ^ Do not create local aliases for capability services.
+  10 | 	const direct = capabilities;
+  11 | 	let rebound: unknown = direct;
+  12 | 	rebound = capabilities;
+  = help: read services inline from `capabilities`, for example `capabilities.reader`
+src/main.ts:10:17 escaped capabilities
+   8 | 	const fs = capabilities.fs;
+   9 | 	const bracketFs = capabilities["fs"];
+> 10 | 	const direct = capabilities;
+     | 	               ^ Use `capabilities` only for static service property access or as the first argument to another effectful function.
+  11 | 	let rebound: unknown = direct;
+  12 | 	rebound = capabilities;
+  13 | 	rebound = capabilities.fs;
+  = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function
+src/main.ts:12:12 escaped capabilities
+  10 | 	const direct = capabilities;
+  11 | 	let rebound: unknown = direct;
+> 12 | 	rebound = capabilities;
+     | 	          ^ Use `capabilities` only for static service property access or as the first argument to another effectful function.
+  13 | 	rebound = capabilities.fs;
+  14 | 	use(fs);
+  15 | 	use(bracketFs);
+  = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function
+src/main.ts:13:12 aliased capability service
+  11 | 	let rebound: unknown = direct;
+  12 | 	rebound = capabilities;
+> 13 | 	rebound = capabilities.fs;
+     | 	          ^ Do not create local aliases for capability services.
+  14 | 	use(fs);
+  15 | 	use(bracketFs);
+  16 | 	use(direct);
+  = help: read services inline from `capabilities`, for example `capabilities.reader`
+src/main.ts:22:9 escaped capabilities
+  20 | export function returns(capabilities: Capabilities<FsCapability>) {
+  21 | 	capabilities.fs;
+> 22 | 	return capabilities;
+     | 	       ^ Use `capabilities` only for static service property access or as the first argument to another effectful function.
+  23 | }
+  24 |
+  = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function

@@ -150,9 +150,6 @@ export function getMemberPropertyName(property: unknown): string | null {
 	if (node.type === "Identifier") {
 		return getIdentifierName(node);
 	}
-	if (node.type === "Literal") {
-		return getLiteralString(node);
-	}
 	return null;
 }
 

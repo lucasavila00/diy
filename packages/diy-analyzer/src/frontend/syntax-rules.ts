@@ -22,7 +22,6 @@ import type { ModuleLoader } from "./module-loader.ts";
 import {
 	collectVariableDeclarationConstants,
 	resolveStaticMemberName,
-	resolveStringConstantName,
 } from "./string-constants.ts";
 import type { AstNode, ModuleInfo, StringConstantBinding } from "./types.ts";
 
@@ -89,12 +88,25 @@ export function analyzeDiySyntax(
 		report(
 			node,
 			"escaped capabilities",
-			"Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.",
+			"Use `capabilities` only for static service property access or as the first argument to another effectful function.",
 			[
 				{
 					kind: "help",
 					message:
-						"keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function",
+						"keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function",
+				},
+			],
+		);
+	};
+	const reportCapabilityServiceAlias = (node: AstNode): void => {
+		report(
+			node,
+			"aliased capability service",
+			"Do not create local aliases for capability services.",
+			[
+				{
+					kind: "help",
+					message: "read services inline from `capabilities`, for example `capabilities.reader`",
 				},
 			],
 		);
@@ -236,45 +248,41 @@ export function analyzeDiySyntax(
 		}
 	};
 
-	const checkCapabilitiesDestructure = (node: AstNode): void => {
+	const checkCapabilityServiceAlias = (node: AstNode): void => {
 		if (!hasVisibleDiyCapabilitiesParam()) {
 			return;
 		}
-		if (node.type !== "VariableDeclarator" || getIdentifierName(node["init"]) !== "capabilities") {
-			return;
-		}
-		const id = getNode(node["id"]);
-		if (id?.type !== "ObjectPattern") {
-			return;
-		}
-		for (const propertyValue of getArray(id["properties"])) {
-			const property = getNode(propertyValue);
-			if (property?.type === "RestElement") {
-				reportCapabilityEscape(property);
-				continue;
-			}
-			if (property?.type !== "Property" || property["computed"] !== true) {
-				continue;
-			}
+		if (node.type === "VariableDeclarator") {
+			const id = getNode(node["id"]);
 			if (
-				resolveObjectPatternComputedKey(
-					{ loader, localConstants: constantScopes, moduleInfo },
-					property["key"],
-				) != null
+				getIdentifierName(node["init"]) === "capabilities" &&
+				id != null &&
+				id.type === "ObjectPattern"
 			) {
-				continue;
+				reportCapabilityServiceAlias(id);
+				return;
 			}
-			report(
-				property,
-				"dynamic capability access",
-				"Capability destructuring must use a static property name.",
-				[
-					{
-						kind: "help",
-						message: "use direct property names like `{ reader }`, or computed const string keys",
-					},
-				],
-			);
+			const init = getNode(node["init"]);
+			if (init == null || !isCapabilitiesServiceMember(init)) {
+				return;
+			}
+			reportCapabilityServiceAlias(init);
+			return;
+		}
+		if (node.type === "AssignmentExpression") {
+			const left = getNode(node["left"]);
+			if (
+				getIdentifierName(node["right"]) === "capabilities" &&
+				left != null &&
+				left.type === "ObjectPattern"
+			) {
+				reportCapabilityServiceAlias(left);
+				return;
+			}
+			const right = getNode(node["right"]);
+			if (left?.type === "Identifier" && right != null && isCapabilitiesServiceMember(right)) {
+				reportCapabilityServiceAlias(right);
+			}
 		}
 	};
 
@@ -368,6 +376,12 @@ export function analyzeDiySyntax(
 				return;
 			}
 		}
+		if (parent?.type === "AssignmentExpression" && parent["right"] === node) {
+			const left = getNode(parent["left"]);
+			if (left?.type === "ObjectPattern") {
+				return;
+			}
+		}
 		if (parent?.type === "CallExpression" && getArray(parent["arguments"])[0] === node) {
 			return;
 		}
@@ -399,7 +413,7 @@ export function analyzeDiySyntax(
 		}
 		checkNoRenamedDiyImport(node);
 		checkNoCapabilitiesReexport(node);
-		checkCapabilitiesDestructure(node);
+		checkCapabilityServiceAlias(node);
 		if (node.type === "Identifier") {
 			checkCapabilityIdentifier(node, parent);
 		}
@@ -461,23 +475,4 @@ function isCapabilitiesParamIdentifier(node: AstNode, parent: AstNode | null): b
 		return getArray(parent["params"]).some((param) => getIdentifierFromParam(param) === node);
 	}
 	return parent.type === "AssignmentPattern" && parent["left"] === node;
-}
-
-function resolveObjectPatternComputedKey(
-	context: {
-		readonly loader: ModuleLoader;
-		readonly localConstants: readonly Map<string, StringConstantBinding>[];
-		readonly moduleInfo: ModuleInfo;
-	},
-	key: unknown,
-): string | null {
-	const literal = getLiteralString(key);
-	if (literal != null) {
-		return literal;
-	}
-	const name = getIdentifierName(key);
-	if (name == null) {
-		return null;
-	}
-	return resolveStringConstantName(context, name);
 }

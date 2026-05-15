@@ -1,80 +1,143 @@
-src/main.ts:11:8 unused capability
-   9 | void diy;
-  10 |
-> 11 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {
+src/main.ts:12:8 unused capability
+  10 | void diy;
+  11 |
+> 12 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {
      |        ^ Declares unused capability "read".
-  12 | 	const { ...rest } = capabilities;
-  13 | 	use(rest);
-  14 | }
+  13 | 	const { ...rest } = capabilities;
+  14 | 	use(rest);
+  15 | }
   = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
-src/main.ts:12:10 escaped capabilities
-  10 |
-  11 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {
-> 12 | 	const { ...rest } = capabilities;
-     | 	        ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
-  13 | 	use(rest);
-  14 | }
-  15 |
-  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:17:20 escaped capabilities
-  15 |
-  16 | export function duplicateEscape(capabilities: Capabilities<ReadCapability>): void {
-> 17 | 	use(capabilities, capabilities);
-     | 	                  ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
-  18 | }
-  19 |
-  20 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
-  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:21:17 invalid capabilities parameter
-  19 |
-  20 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
-> 21 | 	function inner(capabilities: unknown): void {
+src/main.ts:17:8 unused capability
+  15 | }
+  16 |
+> 17 | export function destructureService(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ Declares unused capability "read".
+  18 | 	const { read } = capabilities;
+  19 | 	use(read);
+  20 | }
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
+src/main.ts:22:8 unused capability
+  20 | }
+  21 |
+> 22 | export function destructureComputedService(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ Declares unused capability "read".
+  23 | 	const { ["read"]: read } = capabilities;
+  24 | 	use(read);
+  25 | }
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
+src/main.ts:27:8 unused capability
+  25 | }
+  26 |
+> 27 | export function destructureLiteralService(capabilities: Capabilities<ReadIdCapability>): void {
+     |        ^ Declares unused capability "read-id".
+  28 | 	const { "read-id": readId } = capabilities;
+  29 | 	use(readId);
+  30 | }
+  = help: remove "read-id" from `Capabilities<...>`, or add a real `capabilities["read-id"]` read if it is required
+src/main.ts:13:8 aliased capability service
+  11 |
+  12 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {
+> 13 | 	const { ...rest } = capabilities;
+     | 	      ^ Do not create local aliases for capability services.
+  14 | 	use(rest);
+  15 | }
+  16 |
+  = help: read services inline from `capabilities`, for example `capabilities.reader`
+src/main.ts:18:8 aliased capability service
+  16 |
+  17 | export function destructureService(capabilities: Capabilities<ReadCapability>): void {
+> 18 | 	const { read } = capabilities;
+     | 	      ^ Do not create local aliases for capability services.
+  19 | 	use(read);
+  20 | }
+  21 |
+  = help: read services inline from `capabilities`, for example `capabilities.reader`
+src/main.ts:23:8 aliased capability service
+  21 |
+  22 | export function destructureComputedService(capabilities: Capabilities<ReadCapability>): void {
+> 23 | 	const { ["read"]: read } = capabilities;
+     | 	      ^ Do not create local aliases for capability services.
+  24 | 	use(read);
+  25 | }
+  26 |
+  = help: read services inline from `capabilities`, for example `capabilities.reader`
+src/main.ts:28:8 aliased capability service
+  26 |
+  27 | export function destructureLiteralService(capabilities: Capabilities<ReadIdCapability>): void {
+> 28 | 	const { "read-id": readId } = capabilities;
+     | 	      ^ Do not create local aliases for capability services.
+  29 | 	use(readId);
+  30 | }
+  31 |
+  = help: read services inline from `capabilities`, for example `capabilities.reader`
+src/main.ts:34:3 aliased capability service
+  32 | export function assignDestructuredService(capabilities: Capabilities<ReadCapability>): void {
+  33 | 	let read: unknown;
+> 34 | 	({ read } = capabilities);
+     | 	 ^ Do not create local aliases for capability services.
+  35 | 	capabilities.read;
+  36 | 	use(read);
+  37 | }
+  = help: read services inline from `capabilities`, for example `capabilities.reader`
+src/main.ts:40:20 escaped capabilities
+  38 |
+  39 | export function duplicateEscape(capabilities: Capabilities<ReadCapability>): void {
+> 40 | 	use(capabilities, capabilities);
+     | 	                  ^ Use `capabilities` only for static service property access or as the first argument to another effectful function.
+  41 | }
+  42 |
+  43 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
+  = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function
+src/main.ts:44:17 invalid capabilities parameter
+  42 |
+  43 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
+> 44 | 	function inner(capabilities: unknown): void {
      | 	               ^ `capabilities` parameters must be typed as `Capabilities<...>`.
-  22 | 		use(capabilities);
-  23 | 	}
-  24 | 	inner(capabilities);
+  45 | 		use(capabilities);
+  46 | 	}
+  47 | 	inner(capabilities);
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
-src/main.ts:29:2 invalid capabilities parameter
-  27 | export function destructuredParam(
-  28 | 	{ value }: { value: unknown },
-> 29 | 	capabilities: Capabilities<ReadCapability>,
+src/main.ts:52:2 invalid capabilities parameter
+  50 | export function destructuredParam(
+  51 | 	{ value }: { value: unknown },
+> 52 | 	capabilities: Capabilities<ReadCapability>,
      | 	^ Capabilities parameters must be the first parameter.
-  30 | ): void {
-  31 | 	const { need } = other;
-  32 | 	use(value);
+  53 | ): void {
+  54 | 	const { need } = other;
+  55 | 	use(value);
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
-src/main.ts:37:1 re-exported diy capabilities
-  35 | }
-  36 |
-> 37 | export * from "@beff/diy/capabilities";
+src/main.ts:60:1 re-exported diy capabilities
+  58 | }
+  59 |
+> 60 | export * from "@beff/diy/capabilities";
      | ^ Do not re-export Capabilities from @beff/diy; import it directly where it is used.
-  38 | export * as DiyCapabilities from "@beff/diy";
-  39 | export type { Capability } from "@beff/diy";
-  40 |
+  61 | export * as DiyCapabilities from "@beff/diy";
+  62 | export type { Capability } from "@beff/diy";
+  63 |
   = help: use `import type { Capabilities } from "@beff/diy"` in each module that needs it
-src/main.ts:38:1 re-exported diy capabilities
-  36 |
-  37 | export * from "@beff/diy/capabilities";
-> 38 | export * as DiyCapabilities from "@beff/diy";
+src/main.ts:61:1 re-exported diy capabilities
+  59 |
+  60 | export * from "@beff/diy/capabilities";
+> 61 | export * as DiyCapabilities from "@beff/diy";
      | ^ Do not re-export Capabilities from @beff/diy; import it directly where it is used.
-  39 | export type { Capability } from "@beff/diy";
-  40 |
+  62 | export type { Capability } from "@beff/diy";
+  63 |
   = help: use `import type { Capabilities } from "@beff/diy"` in each module that needs it
-src/main.ts:16:8 unsupported analysis
-  14 | }
-  15 |
-> 16 | export function duplicateEscape(capabilities: Capabilities<ReadCapability>): void {
+src/main.ts:39:8 unsupported analysis
+  37 | }
+  38 |
+> 39 | export function duplicateEscape(capabilities: Capabilities<ReadCapability>): void {
      |        ^ unresolved capabilities forwarding target use
-  17 | 	use(capabilities, capabilities);
-  18 | }
-  19 |
+  40 | 	use(capabilities, capabilities);
+  41 | }
+  42 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-src/main.ts:20:8 unsupported analysis
-  18 | }
-  19 |
-> 20 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
+src/main.ts:43:8 unsupported analysis
+  41 | }
+  42 |
+> 43 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
      |        ^ unresolved capabilities forwarding target inner
-  21 | 	function inner(capabilities: unknown): void {
-  22 | 		use(capabilities);
-  23 | 	}
+  44 | 	function inner(capabilities: unknown): void {
+  45 | 		use(capabilities);
+  46 | 	}
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter

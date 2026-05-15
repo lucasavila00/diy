@@ -2,6 +2,7 @@ import type { Capabilities, Capability } from "@beff/diy";
 import * as diy from "@beff/diy";
 
 type ReadCapability = Capability<"read", unknown>;
+type ReadIdCapability = Capability<"read-id", unknown>;
 
 declare function use(...value: unknown[]): void;
 declare const other: { need: unknown };
@@ -11,6 +12,28 @@ void diy;
 export function destructureRest(capabilities: Capabilities<ReadCapability>): void {
 	const { ...rest } = capabilities;
 	use(rest);
+}
+
+export function destructureService(capabilities: Capabilities<ReadCapability>): void {
+	const { read } = capabilities;
+	use(read);
+}
+
+export function destructureComputedService(capabilities: Capabilities<ReadCapability>): void {
+	const { ["read"]: read } = capabilities;
+	use(read);
+}
+
+export function destructureLiteralService(capabilities: Capabilities<ReadIdCapability>): void {
+	const { "read-id": readId } = capabilities;
+	use(readId);
+}
+
+export function assignDestructuredService(capabilities: Capabilities<ReadCapability>): void {
+	let read: unknown;
+	({ read } = capabilities);
+	capabilities.read;
+	use(read);
 }
 
 export function duplicateEscape(capabilities: Capabilities<ReadCapability>): void {

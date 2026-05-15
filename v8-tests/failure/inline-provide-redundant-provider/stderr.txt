@@ -1,10 +1,10 @@
-src/main.ts:14:3 redundant capability provider
-  12 | 	const clock = capabilities.appClock;
-  13 | 	return readRenamed(
-> 14 | 		Capabilities.extend(capabilities, Capabilities.create<AppClockCapability>({ appClock: clock })),
+src/main.ts:13:3 redundant capability provider
+  11 | export function load(capabilities: Capabilities<AppClockCapability>): Date {
+  12 | 	return readRenamed(
+> 13 | 		Capabilities.extend(
      | 		^ Capabilities.extend adds capabilities already present on capabilities: appClock
-  15 | 	);
-  16 | }
-  17 |
+  14 | 			capabilities,
+  15 | 			Capabilities.create<AppClockCapability>({ appClock: capabilities.appClock }),
+  16 | 		),
   = note: `appClock` is already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional

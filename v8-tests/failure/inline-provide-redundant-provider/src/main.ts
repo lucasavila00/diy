@@ -9,8 +9,10 @@ export function readRenamed(capabilities: Capabilities<AppClockCapability>): Dat
 }
 
 export function load(capabilities: Capabilities<AppClockCapability>): Date {
-	const clock = capabilities.appClock;
 	return readRenamed(
-		Capabilities.extend(capabilities, Capabilities.create<AppClockCapability>({ appClock: clock })),
+		Capabilities.extend(
+			capabilities,
+			Capabilities.create<AppClockCapability>({ appClock: capabilities.appClock }),
+		),
 	);
 }

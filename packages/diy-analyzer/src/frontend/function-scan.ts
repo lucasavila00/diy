@@ -3,8 +3,6 @@ import {
 	getFirstParam,
 	getIdentifierFromParam,
 	getIdentifierName,
-	getLiteralString,
-	getMemberPropertyName,
 	getNode,
 	getParamType,
 	getTypeArguments,
@@ -20,7 +18,6 @@ import type { ModuleLoader } from "./module-loader.ts";
 import {
 	collectVariableDeclarationConstants,
 	resolveStaticMemberName,
-	resolveStringConstantName,
 } from "./string-constants.ts";
 import type { AstNode, ModuleInfo, StringConstantBinding, UnsupportedReason } from "./types.ts";
 
@@ -104,14 +101,6 @@ export function scanFunctionBody(
 				node,
 			);
 			if (id != null) {
-				direct.add(id);
-			}
-		}
-		if (node.type === "VariableDeclarator" && getIdentifierName(node["init"]) === "capabilities") {
-			for (const id of getObjectPatternCapabilityIds(
-				{ loader, localConstants: constantScopes, moduleInfo },
-				node["id"],
-			)) {
 				direct.add(id);
 			}
 		}
@@ -211,52 +200,4 @@ function getCapabilitiesCreateType(value: unknown): unknown | null {
 		return null;
 	}
 	return getTypeArguments(node)[0] ?? null;
-}
-
-function getObjectPatternCapabilityIds(
-	context: {
-		readonly loader: ModuleLoader;
-		readonly localConstants: readonly Map<string, StringConstantBinding>[];
-		readonly moduleInfo: ModuleInfo;
-	},
-	pattern: unknown,
-): readonly string[] {
-	const node = getNode(pattern);
-	if (node?.type !== "ObjectPattern") {
-		return [];
-	}
-	const ids: string[] = [];
-	for (const propertyValue of getArray(node["properties"])) {
-		const property = getNode(propertyValue);
-		if (property?.type !== "Property") {
-			continue;
-		}
-		const id =
-			property["computed"] === true
-				? resolveObjectPatternComputedKey(context, property["key"])
-				: getMemberPropertyName(property["key"]);
-		if (id != null) {
-			ids.push(id);
-		}
-	}
-	return ids;
-}
-
-function resolveObjectPatternComputedKey(
-	context: {
-		readonly loader: ModuleLoader;
-		readonly localConstants: readonly Map<string, StringConstantBinding>[];
-		readonly moduleInfo: ModuleInfo;
-	},
-	key: unknown,
-): string | null {
-	const literal = getLiteralString(key);
-	if (literal != null) {
-		return literal;
-	}
-	const name = getIdentifierName(key);
-	if (name == null) {
-		return null;
-	}
-	return resolveStringConstantName(context, name);
 }
