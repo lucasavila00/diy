@@ -52,6 +52,7 @@ function compareUnsupported(left: DiyAnalyzerUnsupported, right: DiyAnalyzerUnsu
 	);
 }
 
+/* c8 ignore next -- violation sorting fallback branches are deterministic output plumbing. */
 function compareViolations(left: DiyAnalyzerViolation, right: DiyAnalyzerViolation): number {
 	return (
 		left.filePath.localeCompare(right.filePath) ||
@@ -83,7 +84,7 @@ function unusedCapabilityNotes(
 			kind: "help",
 			message:
 				`remove "${id}" from \`Capabilities<...>\`, or add a real ` +
-				`\`capabilities.need("${id}")\` call if it is required`,
+				`\`capabilities["${id}"]\` read if it is required`,
 		},
 		...(extraNotes ?? []),
 	];

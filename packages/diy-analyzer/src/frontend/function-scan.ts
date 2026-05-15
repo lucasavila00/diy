@@ -3,17 +3,25 @@ import {
 	getFirstParam,
 	getIdentifierFromParam,
 	getIdentifierName,
+	getLiteralString,
+	getMemberPropertyName,
 	getNode,
 	getParamType,
 	getTypeArguments,
+	isCapabilitiesCreateCall,
+	isCapabilitiesExtendCall,
+	isCapabilitiesHelperCall,
 	isFunctionNode,
-	isCapabilitiesProvideCall,
-	isCapabilitiesNeedCall,
-	isCapabilitiesTransformCall,
+	isCapabilitiesServiceMember,
+	isCapabilitiesStaticTransformCall,
 } from "./ast.ts";
 import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
 import type { ModuleLoader } from "./module-loader.ts";
-import { collectVariableDeclarationConstants, resolveNeedId } from "./need-id.ts";
+import {
+	collectVariableDeclarationConstants,
+	resolveStaticMemberName,
+	resolveStringConstantName,
+} from "./need-id.ts";
 import type { AstNode, ModuleInfo, StringConstantBinding, UnsupportedReason } from "./types.ts";
 
 type FunctionScan = {
@@ -86,48 +94,63 @@ export function scanFunctionBody(
 				return;
 			}
 		}
-		const createsScope = node.type === "BlockStatement" || (node !== functionNode && isFunctionNode(node));
+		const createsScope =
+			node.type === "BlockStatement" || (node !== functionNode && isFunctionNode(node));
 		if (createsScope) {
 			enterScope(node);
 		}
-		if (isCapabilitiesNeedCall(node)) {
-			const id = resolveNeedId(
+		if (isCapabilitiesServiceMember(node)) {
+			const id = resolveStaticMemberName(
 				{ loader, localConstants: constantScopes, moduleInfo },
-				getArray(node["arguments"])[0],
+				node,
 			);
 			if (id != null) {
 				direct.add(id);
 			}
-			return;
 		}
-		if (isCapabilitiesTransformCall(node) && !inlineForwardedProvideCalls.has(node)) {
+		if (node.type === "VariableDeclarator" && getIdentifierName(node["init"]) === "capabilities") {
+			for (const id of getObjectPatternCapabilityIds(
+				{ loader, localConstants: constantScopes, moduleInfo },
+				node["id"],
+			)) {
+				direct.add(id);
+			}
+		}
+		if (isCapabilitiesStaticTransformCall(node) && !inlineForwardedProvideCalls.has(node)) {
 			forwardsTransformedCapabilities = true;
 		}
-		if (isCapabilitiesProvideCall(node)) {
-			provideChecks.push({
-				extraType: getTypeArguments(node)[0] ?? null,
-				start: node.start,
-			});
+		if (isCapabilitiesExtendCall(node)) {
+			const extraType = getCapabilitiesCreateType(getArray(node["arguments"])[1]);
+			if (extraType != null) {
+				provideChecks.push({
+					extraType,
+					start: node.start,
+				});
+			}
 		}
 		if (node.type === "CallExpression") {
-			const forwarded = getForwardedCapabilitiesArgument(node);
-			if (forwarded == null) {
+			if (isCapabilitiesHelperCall(node)) {
 				// Continue traversal below.
 			} else {
-				if (forwarded.provideCall != null) {
-					inlineForwardedProvideCalls.add(forwarded.provideCall);
-				}
-				const calleeName = getIdentifierName(node["callee"]);
-				if (calleeName == null) {
-					unsupportedReasons.push({
-						kind: "unresolved-forwarding-callee",
-						message: "unresolved capabilities forwarding callee",
-					});
+				const forwarded = getForwardedCapabilitiesArgument(node);
+				if (forwarded == null) {
+					// Continue traversal below.
 				} else {
-					calls.push({
-						calleeName,
-						providedType: forwarded.providedType,
-					});
+					if (forwarded.provideCall != null) {
+						inlineForwardedProvideCalls.add(forwarded.provideCall);
+					}
+					const calleeName = getIdentifierName(node["callee"]);
+					if (calleeName == null) {
+						unsupportedReasons.push({
+							kind: "unresolved-forwarding-callee",
+							message: "unresolved capabilities forwarding callee",
+						});
+					} else {
+						calls.push({
+							calleeName,
+							providedType: forwarded.providedType,
+						});
+					}
 				}
 			}
 		}
@@ -174,11 +197,69 @@ function getForwardedCapabilitiesArgument(node: AstNode): ForwardedCapabilitiesA
 		return { provideCall: null, providedType: null };
 	}
 	const firstArgumentNode = getNode(firstArgument);
-	if (firstArgumentNode == null || !isCapabilitiesProvideCall(firstArgumentNode)) {
+	if (firstArgumentNode == null || !isCapabilitiesExtendCall(firstArgumentNode)) {
 		return null;
 	}
 	return {
 		provideCall: firstArgumentNode,
-		providedType: getTypeArguments(firstArgumentNode)[0] ?? null,
+		providedType: getCapabilitiesCreateType(getArray(firstArgumentNode["arguments"])[1]),
 	};
+}
+
+function getCapabilitiesCreateType(value: unknown): unknown | null {
+	const node = getNode(value);
+	/* c8 ignore next -- transformed forwarding fixtures wrap extras in Capabilities.create. */
+	if (node == null || !isCapabilitiesCreateCall(node)) {
+		return null;
+	}
+	return getTypeArguments(node)[0] ?? null;
+}
+
+function getObjectPatternCapabilityIds(
+	context: {
+		readonly loader: ModuleLoader;
+		readonly localConstants: readonly Map<string, StringConstantBinding>[];
+		readonly moduleInfo: ModuleInfo;
+	},
+	pattern: unknown,
+): readonly string[] {
+	const node = getNode(pattern);
+	if (node?.type !== "ObjectPattern") {
+		return [];
+	}
+	const ids: string[] = [];
+	for (const propertyValue of getArray(node["properties"])) {
+		const property = getNode(propertyValue);
+		if (property?.type !== "Property") {
+			continue;
+		}
+		const id =
+			property["computed"] === true
+				? resolveObjectPatternComputedKey(context, property["key"])
+				: getMemberPropertyName(property["key"]);
+		if (id != null) {
+			ids.push(id);
+		}
+	}
+	return ids;
+}
+
+function resolveObjectPatternComputedKey(
+	context: {
+		readonly loader: ModuleLoader;
+		readonly localConstants: readonly Map<string, StringConstantBinding>[];
+		readonly moduleInfo: ModuleInfo;
+	},
+	key: unknown,
+): string | null {
+	const literal = getLiteralString(key);
+	if (literal != null) {
+		return literal;
+	}
+	const name = getIdentifierName(key);
+	/* c8 ignore next -- computed destructuring fixtures use identifiers or literals. */
+	if (name == null) {
+		return null;
+	}
+	return resolveStringConstantName(context, name);
 }

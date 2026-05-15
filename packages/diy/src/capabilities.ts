@@ -14,101 +14,97 @@ type ServiceMap<Allowed extends Capability<string, unknown>> = {
 	readonly [Id in CapabilityId<Allowed>]: ServiceForId<Allowed, Id>;
 };
 
-export class Capabilities<in Allowed extends Capability<string, unknown>> {
-	private readonly serviceMap: ServiceMap<Allowed>;
+export type Capabilities<in Allowed extends Capability<string, unknown>> = ServiceMap<Allowed>;
 
-	constructor(serviceMap: ServiceMap<Allowed>) {
-		this.serviceMap = serviceMap;
-	}
-
-	provide<Extra extends Capability<string, unknown>>(
-		serviceMap: ServiceMap<Extra>,
-	): Capabilities<Allowed | Extra> {
-		return new Capabilities<Allowed | Extra>({ ...this.serviceMap, ...serviceMap });
-	}
-
-	need<Id extends CapabilityId<Allowed>>(id: Id): ServiceForId<Allowed, Id> {
-		return this.serviceMap[id];
-	}
-
-	override<Replacement extends Allowed>(
-		serviceMap: ServiceMap<Replacement>,
-	): Capabilities<Allowed> {
-		return new Capabilities<Allowed>({ ...this.serviceMap, ...serviceMap });
-	}
-
-	static merge<First extends Capability<string, unknown>>(
-		first: Capabilities<First>,
-	): Capabilities<First>;
-	static merge<
-		First extends Capability<string, unknown>,
-		Second extends Capability<string, unknown>,
-	>(first: Capabilities<First>, second: Capabilities<Second>): Capabilities<First | Second>;
-	static merge<
-		First extends Capability<string, unknown>,
-		Second extends Capability<string, unknown>,
-		Third extends Capability<string, unknown>,
-	>(
-		first: Capabilities<First>,
-		second: Capabilities<Second>,
-		third: Capabilities<Third>,
-	): Capabilities<First | Second | Third>;
-	static merge<
-		First extends Capability<string, unknown>,
-		Second extends Capability<string, unknown>,
-		Third extends Capability<string, unknown>,
-		Fourth extends Capability<string, unknown>,
-	>(
-		first: Capabilities<First>,
-		second: Capabilities<Second>,
-		third: Capabilities<Third>,
-		fourth: Capabilities<Fourth>,
-	): Capabilities<First | Second | Third | Fourth>;
-	static merge<
-		First extends Capability<string, unknown>,
-		Second extends Capability<string, unknown>,
-		Third extends Capability<string, unknown>,
-		Fourth extends Capability<string, unknown>,
-		Fifth extends Capability<string, unknown>,
-	>(
-		first: Capabilities<First>,
-		second: Capabilities<Second>,
-		third: Capabilities<Third>,
-		fourth: Capabilities<Fourth>,
-		fifth: Capabilities<Fifth>,
-	): Capabilities<First | Second | Third | Fourth | Fifth>;
-	static merge<
-		First extends Capability<string, unknown>,
-		Second extends Capability<string, unknown>,
-		Third extends Capability<string, unknown>,
-		Fourth extends Capability<string, unknown>,
-		Fifth extends Capability<string, unknown>,
-		Sixth extends Capability<string, unknown>,
-	>(
-		first: Capabilities<First>,
-		second: Capabilities<Second>,
-		third: Capabilities<Third>,
-		fourth: Capabilities<Fourth>,
-		fifth: Capabilities<Fifth>,
-		sixth: Capabilities<Sixth>,
-	): Capabilities<First | Second | Third | Fourth | Fifth | Sixth>;
-	static merge<Allowed extends Capability<string, unknown>>(
-		...capabilitiesList: readonly Capabilities<Allowed>[]
-	): Capabilities<Allowed>;
-	static merge(
-		...capabilitiesList: readonly Capabilities<never>[]
-	): Capabilities<Capability<string, unknown>> {
-		// oxlint-disable-next-line local/no-type-assertion
-		const mergedServiceMap = {} as ServiceMap<Capability<string, unknown>>;
-		for (const capabilities of capabilitiesList) {
-			Object.assign(mergedServiceMap, capabilities.serviceMap);
-		}
-		return new Capabilities<Capability<string, unknown>>(mergedServiceMap);
-	}
-
-	static provide<Allowed extends Capability<string, unknown> = never>(
-		serviceMap: ServiceMap<Allowed>,
-	): Capabilities<Allowed> {
-		return new Capabilities<Allowed>(serviceMap);
-	}
+function create<Allowed extends Capability<string, unknown> = never>(
+	serviceMap: ServiceMap<Allowed>,
+): Capabilities<Allowed> {
+	return serviceMap;
 }
+
+function extend<
+	Allowed extends Capability<string, unknown>,
+	Extra extends Capability<string, unknown>,
+>(capabilities: Capabilities<Allowed>, extra: Capabilities<Extra>): Capabilities<Allowed | Extra> {
+	// oxlint-disable-next-line local/no-type-assertion
+	return { ...capabilities, ...extra } as Capabilities<Allowed | Extra>;
+}
+
+function override<Allowed extends Capability<string, unknown>, Replacement extends Allowed>(
+	capabilities: Capabilities<Allowed>,
+	replacement: Capabilities<Replacement>,
+): Capabilities<Allowed> {
+	return { ...capabilities, ...replacement };
+}
+
+function merge<First extends Capability<string, unknown>>(
+	first: Capabilities<First>,
+): Capabilities<First>;
+function merge<
+	First extends Capability<string, unknown>,
+	Second extends Capability<string, unknown>,
+>(first: Capabilities<First>, second: Capabilities<Second>): Capabilities<First | Second>;
+function merge<
+	First extends Capability<string, unknown>,
+	Second extends Capability<string, unknown>,
+	Third extends Capability<string, unknown>,
+>(
+	first: Capabilities<First>,
+	second: Capabilities<Second>,
+	third: Capabilities<Third>,
+): Capabilities<First | Second | Third>;
+function merge<
+	First extends Capability<string, unknown>,
+	Second extends Capability<string, unknown>,
+	Third extends Capability<string, unknown>,
+	Fourth extends Capability<string, unknown>,
+>(
+	first: Capabilities<First>,
+	second: Capabilities<Second>,
+	third: Capabilities<Third>,
+	fourth: Capabilities<Fourth>,
+): Capabilities<First | Second | Third | Fourth>;
+function merge<
+	First extends Capability<string, unknown>,
+	Second extends Capability<string, unknown>,
+	Third extends Capability<string, unknown>,
+	Fourth extends Capability<string, unknown>,
+	Fifth extends Capability<string, unknown>,
+>(
+	first: Capabilities<First>,
+	second: Capabilities<Second>,
+	third: Capabilities<Third>,
+	fourth: Capabilities<Fourth>,
+	fifth: Capabilities<Fifth>,
+): Capabilities<First | Second | Third | Fourth | Fifth>;
+function merge<
+	First extends Capability<string, unknown>,
+	Second extends Capability<string, unknown>,
+	Third extends Capability<string, unknown>,
+	Fourth extends Capability<string, unknown>,
+	Fifth extends Capability<string, unknown>,
+	Sixth extends Capability<string, unknown>,
+>(
+	first: Capabilities<First>,
+	second: Capabilities<Second>,
+	third: Capabilities<Third>,
+	fourth: Capabilities<Fourth>,
+	fifth: Capabilities<Fifth>,
+	sixth: Capabilities<Sixth>,
+): Capabilities<First | Second | Third | Fourth | Fifth | Sixth>;
+function merge<Allowed extends Capability<string, unknown>>(
+	...capabilitiesList: readonly Capabilities<Allowed>[]
+): Capabilities<Allowed>;
+function merge(
+	...capabilitiesList: readonly Capabilities<never>[]
+): Capabilities<Capability<string, unknown>> {
+	// oxlint-disable-next-line local/no-type-assertion
+	return Object.assign({}, ...capabilitiesList) as Capabilities<Capability<string, unknown>>;
+}
+
+export const Capabilities = {
+	create,
+	extend,
+	merge,
+	override,
+};

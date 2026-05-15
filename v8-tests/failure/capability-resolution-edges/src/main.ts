@@ -1,4 +1,4 @@
-import type { Capabilities, Capability } from "@beff/diy";
+import { Capabilities, type Capability } from "@beff/diy";
 
 import type DefaultThing from "./default.ts";
 // @ts-expect-error intentionally unresolved for analyzer coverage
@@ -19,7 +19,7 @@ declare function use(value: unknown): void;
 declare const replacement: unknown;
 
 export function parenthesized(capabilities: Capabilities<ReadCapability>): void {
-	capabilities.need("read");
+	capabilities["read"];
 }
 
 export function missingTypeArgument(capabilities: MissingTypeNode): void {
@@ -67,5 +67,5 @@ export function unresolvedDefaultImport(
 }
 
 export function missingProvideType(capabilities: Capabilities<ReadCapability>): void {
-	use(capabilities.provide({ read: replacement }));
+	use(Capabilities.extend(capabilities, Capabilities.create({ read: replacement })));
 }

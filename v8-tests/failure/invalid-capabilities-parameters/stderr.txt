@@ -6,7 +6,7 @@ src/main.ts:8:8 unused capability
    9 | 	use(svc);
   10 | }
   11 |
-  = help: remove "core.fs" from `Capabilities<...>`, or add a real `capabilities.need("core.fs")` call if it is required
+  = help: remove "core.fs" from `Capabilities<...>`, or add a real `capabilities["core.fs"]` read if it is required
 src/main.ts:8:25 invalid capabilities parameter
    6 | declare function use(value: unknown): void;
    7 |

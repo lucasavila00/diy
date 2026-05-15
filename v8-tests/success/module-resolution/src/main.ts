@@ -7,7 +7,7 @@ export function run(
 		AuditCapability | ClockCapability | ExternalCapability | StoreCapability
 	>,
 ): unknown {
-	const now = capabilities.need("clock").now();
-	const external = capabilities.need("external").get();
+	const now = capabilities["clock"].now();
+	const external = capabilities["external"].get();
 	return [now, external, readStore(capabilities), loadAudit(capabilities)];
 }

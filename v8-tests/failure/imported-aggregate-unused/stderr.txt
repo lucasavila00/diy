@@ -3,7 +3,7 @@ packages/app/src/main.ts:8:8 unused capability
    7 |
 >  8 | export function run(capabilities: Capabilities<AppCapability>): void {
      |        ^ Declares unused capability "core.clock".
-   9 | 	capabilities.need("core.fs");
+   9 | 	capabilities["core.fs"];
   10 | }
   11 |
-  = help: remove "core.clock" from `Capabilities<...>`, or add a real `capabilities.need("core.clock")` call if it is required
+  = help: remove "core.clock" from `Capabilities<...>`, or add a real `capabilities["core.clock"]` read if it is required

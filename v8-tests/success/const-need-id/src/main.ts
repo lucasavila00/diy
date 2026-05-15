@@ -1,4 +1,5 @@
 import type { Capabilities, Capability } from "@beff/diy";
+
 import { ASSERTED_READ_ID, IMPORTED_READ_ID, RENAMED_READ_ID } from "./ids.ts";
 
 const TOP_LEVEL_READ_ID = "read.top";
@@ -13,9 +14,17 @@ type AppCapability =
 export function run(capabilities: Capabilities<AppCapability>): void {
 	const LOCAL_READ_ID = "read.local";
 
-	capabilities.need(ASSERTED_READ_ID);
-	capabilities.need(IMPORTED_READ_ID);
-	capabilities.need(LOCAL_READ_ID);
-	capabilities.need(RENAMED_READ_ID);
-	capabilities.need(TOP_LEVEL_READ_ID);
+	capabilities[ASSERTED_READ_ID];
+	capabilities[IMPORTED_READ_ID];
+	capabilities[LOCAL_READ_ID];
+	capabilities[RENAMED_READ_ID];
+	capabilities[TOP_LEVEL_READ_ID];
+	const {
+		["read.local"]: localRead,
+		[TOP_LEVEL_READ_ID]: topRead,
+		"read.imported": importedRead,
+	} = capabilities;
+	void localRead;
+	void topRead;
+	void importedRead;
 }

@@ -8,12 +8,13 @@ export function bad(capabilities: Capabilities<FsCapability>, id: string): void 
 	const dynamicId = "core." + id;
 
 	// @ts-expect-error intentionally invalid for analyzer coverage
-	use(capabilities.need(id));
+	use(capabilities[id]);
 	// @ts-expect-error intentionally invalid for analyzer coverage
-	use(capabilities.need(`core.${id}`));
+	use(capabilities[`core.${id}`]);
 	// @ts-expect-error intentionally invalid for analyzer coverage
-	use(capabilities.need(dynamicId));
-	use(capabilities["need"]("core.fs"));
-	use(capabilities["provide"]({ "core.clock": {} }));
-	use(capabilities.override?.({ "core.fs": {} }));
+	use(capabilities[dynamicId]);
+	use(capabilities?.["core.fs"]);
+	// @ts-expect-error intentionally invalid for analyzer coverage
+	const { [dynamicId]: fs } = capabilities;
+	use(fs);
 }

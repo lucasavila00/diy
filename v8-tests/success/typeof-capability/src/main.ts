@@ -11,9 +11,9 @@ type LocalCapability = Capability<typeof LOCAL_REF, LocalService>;
 type ExternalCapability = Capability<typeof EXTERNAL_REF, ExternalService>;
 
 export function loadLocal(capabilities: Capabilities<LocalCapability>): string {
-	return capabilities.need(LOCAL_REF).read();
+	return capabilities[LOCAL_REF].read();
 }
 
 export function loadExternal(capabilities: Capabilities<ExternalCapability>): string {
-	return capabilities.need(EXTERNAL_REF).read();
+	return capabilities[EXTERNAL_REF].read();
 }

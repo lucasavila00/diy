@@ -10,7 +10,7 @@
 4. `src/middle-end/arena.ts` lowers frontend module metadata into indexed module/function arrays. Middle-end graph edges point to function indices, not object references or string IDs.
 5. `src/middle-end/analyze.ts` runs middle-end analysis passes.
 6. `src/middle-end/capabilities.ts` resolves declared capability IDs from `Capability<"...">`, unions, `Exclude`, local aliases, and imported aliases.
-7. `src/middle-end/unused-capabilities.ts` computes transitive required capabilities and reports unused declared capabilities plus redundant `capabilities.provide`.
+7. `src/middle-end/unused-capabilities.ts` computes transitive required capabilities and reports unused declared capabilities plus redundant `Capabilities.extend`.
 8. `src/middle-end/module-graph.ts` builds the inspectable module/function/capability graph used by `--graph` and graph snapshots.
 9. `src/backend/finalize.ts` sorts the combined analysis result, `src/backend/format.ts` formats findings, violations, and unsupported-analysis reports, and `src/backend/module-graph-format.ts` formats graph inspection output.
 10. `src/app/analyze.ts` only coordinates the normal frontend, middle-end, and backend lint pipeline; `src/app/module-graph.ts` coordinates graph inspection; `src/app/cli.ts` wraps both for command-line use.

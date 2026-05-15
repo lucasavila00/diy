@@ -5,20 +5,16 @@ type FsCapability = Capability<"core.fs", unknown>;
 declare function use(value: unknown): void;
 
 export function bad(capabilities: Capabilities<FsCapability>): void {
-	const direct = capabilities.need;
-	const { provide: provideCapabilities, need, override } = capabilities;
+	const fs = capabilities["core.fs"];
+	const direct = capabilities;
 	let rebound: unknown = direct;
-	rebound = capabilities.need;
-	rebound = capabilities.provide;
-	rebound = capabilities.override;
-	use(capabilities.need);
-	use(capabilities.provide);
-	use(capabilities.override);
-	use(provideCapabilities);
-	use(need);
-	use(override);
+	rebound = capabilities;
+	use(fs);
+	use(direct);
+	use(rebound);
 }
 
 export function returns(capabilities: Capabilities<FsCapability>) {
-	return capabilities.override;
+	capabilities["core.fs"];
+	return capabilities;
 }

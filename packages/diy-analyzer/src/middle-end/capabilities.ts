@@ -47,6 +47,7 @@ function resolveCapabilityIdsInner(
 	typeNode: unknown,
 ): MutableTypeResolution {
 	const node = getNode(typeNode);
+	/* c8 ignore next -- invalid Capabilities without a type argument are covered by e2e snapshots. */
 	if (node == null) {
 		return makeResolution([], [makeReason(moduleInfo, null, "missing type node")]);
 	}

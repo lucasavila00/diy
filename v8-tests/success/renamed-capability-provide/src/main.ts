@@ -15,40 +15,46 @@ const topLevelServices = {
 	},
 };
 
-const staticRenamedCapabilities = Capabilities.provide<AppClockCapability>({
+const staticRenamedCapabilities = Capabilities.create<AppClockCapability>({
 	"app.clock": topLevelServices.legacyClock,
 });
 
 export function readRenamed(capabilities: Capabilities<AppClockCapability>): Date {
-	return capabilities.need("app.clock").now();
+	return capabilities["app.clock"].now();
 }
 
 export function readRenamedWithAudit(
 	capabilities: Capabilities<AppClockCapability | AuditCapability>,
 ): Date {
-	capabilities.need("audit").record("read");
-	return capabilities.need("app.clock").now();
+	capabilities.audit.record("read");
+	return capabilities["app.clock"].now();
 }
 
 export function fromStaticProvider(capabilities: Capabilities<AuditCapability>): Date {
-	capabilities.need("audit").record("static");
+	capabilities.audit.record("static");
 	return readRenamed(staticRenamedCapabilities);
 }
 
 export function fromTopLevelObject(capabilities: Capabilities<AuditCapability>): Date {
-	capabilities.need("audit").record("top-level");
+	capabilities.audit.record("top-level");
 	return readRenamed(
-		capabilities.provide<AppClockCapability>({
-			"app.clock": topLevelServices.legacyClock,
-		}),
+		Capabilities.extend(
+			capabilities,
+			Capabilities.create<AppClockCapability>({
+				"app.clock": topLevelServices.legacyClock,
+			}),
+		),
 	);
 }
 
 export function fromExistingCapability(capabilities: Capabilities<LegacyClockCapability>): Date {
 	return readRenamed(
-		capabilities.provide<AppClockCapability>({
-			"app.clock": capabilities.need("legacy.clock"),
-		}),
+		Capabilities.extend(
+			capabilities,
+			Capabilities.create<AppClockCapability>({
+				"app.clock": capabilities["legacy.clock"],
+			}),
+		),
 	);
 }
 
@@ -56,8 +62,11 @@ export function fromPartialInlineProvide(
 	capabilities: Capabilities<LegacyClockCapability | AuditCapability>,
 ): Date {
 	return readRenamedWithAudit(
-		capabilities.provide<AppClockCapability>({
-			"app.clock": capabilities.need("legacy.clock"),
-		}),
+		Capabilities.extend(
+			capabilities,
+			Capabilities.create<AppClockCapability>({
+				"app.clock": capabilities["legacy.clock"],
+			}),
+		),
 	);
 }

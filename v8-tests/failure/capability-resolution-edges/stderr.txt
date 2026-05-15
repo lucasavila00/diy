@@ -7,13 +7,6 @@ src/main.ts:25:37 invalid capabilities parameter
   27 | }
   28 |
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
-src/main.ts:1:1 unsupported analysis
-> 1 | import type { Capabilities, Capability } from "@beff/diy";
-    | ^ capabilities.provide extra capability type: missing type node
-  2 |
-  3 | import type DefaultThing from "./default.ts";
-  4 | // @ts-expect-error intentionally unresolved for analyzer coverage
-  = help: change this type to `Capability<"id", ...>` or a union of resolvable capability types
 src/main.ts:10:22 unsupported analysis
    8 |
    9 | type ReadCapability = Capability<"read", unknown>;
@@ -147,7 +140,7 @@ src/main.ts:69:8 unsupported analysis
   68 |
 > 69 | export function missingProvideType(capabilities: Capabilities<ReadCapability>): void {
      |        ^ unresolved capabilities forwarding target use
-  70 | 	use(capabilities.provide({ read: replacement }));
+  70 | 	use(Capabilities.extend(capabilities, Capabilities.create({ read: replacement })));
   71 | }
   72 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter

@@ -1,18 +1,21 @@
-import type { Capabilities, Capability } from "@beff/diy";
+import { Capabilities, type Capability } from "@beff/diy";
 
 type Clock = { now(): Date };
 
 type AppClockCapability = Capability<"app.clock", Clock>;
 
 export function readRenamed(capabilities: Capabilities<AppClockCapability>): Date {
-	return capabilities.need("app.clock").now();
+	return capabilities["app.clock"].now();
 }
 
 export function load(capabilities: Capabilities<AppClockCapability>): Date {
-	const clock = capabilities.need("app.clock");
+	const clock = capabilities["app.clock"];
 	return readRenamed(
-		capabilities.provide<AppClockCapability>({
-			"app.clock": clock,
-		}),
+		Capabilities.extend(
+			capabilities,
+			Capabilities.create<AppClockCapability>({
+				"app.clock": clock,
+			}),
+		),
 	);
 }

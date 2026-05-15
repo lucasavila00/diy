@@ -6,7 +6,7 @@ type FsCapability = Capability<"core.fs", unknown>;
 
 export function start(capabilities: Capabilities<FsCapability>): void {
 	storedCapabilities = capabilities;
-	capabilities.need("core.fs");
+	capabilities["core.fs"];
 }
 
 export function readStored(): unknown {

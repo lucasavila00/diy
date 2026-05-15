@@ -5,5 +5,5 @@ src/main.ts:5:27 unsupported analysis
     |                           ^ Capability first type argument is not a string literal or typeof string constant
   6 |
   7 | export function load(capabilities: Capabilities<AnyClockCapability>): Date {
-  8 | 	capabilities.need("app.clock");
+  8 | 	capabilities["app.clock"];
   = help: use a string literal or const reference, for example `Capability<"app.clock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`

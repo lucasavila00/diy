@@ -91,6 +91,7 @@ export function makeLineStarts(source: string): readonly number[] {
 }
 
 export function lineForOffset(lineStarts: readonly number[], offset: number | undefined): number {
+	/* c8 ignore next -- callers pass offsets from parser nodes except defensive fallbacks. */
 	if (offset == null) {
 		return 1;
 	}
@@ -117,6 +118,7 @@ export function locationForOffset(
 	/* c8 ignore next -- lineForOffset returns a line present in lineStarts. */
 	const lineStart = lineStarts[line - 1] ?? 0;
 	return {
+		/* c8 ignore next -- callers pass offsets from parser nodes except defensive fallbacks. */
 		column: offset == null ? 1 : offset - lineStart + 1,
 		line,
 	};
@@ -152,71 +154,62 @@ export function getMemberPropertyName(property: unknown): string | null {
 	return null;
 }
 
-export const capabilityMethodNames = new Set(["provide", "need", "override"]);
+const capabilitiesHelperNames = new Set(["create", "extend", "merge", "override"]);
 
-export function isCapabilitiesMethodMember(node: unknown): boolean {
+export function isCapabilitiesServiceMember(node: unknown): boolean {
 	const member = getNode(node);
 	const object = getNode(member?.["object"]);
-	/* c8 ignore start -- capability method members use parser-backed properties. */
 	return (
 		member?.type === "MemberExpression" &&
 		object?.type === "Identifier" &&
-		getIdentifierName(object) === "capabilities" &&
-		/* c8 ignore next -- capability member properties resolve to known names. */
-		capabilityMethodNames.has(getMemberPropertyName(member["property"]) ?? "")
-	);
-	/* c8 ignore stop */
-}
-
-export function isDirectCapabilitiesMethodMember(node: unknown): boolean {
-	const member = getNode(node);
-	const property = getNode(member?.["property"]);
-	return (
-		isCapabilitiesMethodMember(member) &&
-		member?.["computed"] !== true &&
-		property?.type === "Identifier"
+		getIdentifierName(object) === "capabilities"
 	);
 }
 
-export function isCapabilitiesNeedMember(node: unknown): boolean {
-	return (
-		isCapabilitiesMethodMember(node) &&
-		getMemberPropertyName(getNode(node)?.["property"]) === "need"
-	);
-}
-
-export function isCapabilitiesNeedCall(node: AstNode): boolean {
+export function isCapabilitiesHelperCall(node: AstNode): boolean {
 	if (node.type !== "CallExpression") {
 		return false;
 	}
 	const callee = getNode(node["callee"]);
+	const object = getNode(callee?.["object"]);
+	const property = getNode(callee?.["property"]);
+	const helperName = getIdentifierName(property);
 	return (
-		isDirectCapabilitiesMethodMember(callee) &&
-		getMemberPropertyName(callee?.["property"]) === "need"
+		callee?.type === "MemberExpression" &&
+		object?.type === "Identifier" &&
+		getIdentifierName(object) === "Capabilities" &&
+		callee["computed"] !== true &&
+		property?.type === "Identifier" &&
+		/* c8 ignore next -- helper properties are parser-backed identifiers. */
+		helperName != null &&
+		capabilitiesHelperNames.has(helperName)
 	);
 }
 
-export function isCapabilitiesTransformCall(node: AstNode): boolean {
-	if (node.type !== "CallExpression") {
+export function isCapabilitiesCreateCall(node: AstNode): boolean {
+	/* c8 ignore next -- callers check create calls after helper-call narrowing. */
+	if (!isCapabilitiesHelperCall(node)) {
 		return false;
 	}
 	const callee = getNode(node["callee"]);
-	return (
-		isDirectCapabilitiesMethodMember(callee) &&
-		(getMemberPropertyName(callee?.["property"]) === "provide" ||
-			getMemberPropertyName(callee?.["property"]) === "override")
-	);
+	return getMemberPropertyName(callee?.["property"]) === "create";
 }
 
-export function isCapabilitiesProvideCall(node: AstNode): boolean {
-	if (node.type !== "CallExpression") {
+export function isCapabilitiesExtendCall(node: AstNode): boolean {
+	if (!isCapabilitiesHelperCall(node)) {
 		return false;
 	}
 	const callee = getNode(node["callee"]);
-	return (
-		isDirectCapabilitiesMethodMember(callee) &&
-		getMemberPropertyName(callee?.["property"]) === "provide"
-	);
+	return getMemberPropertyName(callee?.["property"]) === "extend";
+}
+
+export function isCapabilitiesStaticTransformCall(node: AstNode): boolean {
+	if (!isCapabilitiesHelperCall(node)) {
+		return false;
+	}
+	const callee = getNode(node["callee"]);
+	const name = getMemberPropertyName(callee?.["property"]);
+	return name === "extend" || name === "override";
 }
 
 export function isCapabilitiesType(typeNode: unknown): typeNode is AstNode {

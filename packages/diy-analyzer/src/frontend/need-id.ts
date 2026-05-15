@@ -1,8 +1,14 @@
-import { getArray, getIdentifierName, getLiteralString, getNode } from "./ast.ts";
+import {
+	getArray,
+	getIdentifierName,
+	getLiteralString,
+	getMemberPropertyName,
+	getNode,
+} from "./ast.ts";
 import type { ModuleLoader } from "./module-loader.ts";
 import type { AstNode, ImportedBinding, StringConstantBinding } from "./types.ts";
 
-export type StringConstantScope = ReadonlyMap<string, StringConstantBinding>;
+type StringConstantScope = ReadonlyMap<string, StringConstantBinding>;
 
 export type StringConstantModule = {
 	readonly constantExports: Map<string, string>;
@@ -11,7 +17,7 @@ export type StringConstantModule = {
 	readonly imports: Map<string, ImportedBinding>;
 };
 
-export type StringConstantResolutionContext = {
+type StringConstantResolutionContext = {
 	readonly loader: ModuleLoader;
 	readonly localConstants?: readonly StringConstantScope[];
 	readonly moduleInfo: StringConstantModule;
@@ -74,10 +80,7 @@ export function collectVariableDeclarationConstants(
 	}
 }
 
-export function resolveNeedId(
-	context: StringConstantResolutionContext,
-	argument: unknown,
-): string | null {
+function resolveNeedId(context: StringConstantResolutionContext, argument: unknown): string | null {
 	const literal = getLiteralString(argument);
 	if (literal != null) {
 		return literal;
@@ -87,6 +90,21 @@ export function resolveNeedId(
 		return null;
 	}
 	return resolveStringConstantName(context, name);
+}
+
+export function resolveStaticMemberName(
+	context: StringConstantResolutionContext,
+	member: unknown,
+): string | null {
+	const node = getNode(member);
+	/* c8 ignore next -- callers pass parser-backed member expressions. */
+	if (node?.type !== "MemberExpression") {
+		return null;
+	}
+	if (node["computed"] === true) {
+		return resolveNeedId(context, node["property"]);
+	}
+	return getMemberPropertyName(node["property"]);
 }
 
 export function resolveStringConstantName(

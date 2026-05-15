@@ -5,21 +5,21 @@ import {
 	getIdentifierFromParam,
 	getIdentifierName,
 	getLiteralString,
-	getMemberPropertyName,
 	getNode,
 	getParamType,
-	isDirectCapabilitiesMethodMember,
 	isFunctionNode,
-	isCapabilitiesMethodMember,
-	isCapabilitiesNeedMember,
+	isCapabilitiesServiceMember,
 	isCapabilitiesType,
 	lineForOffset,
 	locationForOffset,
-	capabilityMethodNames,
 } from "./ast.ts";
 import { isDiyCapabilitiesType, publicDiyImportSources } from "./diy-imports.ts";
 import type { ModuleLoader } from "./module-loader.ts";
-import { collectVariableDeclarationConstants, resolveNeedId } from "./need-id.ts";
+import {
+	collectVariableDeclarationConstants,
+	resolveStaticMemberName,
+	resolveStringConstantName,
+} from "./need-id.ts";
 import type { AstNode, ModuleInfo, StringConstantBinding } from "./types.ts";
 
 type FunctionFrame = {
@@ -85,12 +85,12 @@ export function analyzeDiySyntax(
 		report(
 			node,
 			"escaped capabilities",
-			"Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.",
+			"Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.",
 			[
 				{
 					kind: "help",
 					message:
-						"keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function",
+						"keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function",
 				},
 			],
 		);
@@ -197,127 +197,79 @@ export function analyzeDiySyntax(
 		}
 	};
 
-	const checkCallExpression = (node: AstNode): void => {
+	const checkMemberExpression = (node: AstNode): void => {
 		if (!hasVisibleDiyCapabilitiesParam()) {
 			return;
 		}
-		if (!isCapabilitiesMethodMember(node["callee"])) {
-			return;
-		}
-		const callee = getNode(node["callee"]);
-		if (!isDirectCapabilitiesMethodMember(callee) || node["optional"] === true) {
-			report(
-				/* c8 ignore next -- capability calls have a parsed callee node. */
-				callee ?? node,
-				"dynamic capability access",
-				"Use direct capability method calls like `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.",
-				[
-					{
-						kind: "help",
-						message:
-							'replace computed or optional access with direct property access, for example `capabilities.need("core.fs")`',
-					},
-				],
-			);
+		if (!isCapabilitiesServiceMember(node)) {
 			return;
 		}
 		if (
-			isCapabilitiesNeedMember(callee) &&
-			resolveNeedId(
+			node["optional"] === true ||
+			resolveStaticMemberName(
 				{
 					loader,
 					localConstants: constantScopes,
 					moduleInfo,
 				},
-				getArray(node["arguments"])[0],
+				node,
 			) == null
 		) {
 			report(
-				/* c8 ignore next -- dynamic need reports use the parsed argument when present. */
-				getNode(getArray(node["arguments"])[0]) ?? node,
+				node,
 				"dynamic capability access",
-				"Capability IDs must be string literals or resolvable const string identifiers.",
+				"Capability service access must use a static property name.",
 				[
 					{
 						kind: "help",
 						message:
-							'use a literal capability ID or a const string identifier, for example `capabilities.need("core.fs")`',
+							'use direct property access like `capabilities.clock`, bracket access with a literal key like `capabilities["core.fs"]`, or a const string key',
 					},
 				],
 			);
 		}
 	};
 
-	const checkNoNeedAlias = (node: AstNode): void => {
+	const checkCapabilitiesDestructure = (node: AstNode): void => {
 		if (!hasVisibleDiyCapabilitiesParam()) {
 			return;
 		}
-		if (node.type === "AssignmentExpression" && isCapabilitiesMethodMember(node["right"])) {
-			report(
-				/* c8 ignore next -- assignment reports use the parsed right-hand side. */
-				getNode(node["right"]) ?? node,
-				"aliased capability method",
-				"Do not alias, rebind, return, or pass capability methods; call them directly.",
-				[capabilityMethodAliasHelp()],
-			);
-		}
-		if (node.type === "CallExpression") {
-			for (const argument of getArray(node["arguments"])) {
-				if (isCapabilitiesMethodMember(argument)) {
-					report(
-						/* c8 ignore next -- argument reports use the parsed argument node. */
-						getNode(argument) ?? node,
-						"aliased capability method",
-						"Do not alias, rebind, return, or pass capability methods; call them directly.",
-						[capabilityMethodAliasHelp()],
-					);
-				}
-			}
-		}
-		if (node.type === "ReturnStatement" && isCapabilitiesMethodMember(node["argument"])) {
-			report(
-				/* c8 ignore next -- return reports use the parsed argument node. */
-				getNode(node["argument"]) ?? node,
-				"aliased capability method",
-				"Do not alias, rebind, return, or pass capability methods; call them directly.",
-				[capabilityMethodAliasHelp()],
-			);
-		}
-		if (node.type !== "VariableDeclarator") {
-			return;
-		}
-		if (isCapabilitiesMethodMember(node["init"])) {
-			report(
-				/* c8 ignore next -- initializer reports use the parsed init node. */
-				getNode(node["init"]) ?? node,
-				"aliased capability method",
-				"Do not alias, rebind, return, or pass capability methods; call them directly.",
-				[capabilityMethodAliasHelp()],
-			);
+		if (node.type !== "VariableDeclarator" || getIdentifierName(node["init"]) !== "capabilities") {
 			return;
 		}
 		const id = getNode(node["id"]);
-		const init = getNode(node["init"]);
-		if (id?.type !== "ObjectPattern" || init?.type !== "Identifier") {
-			return;
-		}
-		if (getIdentifierName(init) !== "capabilities") {
+		if (id?.type !== "ObjectPattern") {
 			return;
 		}
 		for (const propertyValue of getArray(id["properties"])) {
 			const property = getNode(propertyValue);
-			if (property?.type !== "Property") {
+			if (property?.type === "RestElement") {
+				reportCapabilityEscape(property);
 				continue;
 			}
-			/* c8 ignore next -- destructured capability keys are identifiers or string literals. */
-			if (capabilityMethodNames.has(getMemberPropertyName(property["key"]) ?? "")) {
-				report(
-					property,
-					"aliased capability method",
-					"Do not alias, rebind, return, or pass capability methods; call them directly.",
-					[capabilityMethodAliasHelp()],
-				);
+			if (property?.type !== "Property" || property["computed"] !== true) {
+				continue;
 			}
+			if (
+				resolveObjectPatternComputedKey(
+					{ loader, localConstants: constantScopes, moduleInfo },
+					property["key"],
+				) != null
+			) {
+				continue;
+			}
+			report(
+				property,
+				"dynamic capability access",
+				"Capability destructuring must use a static property name.",
+				[
+					{
+						kind: "help",
+						message:
+							'use direct property names like `{ clock }`, string keys like `{ "core.fs": fs }`, or computed const string keys',
+					},
+				],
+			);
 		}
 	};
 
@@ -392,11 +344,7 @@ export function analyzeDiySyntax(
 		}
 	};
 
-	const checkCapabilityIdentifier = (
-		node: AstNode,
-		parent: AstNode | null,
-		grandparent: AstNode | null,
-	): void => {
+	const checkCapabilityIdentifier = (node: AstNode, parent: AstNode | null): void => {
 		if (getIdentifierName(node) !== "capabilities") {
 			return;
 		}
@@ -407,11 +355,13 @@ export function analyzeDiySyntax(
 			return;
 		}
 		if (parent?.type === "MemberExpression" && parent["object"] === node) {
-			if (isDirectCapabilitiesMethodMember(parent) && grandparent?.["callee"] === parent) {
+			return;
+		}
+		if (parent?.type === "VariableDeclarator" && parent["init"] === node) {
+			const id = getNode(parent["id"]);
+			if (id?.type === "ObjectPattern") {
 				return;
 			}
-			reportCapabilityEscape(node);
-			return;
 		}
 		if (parent?.type === "CallExpression" && getArray(parent["arguments"])[0] === node) {
 			return;
@@ -419,10 +369,10 @@ export function analyzeDiySyntax(
 		reportCapabilityEscape(node);
 	};
 
-	const visit = (value: unknown, parent: AstNode | null, grandparent: AstNode | null): void => {
+	const visit = (value: unknown, parent: AstNode | null): void => {
 		if (Array.isArray(value)) {
 			for (const item of value) {
-				visit(item, parent, grandparent);
+				visit(item, parent);
 			}
 			return;
 		}
@@ -439,21 +389,21 @@ export function analyzeDiySyntax(
 		if (createsConstantScope) {
 			enterConstantScope(node);
 		}
-		if (node.type === "CallExpression") {
-			checkCallExpression(node);
+		if (node.type === "MemberExpression") {
+			checkMemberExpression(node);
 		}
 		checkNoRenamedDiyImport(node);
 		checkNoCapabilitiesReexport(node);
-		checkNoNeedAlias(node);
+		checkCapabilitiesDestructure(node);
 		if (node.type === "Identifier") {
-			checkCapabilityIdentifier(node, parent, grandparent);
+			checkCapabilityIdentifier(node, parent);
 		}
 
 		for (const [key, child] of Object.entries(node)) {
 			if (key === "type" || key === "start" || key === "end") {
 				continue;
 			}
-			visit(child, node, parent);
+			visit(child, node);
 		}
 		if (isFunction) {
 			constantScopes.pop();
@@ -464,7 +414,7 @@ export function analyzeDiySyntax(
 		}
 	};
 
-	visit(moduleInfo.body, null, null);
+	visit(moduleInfo.body, null);
 	return violations;
 }
 
@@ -487,13 +437,6 @@ function capabilitiesImportHelp(): DiyAnalyzerNote {
 	};
 }
 
-function capabilityMethodAliasHelp(): DiyAnalyzerNote {
-	return {
-		kind: "help",
-		message: 'inline the method call instead, for example `capabilities.need("core.fs")`',
-	};
-}
-
 function isNonValueIdentifierParent(parent: AstNode | null): boolean {
 	return (
 		parent == null ||
@@ -513,4 +456,24 @@ function isCapabilitiesParamIdentifier(node: AstNode, parent: AstNode | null): b
 		return getArray(parent["params"]).some((param) => getIdentifierFromParam(param) === node);
 	}
 	return parent.type === "AssignmentPattern" && parent["left"] === node;
+}
+
+function resolveObjectPatternComputedKey(
+	context: {
+		readonly loader: ModuleLoader;
+		readonly localConstants: readonly Map<string, StringConstantBinding>[];
+		readonly moduleInfo: ModuleInfo;
+	},
+	key: unknown,
+): string | null {
+	const literal = getLiteralString(key);
+	if (literal != null) {
+		return literal;
+	}
+	const name = getIdentifierName(key);
+	/* c8 ignore next -- computed destructuring fixtures use identifiers or literals. */
+	if (name == null) {
+		return null;
+	}
+	return resolveStringConstantName(context, name);
 }

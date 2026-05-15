@@ -1,10 +1,10 @@
 src/main.ts:14:3 redundant capability provider
-  12 | 	const clock = capabilities.need("app.clock");
+  12 | 	const clock = capabilities["app.clock"];
   13 | 	return readRenamed(
-> 14 | 		capabilities.provide<AppClockCapability>({
-     | 		^ capabilities.provide adds capabilities already present on capabilities: app.clock
-  15 | 			"app.clock": clock,
-  16 | 		}),
-  17 | 	);
+> 14 | 		Capabilities.extend(
+     | 		^ Capabilities.extend adds capabilities already present on capabilities: app.clock
+  15 | 			capabilities,
+  16 | 			Capabilities.create<AppClockCapability>({
+  17 | 				"app.clock": clock,
   = note: `app.clock` is already allowed by this function's `capabilities` parameter
-  = help: use `capabilities.override(...)` when replacing an existing capability is intentional
+  = help: use `Capabilities.override(...)` when replacing an existing capability is intentional

@@ -40,8 +40,8 @@ export type ClockLike = {
 	now(): Date;
 };
 
-export type FsCapability = Capability<"core.fs", FsLike>;
-export type ClockCapability = Capability<"core.clock", ClockLike>;
+export type FsCapability = Capability<"fs", FsLike>;
+export type ClockCapability = Capability<"clock", ClockLike>;
 export type AppCapability = ClockCapability | FsCapability;
 ```
 
@@ -56,17 +56,17 @@ Build a `Capabilities` value from concrete service implementations:
 import * as fs from "node:fs/promises";
 
 import { Capabilities } from "@beff/diy/capabilities";
-import type { AppCapability } from "./capabilities.ts";
+import type { AppCapability, ClockCapability } from "./capabilities.ts";
 
-const capabilities = Capabilities.provide<AppCapability>({
-	"core.clock": { now: () => new Date() },
-	"core.fs": fs,
+const capabilities = Capabilities.create<AppCapability>({
+	clock: { now: () => new Date() },
+	fs,
 });
 ```
 
 ### 4. Use capabilities
 
-Accept `capabilities` as the first parameter of effectful functions and request services with literal capability IDs:
+Accept `capabilities` as the first parameter of effectful functions and read services as plain object properties:
 
 ```ts
 import type { Capabilities } from "@beff/diy/capabilities";
@@ -76,8 +76,7 @@ export async function readTimestampedConfig(
 	capabilities: Capabilities<ClockCapability | FsCapability>,
 	path: string,
 ): Promise<string> {
-	const clock = capabilities.need("core.clock");
-	const fs = capabilities.need("core.fs");
+	const { clock, fs } = capabilities;
 	const config = await fs.readFile(path, "utf8");
 
 	return `[${clock.now().toISOString()}]\n${config}`;
@@ -132,7 +131,7 @@ Example output:
 Module graph
 
 packages/app/src/main.ts
-`-- run: core.clock, core.fs
+`-- run: clock, fs
    `-- calls: readClock, readConfig
 ```
 
@@ -169,9 +168,9 @@ DIY's analyzer is intentionally strict so dependency flow stays easy to follow:
 - Capabilities parameters must be named `capabilities`.
 - Capabilities parameters must be typed as `Capabilities<...>`.
 - Capabilities parameters must be the first function parameter.
-- Capability method calls must be direct calls such as `capabilities.need(...)`, `capabilities.provide(...)`, or `capabilities.override(...)`.
-- `capabilities.need(...)` must use a string literal capability ID or a resolvable `const` string identifier.
-- Capability methods must not be aliased, rebound, returned, or passed around.
+- Capability services must be read with static property access such as `capabilities.clock`, `capabilities["core.fs"]`, or destructuring.
+- Computed capability keys must use a string literal capability ID or a resolvable `const` string identifier.
+- The `capabilities` object must not be stored, returned, or passed around except through the supported forwarding pattern.
 - The `capabilities` value may be forwarded as the first argument to another effectful function.
 - Declared capabilities that are not used directly or transitively are reported as unused.
 
@@ -179,10 +178,10 @@ DIY's analyzer is intentionally strict so dependency flow stays easy to follow:
 
 ### Add capabilities locally
 
-Use `.provide(...)` to add services around a smaller dependency set:
+Use `Capabilities.extend(...)` to add services around a smaller dependency set:
 
 ```ts
-import type { Capabilities, Capability } from "@beff/diy/capabilities";
+import { Capabilities, type Capability } from "@beff/diy/capabilities";
 import type { RequestContext } from "./context.ts";
 import type { AppCapability } from "./deps.ts";
 
@@ -190,25 +189,28 @@ type ProgressLogger = {
 	progress(text: string): Promise<void>;
 };
 
-type ProgressLoggerCapability = Capability<"app.progressLogger", ProgressLogger>;
+type ProgressLoggerCapability = Capability<"progressLogger", ProgressLogger>;
 
 export function createRequestCapabilities(
 	capabilities: Capabilities<AppCapability>,
 	context: RequestContext,
 ): Capabilities<AppCapability | ProgressLoggerCapability> {
-	return capabilities.provide<ProgressLoggerCapability>({
-		"app.progressLogger": {
-			async progress(text) {
-				context.log(text);
+	return Capabilities.extend(
+		capabilities,
+		Capabilities.create<ProgressLoggerCapability>({
+			progressLogger: {
+				async progress(text) {
+					context.log(text);
+				},
 			},
-		},
-	});
+		}),
+	);
 }
 ```
 
 ### Override services for tests
 
-Use `.override(...)` to replace services without changing the capability type:
+Use `Capabilities.override(...)` to replace services without changing the capability type:
 
 ```ts
 import * as fs from "node:fs/promises";
@@ -216,16 +218,19 @@ import * as fs from "node:fs/promises";
 import { Capabilities } from "@beff/diy/capabilities";
 import type { AppCapability } from "./capabilities.ts";
 
-const production = Capabilities.provide<AppCapability>({
-	"core.clock": { now: () => new Date() },
-	"core.fs": fs,
+const production = Capabilities.create<AppCapability>({
+	clock: { now: () => new Date() },
+	fs,
 });
 
-const testCapabilities = production.override({
-	"core.clock": {
-		now: () => new Date("2026-01-01T00:00:00.000Z"),
-	},
-});
+const testCapabilities = Capabilities.override(
+	production,
+	Capabilities.create<ClockCapability>({
+		clock: {
+			now: () => new Date("2026-01-01T00:00:00.000Z"),
+		},
+	}),
+);
 ```
 
 ### Merge capability containers
@@ -237,17 +242,17 @@ import * as fs from "node:fs/promises";
 
 import { Capabilities, type Capability } from "@beff/diy/capabilities";
 
-type FsCapability = Capability<"core.fs", typeof fs>;
-type ClockCapability = Capability<"core.clock", { now(): Date }>;
-type DatabaseCapability = Capability<"app.database", { query(sql: string): Promise<unknown[]> }>;
+type FsCapability = Capability<"fs", typeof fs>;
+type ClockCapability = Capability<"clock", { now(): Date }>;
+type DatabaseCapability = Capability<"database", { query(sql: string): Promise<unknown[]> }>;
 
-const nodeCapabilities = Capabilities.provide<FsCapability | ClockCapability>({
-	"core.clock": { now: () => new Date() },
-	"core.fs": fs,
+const nodeCapabilities = Capabilities.create<FsCapability | ClockCapability>({
+	clock: { now: () => new Date() },
+	fs,
 });
 
-const databaseCapabilities = Capabilities.provide<DatabaseCapability>({
-	"app.database": {
+const databaseCapabilities = Capabilities.create<DatabaseCapability>({
+	database: {
 		async query(_sql) {
 			return [];
 		},

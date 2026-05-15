@@ -1,196 +1,26 @@
-src/main.ts:7:8 unused capability
-   5 | declare function use(value: unknown): void;
-   6 |
->  7 | export function bad(capabilities: Capabilities<FsCapability>): void {
-     |        ^ Declares unused capability "core.fs".
-   8 | 	const direct = capabilities.need;
-   9 | 	const { provide: provideCapabilities, need, override } = capabilities;
+src/main.ts:9:17 escaped capabilities
+   7 | export function bad(capabilities: Capabilities<FsCapability>): void {
+   8 | 	const fs = capabilities["core.fs"];
+>  9 | 	const direct = capabilities;
+     | 	               ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
   10 | 	let rebound: unknown = direct;
-  = help: remove "core.fs" from `Capabilities<...>`, or add a real `capabilities.need("core.fs")` call if it is required
-src/main.ts:22:8 unused capability
+  11 | 	rebound = capabilities;
+  12 | 	use(fs);
+  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
+src/main.ts:11:12 escaped capabilities
+   9 | 	const direct = capabilities;
+  10 | 	let rebound: unknown = direct;
+> 11 | 	rebound = capabilities;
+     | 	          ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
+  12 | 	use(fs);
+  13 | 	use(direct);
+  14 | 	use(rebound);
+  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
+src/main.ts:19:9 escaped capabilities
+  17 | export function returns(capabilities: Capabilities<FsCapability>) {
+  18 | 	capabilities["core.fs"];
+> 19 | 	return capabilities;
+     | 	       ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
   20 | }
   21 |
-> 22 | export function returns(capabilities: Capabilities<FsCapability>) {
-     |        ^ Declares unused capability "core.fs".
-  23 | 	return capabilities.override;
-  24 | }
-  25 |
-  = help: remove "core.fs" from `Capabilities<...>`, or add a real `capabilities.need("core.fs")` call if it is required
-src/main.ts:8:17 aliased capability method
-   6 |
-   7 | export function bad(capabilities: Capabilities<FsCapability>): void {
->  8 | 	const direct = capabilities.need;
-     | 	               ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-   9 | 	const { provide: provideCapabilities, need, override } = capabilities;
-  10 | 	let rebound: unknown = direct;
-  11 | 	rebound = capabilities.need;
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:8:17 escaped capabilities
-   6 |
-   7 | export function bad(capabilities: Capabilities<FsCapability>): void {
->  8 | 	const direct = capabilities.need;
-     | 	               ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-   9 | 	const { provide: provideCapabilities, need, override } = capabilities;
-  10 | 	let rebound: unknown = direct;
-  11 | 	rebound = capabilities.need;
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:9:10 aliased capability method
-   7 | export function bad(capabilities: Capabilities<FsCapability>): void {
-   8 | 	const direct = capabilities.need;
->  9 | 	const { provide: provideCapabilities, need, override } = capabilities;
-     | 	        ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  10 | 	let rebound: unknown = direct;
-  11 | 	rebound = capabilities.need;
-  12 | 	rebound = capabilities.provide;
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:9:40 aliased capability method
-   7 | export function bad(capabilities: Capabilities<FsCapability>): void {
-   8 | 	const direct = capabilities.need;
->  9 | 	const { provide: provideCapabilities, need, override } = capabilities;
-     | 	                                      ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  10 | 	let rebound: unknown = direct;
-  11 | 	rebound = capabilities.need;
-  12 | 	rebound = capabilities.provide;
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:9:46 aliased capability method
-   7 | export function bad(capabilities: Capabilities<FsCapability>): void {
-   8 | 	const direct = capabilities.need;
->  9 | 	const { provide: provideCapabilities, need, override } = capabilities;
-     | 	                                            ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  10 | 	let rebound: unknown = direct;
-  11 | 	rebound = capabilities.need;
-  12 | 	rebound = capabilities.provide;
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:9:59 escaped capabilities
-   7 | export function bad(capabilities: Capabilities<FsCapability>): void {
-   8 | 	const direct = capabilities.need;
->  9 | 	const { provide: provideCapabilities, need, override } = capabilities;
-     | 	                                                         ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  10 | 	let rebound: unknown = direct;
-  11 | 	rebound = capabilities.need;
-  12 | 	rebound = capabilities.provide;
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:11:12 aliased capability method
-   9 | 	const { provide: provideCapabilities, need, override } = capabilities;
-  10 | 	let rebound: unknown = direct;
-> 11 | 	rebound = capabilities.need;
-     | 	          ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  12 | 	rebound = capabilities.provide;
-  13 | 	rebound = capabilities.override;
-  14 | 	use(capabilities.need);
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:11:12 escaped capabilities
-   9 | 	const { provide: provideCapabilities, need, override } = capabilities;
-  10 | 	let rebound: unknown = direct;
-> 11 | 	rebound = capabilities.need;
-     | 	          ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  12 | 	rebound = capabilities.provide;
-  13 | 	rebound = capabilities.override;
-  14 | 	use(capabilities.need);
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:12:12 aliased capability method
-  10 | 	let rebound: unknown = direct;
-  11 | 	rebound = capabilities.need;
-> 12 | 	rebound = capabilities.provide;
-     | 	          ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  13 | 	rebound = capabilities.override;
-  14 | 	use(capabilities.need);
-  15 | 	use(capabilities.provide);
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:12:12 escaped capabilities
-  10 | 	let rebound: unknown = direct;
-  11 | 	rebound = capabilities.need;
-> 12 | 	rebound = capabilities.provide;
-     | 	          ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  13 | 	rebound = capabilities.override;
-  14 | 	use(capabilities.need);
-  15 | 	use(capabilities.provide);
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:13:12 aliased capability method
-  11 | 	rebound = capabilities.need;
-  12 | 	rebound = capabilities.provide;
-> 13 | 	rebound = capabilities.override;
-     | 	          ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  14 | 	use(capabilities.need);
-  15 | 	use(capabilities.provide);
-  16 | 	use(capabilities.override);
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:13:12 escaped capabilities
-  11 | 	rebound = capabilities.need;
-  12 | 	rebound = capabilities.provide;
-> 13 | 	rebound = capabilities.override;
-     | 	          ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  14 | 	use(capabilities.need);
-  15 | 	use(capabilities.provide);
-  16 | 	use(capabilities.override);
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:14:6 aliased capability method
-  12 | 	rebound = capabilities.provide;
-  13 | 	rebound = capabilities.override;
-> 14 | 	use(capabilities.need);
-     | 	    ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  15 | 	use(capabilities.provide);
-  16 | 	use(capabilities.override);
-  17 | 	use(provideCapabilities);
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:14:6 escaped capabilities
-  12 | 	rebound = capabilities.provide;
-  13 | 	rebound = capabilities.override;
-> 14 | 	use(capabilities.need);
-     | 	    ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  15 | 	use(capabilities.provide);
-  16 | 	use(capabilities.override);
-  17 | 	use(provideCapabilities);
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:15:6 aliased capability method
-  13 | 	rebound = capabilities.override;
-  14 | 	use(capabilities.need);
-> 15 | 	use(capabilities.provide);
-     | 	    ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  16 | 	use(capabilities.override);
-  17 | 	use(provideCapabilities);
-  18 | 	use(need);
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:15:6 escaped capabilities
-  13 | 	rebound = capabilities.override;
-  14 | 	use(capabilities.need);
-> 15 | 	use(capabilities.provide);
-     | 	    ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  16 | 	use(capabilities.override);
-  17 | 	use(provideCapabilities);
-  18 | 	use(need);
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:16:6 aliased capability method
-  14 | 	use(capabilities.need);
-  15 | 	use(capabilities.provide);
-> 16 | 	use(capabilities.override);
-     | 	    ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  17 | 	use(provideCapabilities);
-  18 | 	use(need);
-  19 | 	use(override);
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:16:6 escaped capabilities
-  14 | 	use(capabilities.need);
-  15 | 	use(capabilities.provide);
-> 16 | 	use(capabilities.override);
-     | 	    ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  17 | 	use(provideCapabilities);
-  18 | 	use(need);
-  19 | 	use(override);
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
-src/main.ts:23:9 aliased capability method
-  21 |
-  22 | export function returns(capabilities: Capabilities<FsCapability>) {
-> 23 | 	return capabilities.override;
-     | 	       ^ Do not alias, rebind, return, or pass capability methods; call them directly.
-  24 | }
-  25 |
-  = help: inline the method call instead, for example `capabilities.need("core.fs")`
-src/main.ts:23:9 escaped capabilities
-  21 |
-  22 | export function returns(capabilities: Capabilities<FsCapability>) {
-> 23 | 	return capabilities.override;
-     | 	       ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
-  24 | }
-  25 |
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
+  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function

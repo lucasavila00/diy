@@ -6,25 +6,25 @@ src/main.ts:11:8 unused capability
   12 | 	const { ...rest } = capabilities;
   13 | 	use(rest);
   14 | }
-  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.need("read")` call if it is required
-src/main.ts:12:22 escaped capabilities
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities["read"]` read if it is required
+src/main.ts:12:10 escaped capabilities
   10 |
   11 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {
 > 12 | 	const { ...rest } = capabilities;
-     | 	                    ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
+     | 	        ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
   13 | 	use(rest);
   14 | }
   15 |
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
+  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
 src/main.ts:17:20 escaped capabilities
   15 |
   16 | export function duplicateEscape(capabilities: Capabilities<ReadCapability>): void {
 > 17 | 	use(capabilities, capabilities);
-     | 	                  ^ Use `capabilities` only for direct capability method calls or as the first argument to another effectful function.
+     | 	                  ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
   18 | }
   19 |
   20 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
-  = help: keep capability flow statically analyzable: call methods directly, or forward `capabilities` as the first argument to a named effectful function
+  = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
 src/main.ts:21:17 invalid capabilities parameter
   19 |
   20 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {

@@ -49,6 +49,8 @@ export function analyzeUnusedCapabilities(
 				const extra = resolveCapabilityIds(loader, sourceModule, check.extraType, []);
 				if (extra.reasons.length > 0) {
 					for (const reason of extra.reasons) {
+						/* c8 ignore next -- capability resolution reasons may omit notes. */
+						const reasonNotes = reason.notes ?? [];
 						unsupported.push({
 							/* c8 ignore next -- capability resolution reasons include source locations. */
 							column: reason.column ?? check.column,
@@ -58,14 +60,14 @@ export function analyzeUnusedCapabilities(
 							/* c8 ignore next -- capability resolution reasons include lines. */
 							line: reason.line ?? check.line,
 							notes: [
-								...(reason.notes ?? []),
+								...reasonNotes,
 								{
 									kind: "help",
 									message:
 										'change this type to `Capability<"id", ...>` or a union of resolvable capability types',
 								},
 							],
-							reason: `capabilities.provide extra capability type: ${reason.message}`,
+							reason: `Capabilities.extend extra capability type: ${reason.message}`,
 						});
 					}
 					continue;
@@ -93,10 +95,10 @@ export function analyzeUnusedCapabilities(
 							{
 								kind: "help",
 								message:
-									"use `capabilities.override(...)` when replacing an existing capability is intentional",
+									"use `Capabilities.override(...)` when replacing an existing capability is intentional",
 							},
 						],
-						reason: "capabilities.provide adds capabilities already present on capabilities",
+						reason: "Capabilities.extend adds capabilities already present on capabilities",
 					});
 				}
 			}

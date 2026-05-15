@@ -3,7 +3,16 @@ src/main.ts:6:8 unused capability
   5 |
 > 6 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
     |        ^ Declares unused capability "core.write".
-  7 | 	capabilities.need("core.read");
+  7 | 	capabilities["core.read"];
   8 | }
   9 |
-  = help: remove "core.write" from `Capabilities<...>`, or add a real `capabilities.need("core.write")` call if it is required
+  = help: remove "core.write" from `Capabilities<...>`, or add a real `capabilities["core.write"]` read if it is required
+src/main.ts:10:8 unused capability
+   8 | }
+   9 |
+> 10 | export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
+     |        ^ Declares unused capability "core.read".
+  11 | 	capabilities["core.write"];
+  12 | }
+  13 |
+  = help: remove "core.read" from `Capabilities<...>`, or add a real `capabilities["core.read"]` read if it is required

@@ -6,6 +6,6 @@ import { run as runSource } from "../src/one.ts";
 type WriteCapability = Capability<"write", unknown>;
 
 export function run(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
-	capabilities.need("write");
+	capabilities["write"];
 	runSource(capabilities);
 }

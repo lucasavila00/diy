@@ -4,5 +4,5 @@ type ReadCapability = Capability<"core.read", unknown>;
 type WriteCapability = Capability<"core.write", unknown>;
 
 export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
-	capabilities.need("core.read");
+	capabilities["core.read"];
 }
