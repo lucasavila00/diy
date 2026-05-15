@@ -80,7 +80,10 @@ export function collectVariableDeclarationConstants(
 	}
 }
 
-function resolveNeedId(context: StringConstantResolutionContext, argument: unknown): string | null {
+function resolveStaticStringExpression(
+	context: StringConstantResolutionContext,
+	argument: unknown,
+): string | null {
 	const literal = getLiteralString(argument);
 	/* c8 ignore next -- normal fixtures use identifiers or const keys for computed access. */
 	if (literal != null) {
@@ -103,7 +106,7 @@ export function resolveStaticMemberName(
 		return null;
 	}
 	if (node["computed"] === true) {
-		return resolveNeedId(context, node["property"]);
+		return resolveStaticStringExpression(context, node["property"]);
 	}
 	return getMemberPropertyName(node["property"]);
 }
@@ -158,7 +161,7 @@ function resolveStringConstantIdentifier(
 		return value == null ? null : value;
 	}
 	const imported = context.moduleInfo.imports.get(name);
-	/* c8 ignore next -- default value imports are intentionally not supported for need IDs. */
+	/* c8 ignore next -- default value imports are intentionally not supported for static keys. */
 	if (imported == null || imported.importedName === "default") {
 		return null;
 	}
@@ -173,7 +176,7 @@ function resolveStringConstantIdentifier(
 		return null;
 	}
 	const localName = importedModule.constantExports.get(imported.importedName);
-	/* c8 ignore next -- non-constant imports remain dynamic capability IDs. */
+	/* c8 ignore next -- non-constant imports remain dynamic capability keys. */
 	if (localName == null) {
 		return null;
 	}

@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.4
+
+### Patch Changes
+
+- new API
+
 ## 0.0.3
 
 ### Patch Changes

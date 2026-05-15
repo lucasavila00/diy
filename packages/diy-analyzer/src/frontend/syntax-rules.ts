@@ -19,7 +19,7 @@ import {
 	collectVariableDeclarationConstants,
 	resolveStaticMemberName,
 	resolveStringConstantName,
-} from "./need-id.ts";
+} from "./string-constants.ts";
 import type { AstNode, ModuleInfo, StringConstantBinding } from "./types.ts";
 
 type FunctionFrame = {
