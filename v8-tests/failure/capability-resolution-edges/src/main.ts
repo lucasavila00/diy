@@ -26,6 +26,13 @@ export function missingTypeArgument(capabilities: MissingTypeNode): void {
 	use(capabilities);
 }
 
+export function directMissingTypeArgument(
+	// @ts-expect-error intentionally invalid for analyzer coverage
+	capabilities: Capabilities,
+): void {
+	use(capabilities);
+}
+
 export function rawType(
 	// @ts-expect-error intentionally invalid for analyzer coverage
 	capabilities: Capabilities<string>,

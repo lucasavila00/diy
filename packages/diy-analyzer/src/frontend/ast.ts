@@ -153,7 +153,6 @@ export function getMemberPropertyName(property: unknown): string | null {
 	if (node.type === "Literal") {
 		return getLiteralString(node);
 	}
-	/* c8 ignore next -- capability property nodes are identifiers or literals. */
 	return null;
 }
 

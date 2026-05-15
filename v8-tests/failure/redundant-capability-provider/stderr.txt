@@ -5,5 +5,16 @@ src/main.ts:9:9 redundant capability provider
      | 	       ^ Capabilities.extend adds capabilities already present on capabilities: write
   10 | }
   11 |
+  12 | export function loadBoth(
   = note: `write` is already allowed by this function's `capabilities` parameter
+  = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
+src/main.ts:15:9 redundant capability provider
+  13 | 	capabilities: Capabilities<ReadCapability | WriteCapability>,
+  14 | ): Capabilities<ReadCapability | WriteCapability> {
+> 15 | 	return Capabilities.extend(
+     | 	       ^ Capabilities.extend adds capabilities already present on capabilities: read, write
+  16 | 		capabilities,
+  17 | 		Capabilities.create<ReadCapability | WriteCapability>({ read: {}, write: {} }),
+  18 | 	);
+  = note: `read`, `write` are already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional

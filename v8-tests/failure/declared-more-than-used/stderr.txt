@@ -1,36 +1,27 @@
-src/main.ts:8:8 unused capability
-   6 | type NumericCapability = Capability<"1", unknown>;
-   7 |
->  8 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
+src/main.ts:7:8 unused capability
+   5 | type HyphenCapability = Capability<"reader-id", unknown>;
+   6 |
+>  7 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
      |        ^ Declares unused capability "writer".
-   9 | 	capabilities.reader;
-  10 | }
-  11 |
+   8 | 	capabilities.reader;
+   9 | }
+  10 |
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
-src/main.ts:12:8 unused capability
-  10 | }
-  11 |
-> 12 | export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
+src/main.ts:11:8 unused capability
+   9 | }
+  10 |
+> 11 | export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
      |        ^ Declares unused capability "reader".
-  13 | 	capabilities.writer;
-  14 | }
-  15 |
+  12 | 	capabilities.writer;
+  13 | }
+  14 |
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
-src/main.ts:16:8 unused capability
-  14 | }
-  15 |
-> 16 | export function hyphenated(capabilities: Capabilities<ReadCapability | HyphenCapability>): void {
+src/main.ts:15:8 unused capability
+  13 | }
+  14 |
+> 15 | export function hyphenated(capabilities: Capabilities<ReadCapability | HyphenCapability>): void {
      |        ^ Declares unused capability "reader-id".
-  17 | 	capabilities.reader;
-  18 | }
-  19 |
+  16 | 	capabilities.reader;
+  17 | }
+  18 |
   = help: remove "reader-id" from `Capabilities<...>`, or add a real `capabilities["reader-id"]` read if it is required
-src/main.ts:20:8 unused capability
-  18 | }
-  19 |
-> 20 | export function numeric(capabilities: Capabilities<NumericCapability>): void {
-     |        ^ Declares unused capability "1".
-  21 | 	const { 1: one } = capabilities;
-  22 | 	void one;
-  23 | }
-  = help: remove "1" from `Capabilities<...>`, or add a real `capabilities["1"]` read if it is required

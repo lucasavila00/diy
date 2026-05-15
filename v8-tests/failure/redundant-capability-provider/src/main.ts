@@ -8,3 +8,12 @@ export function load(
 ): Capabilities<ReadCapability | WriteCapability> {
 	return Capabilities.extend(capabilities, Capabilities.create<WriteCapability>({ write: {} }));
 }
+
+export function loadBoth(
+	capabilities: Capabilities<ReadCapability | WriteCapability>,
+): Capabilities<ReadCapability | WriteCapability> {
+	return Capabilities.extend(
+		capabilities,
+		Capabilities.create<ReadCapability | WriteCapability>({ read: {}, write: {} }),
+	);
+}

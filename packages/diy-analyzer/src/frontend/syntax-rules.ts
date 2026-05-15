@@ -13,7 +13,11 @@ import {
 	lineForOffset,
 	locationForOffset,
 } from "./ast.ts";
-import { isDiyCapabilitiesType, publicDiyImportSources } from "./diy-imports.ts";
+import {
+	getDiyCapabilitiesAllowedType,
+	isDiyCapabilitiesType,
+	publicDiyImportSources,
+} from "./diy-imports.ts";
 import type { ModuleLoader } from "./module-loader.ts";
 import {
 	collectVariableDeclarationConstants,
@@ -136,7 +140,7 @@ export function analyzeDiySyntax(
 				const identifier = getIdentifierFromParam(param);
 				return (
 					getIdentifierName(identifier) === "capabilities" &&
-					isDiyCapabilitiesType(moduleInfo, getParamType(getNode(param)))
+					getDiyCapabilitiesAllowedType(moduleInfo, getParamType(getNode(param))) != null
 				);
 			}),
 			name: getFunctionName(node, parent),
@@ -149,8 +153,10 @@ export function analyzeDiySyntax(
 			}
 
 			const typeNode = getParamType(param);
-			const hasDiyCapabilitiesType = isDiyCapabilitiesType(moduleInfo, typeNode);
-			const hasUnrelatedCapabilitiesType = isCapabilitiesType(typeNode) && !hasDiyCapabilitiesType;
+			const hasDiyCapabilitiesReference = isDiyCapabilitiesType(moduleInfo, typeNode);
+			const hasDiyCapabilitiesType = getDiyCapabilitiesAllowedType(moduleInfo, typeNode) != null;
+			const hasUnrelatedCapabilitiesType =
+				isCapabilitiesType(typeNode) && !hasDiyCapabilitiesReference;
 			const name = getIdentifierName(identifier);
 			if (!hasDiyCapabilitiesType && name !== "capabilities") {
 				continue;

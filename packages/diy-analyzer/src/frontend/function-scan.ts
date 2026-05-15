@@ -61,7 +61,6 @@ export function scanFunctionBody(
 		if (isFunctionNode(node)) {
 			for (const param of getArray(node["params"])) {
 				const name = getIdentifierName(getIdentifierFromParam(param));
-				/* c8 ignore next -- function parameters with names are covered by analyzer fixtures. */
 				if (name != null) {
 					scope.set(name, null);
 				}

@@ -7,6 +7,15 @@ src/main.ts:25:37 invalid capabilities parameter
   27 | }
   28 |
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+src/main.ts:31:2 invalid capabilities parameter
+  29 | export function directMissingTypeArgument(
+  30 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 31 | 	capabilities: Capabilities,
+     | 	^ `capabilities` parameters must be typed as `Capabilities<...>`.
+  32 | ): void {
+  33 | 	use(capabilities);
+  34 | }
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
 src/main.ts:10:22 unsupported analysis
    8 |
    9 | type ReadCapability = Capability<"read", unknown>;
@@ -16,140 +25,140 @@ src/main.ts:10:22 unsupported analysis
   12 | type MissingTypeNode = Capabilities;
   13 |
   = help: use a string literal or const reference, for example `Capability<"appClock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`
-src/main.ts:29:8 unsupported analysis
-  27 | }
-  28 |
-> 29 | export function rawType(
-     |        ^ unresolved capabilities forwarding target use
-  30 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  31 | 	capabilities: Capabilities<string>,
-  32 | ): void {
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-src/main.ts:31:29 unsupported analysis
-  29 | export function rawType(
-  30 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 31 | 	capabilities: Capabilities<string>,
-     | 	                           ^ unsupported capability type TSStringKeyword
-  32 | ): void {
-  33 | 	use(capabilities);
-  34 | }
 src/main.ts:36:8 unsupported analysis
   34 | }
   35 |
-> 36 | export function qualified(capabilities: Capabilities<Namespaced.ReadCapability>): void {
+> 36 | export function rawType(
      |        ^ unresolved capabilities forwarding target use
-  37 | 	use(capabilities);
-  38 | }
-  39 |
+  37 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  38 | 	capabilities: Capabilities<string>,
+  39 | ): void {
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-src/main.ts:36:54 unsupported analysis
-  34 | }
-  35 |
-> 36 | export function qualified(capabilities: Capabilities<Namespaced.ReadCapability>): void {
+src/main.ts:38:29 unsupported analysis
+  36 | export function rawType(
+  37 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 38 | 	capabilities: Capabilities<string>,
+     | 	                           ^ unsupported capability type TSStringKeyword
+  39 | ): void {
+  40 | 	use(capabilities);
+  41 | }
+src/main.ts:43:8 unsupported analysis
+  41 | }
+  42 |
+> 43 | export function qualified(capabilities: Capabilities<Namespaced.ReadCapability>): void {
+     |        ^ unresolved capabilities forwarding target use
+  44 | 	use(capabilities);
+  45 | }
+  46 |
+  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
+src/main.ts:43:54 unsupported analysis
+  41 | }
+  42 |
+> 43 | export function qualified(capabilities: Capabilities<Namespaced.ReadCapability>): void {
      |                                                      ^ unsupported qualified type reference
-  37 | 	use(capabilities);
-  38 | }
-  39 |
-src/main.ts:40:8 unsupported analysis
-  38 | }
-  39 |
-> 40 | export function unresolvedLocal(
-     |        ^ unresolved capabilities forwarding target use
-  41 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  42 | 	capabilities: Capabilities<MissingLocal | string>,
-  43 | ): void {
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-src/main.ts:42:29 unsupported analysis
-  40 | export function unresolvedLocal(
-  41 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 42 | 	capabilities: Capabilities<MissingLocal | string>,
-     | 	                           ^ unresolved capability alias MissingLocal
-  43 | ): void {
   44 | 	use(capabilities);
   45 | }
-src/main.ts:42:44 unsupported analysis
-  40 | export function unresolvedLocal(
-  41 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 42 | 	capabilities: Capabilities<MissingLocal | string>,
-     | 	                                          ^ unsupported capability type TSStringKeyword
-  43 | ): void {
-  44 | 	use(capabilities);
-  45 | }
+  46 |
 src/main.ts:47:8 unsupported analysis
   45 | }
   46 |
-> 47 | export function unresolvedImport(capabilities: Capabilities<MissingImport>): void {
+> 47 | export function unresolvedLocal(
      |        ^ unresolved capabilities forwarding target use
-  48 | 	use(capabilities);
-  49 | }
-  50 |
+  48 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  49 | 	capabilities: Capabilities<MissingLocal | string>,
+  50 | ): void {
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-src/main.ts:47:61 unsupported analysis
-  45 | }
-  46 |
-> 47 | export function unresolvedImport(capabilities: Capabilities<MissingImport>): void {
-     |                                                             ^ unresolved import ./missing.ts
-  48 | 	use(capabilities);
-  49 | }
-  50 |
-src/main.ts:51:8 unsupported analysis
-  49 | }
-  50 |
-> 51 | export function unresolvedImportedAlias(
+src/main.ts:49:29 unsupported analysis
+  47 | export function unresolvedLocal(
+  48 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 49 | 	capabilities: Capabilities<MissingLocal | string>,
+     | 	                           ^ unresolved capability alias MissingLocal
+  50 | ): void {
+  51 | 	use(capabilities);
+  52 | }
+src/main.ts:49:44 unsupported analysis
+  47 | export function unresolvedLocal(
+  48 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 49 | 	capabilities: Capabilities<MissingLocal | string>,
+     | 	                                          ^ unsupported capability type TSStringKeyword
+  50 | ): void {
+  51 | 	use(capabilities);
+  52 | }
+src/main.ts:54:8 unsupported analysis
+  52 | }
+  53 |
+> 54 | export function unresolvedImport(capabilities: Capabilities<MissingImport>): void {
      |        ^ unresolved capabilities forwarding target use
-  52 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  53 | 	capabilities: Capabilities<NotAlias>,
-  54 | ): void {
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-src/main.ts:53:29 unsupported analysis
-  51 | export function unresolvedImportedAlias(
-  52 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 53 | 	capabilities: Capabilities<NotAlias>,
-     | 	                           ^ unresolved imported capability alias NotAlias
-  54 | ): void {
   55 | 	use(capabilities);
   56 | }
+  57 |
+  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
+src/main.ts:54:61 unsupported analysis
+  52 | }
+  53 |
+> 54 | export function unresolvedImport(capabilities: Capabilities<MissingImport>): void {
+     |                                                             ^ unresolved import ./missing.ts
+  55 | 	use(capabilities);
+  56 | }
+  57 |
 src/main.ts:58:8 unsupported analysis
   56 | }
   57 |
-> 58 | export function nonStringCapability(capabilities: Capabilities<AnyCapability>): void {
+> 58 | export function unresolvedImportedAlias(
      |        ^ unresolved capabilities forwarding target use
-  59 | 	use(capabilities);
-  60 | }
-  61 |
+  59 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  60 | 	capabilities: Capabilities<NotAlias>,
+  61 | ): void {
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-src/main.ts:62:8 unsupported analysis
-  60 | }
-  61 |
-> 62 | export function unresolvedDefaultImport(
+src/main.ts:60:29 unsupported analysis
+  58 | export function unresolvedImportedAlias(
+  59 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 60 | 	capabilities: Capabilities<NotAlias>,
+     | 	                           ^ unresolved imported capability alias NotAlias
+  61 | ): void {
+  62 | 	use(capabilities);
+  63 | }
+src/main.ts:65:8 unsupported analysis
+  63 | }
+  64 |
+> 65 | export function nonStringCapability(capabilities: Capabilities<AnyCapability>): void {
      |        ^ unresolved capabilities forwarding target use
-  63 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  64 | 	capabilities: Capabilities<DefaultThing>,
-  65 | ): void {
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-src/main.ts:64:29 unsupported analysis
-  62 | export function unresolvedDefaultImport(
-  63 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 64 | 	capabilities: Capabilities<DefaultThing>,
-     | 	                           ^ unresolved imported capability alias DefaultThing
-  65 | ): void {
   66 | 	use(capabilities);
   67 | }
+  68 |
+  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
 src/main.ts:69:8 unsupported analysis
   67 | }
   68 |
-> 69 | export function missingProvideType(capabilities: Capabilities<ReadCapability>): void {
+> 69 | export function unresolvedDefaultImport(
      |        ^ unresolved capabilities forwarding target use
-  70 | 	use(Capabilities.extend(capabilities, Capabilities.create({ read: replacement })));
-  71 | }
-  72 |
+  70 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  71 | 	capabilities: Capabilities<DefaultThing>,
+  72 | ): void {
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-src/main.ts:73:8 unsupported analysis
-  71 | }
-  72 |
-> 73 | export function untypedExtend(capabilities: Capabilities<ReadCapability>): void {
+src/main.ts:71:29 unsupported analysis
+  69 | export function unresolvedDefaultImport(
+  70 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 71 | 	capabilities: Capabilities<DefaultThing>,
+     | 	                           ^ unresolved imported capability alias DefaultThing
+  72 | ): void {
+  73 | 	use(capabilities);
+  74 | }
+src/main.ts:76:8 unsupported analysis
+  74 | }
+  75 |
+> 76 | export function missingProvideType(capabilities: Capabilities<ReadCapability>): void {
      |        ^ unresolved capabilities forwarding target use
-  74 | 	use(Capabilities.extend(capabilities, { read: replacement }));
-  75 | }
-  76 |
+  77 | 	use(Capabilities.extend(capabilities, Capabilities.create({ read: replacement })));
+  78 | }
+  79 |
+  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
+src/main.ts:80:8 unsupported analysis
+  78 | }
+  79 |
+> 80 | export function untypedExtend(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ unresolved capabilities forwarding target use
+  81 | 	use(Capabilities.extend(capabilities, { read: replacement }));
+  82 | }
+  83 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter

@@ -21,3 +21,12 @@ export function bad(capabilities: Capabilities<FsCapability>, id: string): void 
 	const { [`fs${id}`]: templatedFs } = capabilities;
 	use(templatedFs);
 }
+
+class PrivateCapabilityProbe {
+	#fs: unknown;
+
+	check(capabilities: Capabilities<FsCapability>): void {
+		// @ts-expect-error intentionally invalid for analyzer coverage
+		use(capabilities.#fs);
+	}
+}

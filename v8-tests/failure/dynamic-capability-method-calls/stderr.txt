@@ -52,3 +52,12 @@ src/main.ts:21:10 dynamic capability access
   23 | }
   24 |
   = help: use direct property names like `{ reader }`, or computed const string keys
+src/main.ts:30:7 dynamic capability access
+  28 | 	check(capabilities: Capabilities<FsCapability>): void {
+  29 | 		// @ts-expect-error intentionally invalid for analyzer coverage
+> 30 | 		use(capabilities.#fs);
+     | 		    ^ Capability service access must use a static property name.
+  31 | 	}
+  32 | }
+  33 |
+  = help: use direct property access like `capabilities.reader`, or bracket access with a const string key

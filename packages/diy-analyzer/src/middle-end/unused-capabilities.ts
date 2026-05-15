@@ -76,7 +76,6 @@ export function analyzeUnusedCapabilities(
 					.filter((id) => functionInfo.declared.has(id))
 					.sort();
 				if (overlapping.length > 0) {
-					/* c8 ignore next -- redundant-provider fixtures cover the singular wording. */
 					const verb = overlapping.length === 1 ? "is" : "are";
 					violations.push({
 						capabilityIds: overlapping,
