@@ -14,8 +14,7 @@ export function load(capabilities: Capabilities<LegacyClockCapability>): Date {
 	return readRenamed(
 		Capabilities.extend(
 			capabilities,
-			Capabilities.create<AnyClockCapability>({appClock: capabilities.legacyClock,
-			}),
+			Capabilities.create<AnyClockCapability>({ appClock: capabilities.legacyClock }),
 		),
 	);
 }

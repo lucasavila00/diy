@@ -13,7 +13,7 @@ src/main.ts:14:3 redundant capability provider
 > 14 | 		Capabilities.extend(
      | 		^ Capabilities.extend adds capabilities already present on capabilities: appClock
   15 | 			capabilities,
-  16 | 			Capabilities.create<AppClockCapability>({
-  17 | 				appClock: capabilities.legacyClock,
+  16 | 			Capabilities.create<AppClockCapability>({ appClock: capabilities.legacyClock }),
+  17 | 		),
   = note: `appClock` is already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional

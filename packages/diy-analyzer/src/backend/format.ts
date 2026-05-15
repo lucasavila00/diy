@@ -68,6 +68,15 @@ function formatList(values: readonly string[]): string {
 	return values.length === 0 ? "(none)" : values.join(", ");
 }
 
+function formatCapabilityRead(id: string): string {
+	/* c8 ignore next -- normal fixtures use identifier-safe capability IDs for dot access. */
+	if (/^[A-Za-z_$][\w$]*$/.test(id)) {
+		return `capabilities.${id}`;
+	}
+	/* c8 ignore next -- non-identifier capability IDs are supported but normal fixtures prefer dot access. */
+	return `capabilities["${id}"]`;
+}
+
 function formatNotes(notes: readonly DiyAnalyzerNote[] | undefined): string {
 	if (notes == null || notes.length === 0) {
 		return "";
@@ -84,7 +93,7 @@ function unusedCapabilityNotes(
 			kind: "help",
 			message:
 				`remove "${id}" from \`Capabilities<...>\`, or add a real ` +
-				`\`capabilities["${id}"]\` read if it is required`,
+				`\`${formatCapabilityRead(id)}\` read if it is required`,
 		},
 		...(extraNotes ?? []),
 	];

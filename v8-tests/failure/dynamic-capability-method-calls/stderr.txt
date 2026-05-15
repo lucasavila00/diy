@@ -4,42 +4,42 @@ src/main.ts:11:6 dynamic capability access
 > 11 | 	use(capabilities[id]);
      | 	    ^ Capability service access must use a static property name.
   12 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  13 | 	use(capabilities[`core.${id}`]);
+  13 | 	use(capabilities[`fs${id}`]);
   14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  = help: use direct property access like `capabilities.clock`, bracket access with a literal key like `capabilities.fs`, or a const string key
+  = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
 src/main.ts:13:6 dynamic capability access
   11 | 	use(capabilities[id]);
   12 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 13 | 	use(capabilities[`core.${id}`]);
+> 13 | 	use(capabilities[`fs${id}`]);
      | 	    ^ Capability service access must use a static property name.
   14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   15 | 	use(capabilities[dynamicId]);
-  16 | 	use(capabilities?.["fs"]);
-  = help: use direct property access like `capabilities.clock`, bracket access with a literal key like `capabilities.fs`, or a const string key
+  16 | 	use(capabilities?.fs);
+  = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
 src/main.ts:15:6 dynamic capability access
-  13 | 	use(capabilities[`core.${id}`]);
+  13 | 	use(capabilities[`fs${id}`]);
   14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
 > 15 | 	use(capabilities[dynamicId]);
      | 	    ^ Capability service access must use a static property name.
-  16 | 	use(capabilities?.["fs"]);
+  16 | 	use(capabilities?.fs);
   17 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   18 | 	const { [dynamicId]: fs } = capabilities;
-  = help: use direct property access like `capabilities.clock`, bracket access with a literal key like `capabilities.fs`, or a const string key
+  = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
 src/main.ts:16:6 dynamic capability access
   14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   15 | 	use(capabilities[dynamicId]);
-> 16 | 	use(capabilities?.["fs"]);
+> 16 | 	use(capabilities?.fs);
      | 	    ^ Capability service access must use a static property name.
   17 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   18 | 	const { [dynamicId]: fs } = capabilities;
   19 | 	use(fs);
-  = help: use direct property access like `capabilities.clock`, bracket access with a literal key like `capabilities.fs`, or a const string key
+  = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
 src/main.ts:18:10 dynamic capability access
-  16 | 	use(capabilities?.["fs"]);
+  16 | 	use(capabilities?.fs);
   17 | 	// @ts-expect-error intentionally invalid for analyzer coverage
 > 18 | 	const { [dynamicId]: fs } = capabilities;
      | 	        ^ Capability destructuring must use a static property name.
   19 | 	use(fs);
   20 | }
   21 |
-  = help: use direct property names like `{ clock }`, string keys like `{fs: fs }`, or computed const string keys
+  = help: use direct property names like `{ reader }`, or computed const string keys

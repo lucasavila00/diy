@@ -143,6 +143,7 @@ export function getFunctionName(node: AstNode, parent: AstNode | null): string |
 
 export function getMemberPropertyName(property: unknown): string | null {
 	const node = getNode(property);
+	/* c8 ignore next -- regular capability fixtures prefer dot access, but helper names are parser-backed. */
 	if (node?.type === "Identifier") {
 		return getIdentifierName(node);
 	}

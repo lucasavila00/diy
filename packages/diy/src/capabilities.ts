@@ -14,6 +14,8 @@ type ServiceMap<Allowed extends Capability<string, unknown>> = {
 	readonly [Id in CapabilityId<Allowed>]: ServiceForId<Allowed, Id>;
 };
 
+type ServiceOverrides<Allowed extends Capability<string, unknown>> = Partial<ServiceMap<Allowed>>;
+
 export type Capabilities<in Allowed extends Capability<string, unknown>> = ServiceMap<Allowed>;
 
 function create<Allowed extends Capability<string, unknown> = never>(
@@ -30,9 +32,9 @@ function extend<
 	return { ...capabilities, ...extra } as Capabilities<Allowed | Extra>;
 }
 
-function override<Allowed extends Capability<string, unknown>, Replacement extends Allowed>(
+function override<Allowed extends Capability<string, unknown>>(
 	capabilities: Capabilities<Allowed>,
-	replacement: Capabilities<Replacement>,
+	replacement: ServiceOverrides<Allowed>,
 ): Capabilities<Allowed> {
 	return { ...capabilities, ...replacement };
 }

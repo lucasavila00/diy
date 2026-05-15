@@ -15,7 +15,8 @@ const topLevelServices = {
 	},
 };
 
-const staticRenamedCapabilities = Capabilities.create<AppClockCapability>({appClock: topLevelServices.legacyClock,
+const staticRenamedCapabilities = Capabilities.create<AppClockCapability>({
+	appClock: topLevelServices.legacyClock,
 });
 
 export function readRenamed(capabilities: Capabilities<AppClockCapability>): Date {
@@ -39,8 +40,7 @@ export function fromTopLevelObject(capabilities: Capabilities<AuditCapability>):
 	return readRenamed(
 		Capabilities.extend(
 			capabilities,
-			Capabilities.create<AppClockCapability>({appClock: topLevelServices.legacyClock,
-			}),
+			Capabilities.create<AppClockCapability>({ appClock: topLevelServices.legacyClock }),
 		),
 	);
 }
@@ -49,8 +49,7 @@ export function fromExistingCapability(capabilities: Capabilities<LegacyClockCap
 	return readRenamed(
 		Capabilities.extend(
 			capabilities,
-			Capabilities.create<AppClockCapability>({appClock: capabilities.legacyClock,
-			}),
+			Capabilities.create<AppClockCapability>({ appClock: capabilities.legacyClock }),
 		),
 	);
 }
@@ -61,8 +60,7 @@ export function fromPartialInlineProvide(
 	return readRenamedWithAudit(
 		Capabilities.extend(
 			capabilities,
-			Capabilities.create<AppClockCapability>({appClock: capabilities.legacyClock,
-			}),
+			Capabilities.create<AppClockCapability>({ appClock: capabilities.legacyClock }),
 		),
 	);
 }

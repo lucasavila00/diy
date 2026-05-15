@@ -92,15 +92,17 @@ such as `AppCapability`, while helper functions can request just
 Add a `diy.json` file that selects the source files to analyze:
 
 ```json
-{include: ["packages/**/*.ts", "packages/**/*.tsx"],
-	ignore: ["**/dist/**", "**/node_modules/**"]
+{
+	"include": ["packages/**/*.ts", "packages/**/*.tsx"],
+	"ignore": ["**/dist/**", "**/node_modules/**"]
 }
 ```
 
 Then add scripts that run `diy-cli` with that project file:
 
 ```json
-{scripts: {
+{
+	"scripts": {
 		"diy:check": "diy-cli -p diy.json",
 		"diy:graph": "diy-cli --graph -p diy.json > diy-module-graph.txt"
 	}
@@ -223,11 +225,11 @@ const production = Capabilities.create<AppCapability>({
 
 const testCapabilities = Capabilities.override(
 	production,
-	Capabilities.create<ClockCapability>({
+	{
 		clock: {
 			now: () => new Date("2026-01-01T00:00:00.000Z"),
 		},
-	}),
+	},
 );
 ```
 

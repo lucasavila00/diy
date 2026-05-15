@@ -44,7 +44,7 @@ function run(capabilities: Capabilities<ClockCapability | FsCapability>): void {
 ```ts
 const capabilities = Capabilities.create<AppCapability>({
 	clock,
-	fs: fs,
+	fs,
 });
 
 const requestCapabilities = Capabilities.extend(
@@ -59,6 +59,9 @@ The supported helper surface is:
 - `Capabilities.extend(...)`
 - `Capabilities.override(...)`
 - `Capabilities.merge(...)`
+
+`Capabilities.override(...)` accepts a partial service object directly because the base
+capability object already determines the allowed keys and service types.
 
 Containers do not carry instance methods. This keeps the runtime value a plain service
 object and avoids method-name collisions with capability IDs.
@@ -83,8 +86,8 @@ The public API now better matches the mental model: a capability object is just 
 object of services a function can use. The analyzer remains intentionally strict, but its
 rules now describe ordinary object access instead of a special lookup method.
 
-Capability IDs may still be any string. Identifier-safe IDs such as `"clock"` support dot
-access, while IDs such as `"fs"` use bracket access.
+Capability IDs may still be any string, but identifier-safe IDs such as `"clock"` and
+`"fs"` are preferred because they support ordinary dot access.
 
 ## Alternatives Considered
 
