@@ -1,1 +1,1 @@
-export const EXTERNAL_REF = "app.external";
+export const EXTERNAL_REF = "external";

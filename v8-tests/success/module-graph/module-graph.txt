@@ -1,13 +1,13 @@
 Module graph
 
 src/clock.ts
-`-- readClock: core.clock
+`-- readClock: clock
 
 src/config.ts
-`-- readConfig: core.fs
+`-- readConfig: fs
 
 src/main.ts
-+-- run: core.clock, core.env, core.fs
++-- run: clock, env, fs
 |  `-- calls: readClock, readConfig
 |
-`-- nestedOnly: core.secret
+`-- nestedOnly: secret

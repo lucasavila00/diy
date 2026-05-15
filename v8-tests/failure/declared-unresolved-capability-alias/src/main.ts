@@ -5,6 +5,6 @@ type Clock = { now(): Date };
 type AnyClockCapability = Capability<string, Clock>;
 
 export function load(capabilities: Capabilities<AnyClockCapability>): Date {
-	capabilities["app.clock"];
+	capabilities.appClock;
 	return new Date(0);
 }

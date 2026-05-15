@@ -92,17 +92,15 @@ such as `AppCapability`, while helper functions can request just
 Add a `diy.json` file that selects the source files to analyze:
 
 ```json
-{
-	"include": ["packages/**/*.ts", "packages/**/*.tsx"],
-	"ignore": ["**/dist/**", "**/node_modules/**"]
+{include: ["packages/**/*.ts", "packages/**/*.tsx"],
+	ignore: ["**/dist/**", "**/node_modules/**"]
 }
 ```
 
 Then add scripts that run `diy-cli` with that project file:
 
 ```json
-{
-	"scripts": {
+{scripts: {
 		"diy:check": "diy-cli -p diy.json",
 		"diy:graph": "diy-cli --graph -p diy.json > diy-module-graph.txt"
 	}
@@ -168,7 +166,7 @@ DIY's analyzer is intentionally strict so dependency flow stays easy to follow:
 - Capabilities parameters must be named `capabilities`.
 - Capabilities parameters must be typed as `Capabilities<...>`.
 - Capabilities parameters must be the first function parameter.
-- Capability services must be read with static property access such as `capabilities.clock`, `capabilities["core.fs"]`, or destructuring.
+- Capability services must be read with static property access such as `capabilities.clock`, `capabilities.fs`, or destructuring.
 - Computed capability keys must use a string literal capability ID or a resolvable `const` string identifier.
 - The `capabilities` object must not be stored, returned, or passed around except through the supported forwarding pattern.
 - The `capabilities` value may be forwarded as the first argument to another effectful function.

@@ -1,12 +1,12 @@
 import type { Capabilities, Capability } from "@beff/diy";
 
-type ReadCapability = Capability<"core.read", unknown>;
-type WriteCapability = Capability<"core.write", unknown>;
+type ReadCapability = Capability<"reader", unknown>;
+type WriteCapability = Capability<"writer", unknown>;
 
 export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
-	capabilities["core.read"];
+	capabilities.reader;
 }
 
 export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
-	capabilities["core.write"];
+	capabilities.writer;
 }

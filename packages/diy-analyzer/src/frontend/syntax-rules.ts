@@ -223,7 +223,7 @@ export function analyzeDiySyntax(
 					{
 						kind: "help",
 						message:
-							'use direct property access like `capabilities.clock`, bracket access with a literal key like `capabilities["core.fs"]`, or a const string key',
+							'use direct property access like `capabilities.clock`, bracket access with a literal key like `capabilities.fs`, or a const string key',
 					},
 				],
 			);
@@ -266,7 +266,7 @@ export function analyzeDiySyntax(
 					{
 						kind: "help",
 						message:
-							'use direct property names like `{ clock }`, string keys like `{ "core.fs": fs }`, or computed const string keys',
+							'use direct property names like `{ clock }`, string keys like `{fs: fs }`, or computed const string keys',
 					},
 				],
 			);

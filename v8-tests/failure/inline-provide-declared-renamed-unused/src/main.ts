@@ -2,19 +2,18 @@ import { Capabilities, type Capability } from "@beff/diy";
 
 type Clock = { now(): Date };
 
-type LegacyClockCapability = Capability<"legacy.clock", Clock>;
-type AppClockCapability = Capability<"app.clock", Clock>;
+type LegacyClockCapability = Capability<"legacyClock", Clock>;
+type AppClockCapability = Capability<"appClock", Clock>;
 
 export function readRenamed(capabilities: Capabilities<AppClockCapability>): Date {
-	return capabilities["app.clock"].now();
+	return capabilities.appClock.now();
 }
 
 export function load(capabilities: Capabilities<LegacyClockCapability | AppClockCapability>): Date {
 	return readRenamed(
 		Capabilities.extend(
 			capabilities,
-			Capabilities.create<AppClockCapability>({
-				"app.clock": capabilities["legacy.clock"],
+			Capabilities.create<AppClockCapability>({appClock: capabilities.legacyClock,
 			}),
 		),
 	);

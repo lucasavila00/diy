@@ -1,7 +1,7 @@
 import type { Capabilities, Capability } from "@beff/diy";
 
-type ItemCapability = Capability<"items.read", { read(id: string): string }>;
+type ItemCapability = Capability<"itemReader", { read(id: string): string }>;
 
 export function load(capabilities: Capabilities<ItemCapability>): readonly string[] {
-	return ["a", "b"].map((id) => capabilities["items.read"].read(id));
+	return ["a", "b"].map((id) => capabilities.itemReader.read(id));
 }

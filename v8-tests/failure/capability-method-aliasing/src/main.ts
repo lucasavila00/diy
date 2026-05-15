@@ -1,11 +1,11 @@
 import type { Capabilities, Capability } from "@beff/diy";
 
-type FsCapability = Capability<"core.fs", unknown>;
+type FsCapability = Capability<"fs", unknown>;
 
 declare function use(value: unknown): void;
 
 export function bad(capabilities: Capabilities<FsCapability>): void {
-	const fs = capabilities["core.fs"];
+	const fs = capabilities.fs;
 	const direct = capabilities;
 	let rebound: unknown = direct;
 	rebound = capabilities;
@@ -15,6 +15,6 @@ export function bad(capabilities: Capabilities<FsCapability>): void {
 }
 
 export function returns(capabilities: Capabilities<FsCapability>) {
-	capabilities["core.fs"];
+	capabilities.fs;
 	return capabilities;
 }

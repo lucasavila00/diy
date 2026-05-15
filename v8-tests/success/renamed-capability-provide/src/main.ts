@@ -3,8 +3,8 @@ import type { Capability } from "@beff/diy";
 
 type Clock = { now(): Date };
 
-type LegacyClockCapability = Capability<"legacy.clock", Clock>;
-type AppClockCapability = Capability<"app.clock", Clock>;
+type LegacyClockCapability = Capability<"legacyClock", Clock>;
+type AppClockCapability = Capability<"appClock", Clock>;
 type AuditCapability = Capability<"audit", { record(message: string): void }>;
 
 const topLevelServices = {
@@ -15,19 +15,18 @@ const topLevelServices = {
 	},
 };
 
-const staticRenamedCapabilities = Capabilities.create<AppClockCapability>({
-	"app.clock": topLevelServices.legacyClock,
+const staticRenamedCapabilities = Capabilities.create<AppClockCapability>({appClock: topLevelServices.legacyClock,
 });
 
 export function readRenamed(capabilities: Capabilities<AppClockCapability>): Date {
-	return capabilities["app.clock"].now();
+	return capabilities.appClock.now();
 }
 
 export function readRenamedWithAudit(
 	capabilities: Capabilities<AppClockCapability | AuditCapability>,
 ): Date {
 	capabilities.audit.record("read");
-	return capabilities["app.clock"].now();
+	return capabilities.appClock.now();
 }
 
 export function fromStaticProvider(capabilities: Capabilities<AuditCapability>): Date {
@@ -40,8 +39,7 @@ export function fromTopLevelObject(capabilities: Capabilities<AuditCapability>):
 	return readRenamed(
 		Capabilities.extend(
 			capabilities,
-			Capabilities.create<AppClockCapability>({
-				"app.clock": topLevelServices.legacyClock,
+			Capabilities.create<AppClockCapability>({appClock: topLevelServices.legacyClock,
 			}),
 		),
 	);
@@ -51,8 +49,7 @@ export function fromExistingCapability(capabilities: Capabilities<LegacyClockCap
 	return readRenamed(
 		Capabilities.extend(
 			capabilities,
-			Capabilities.create<AppClockCapability>({
-				"app.clock": capabilities["legacy.clock"],
+			Capabilities.create<AppClockCapability>({appClock: capabilities.legacyClock,
 			}),
 		),
 	);
@@ -64,8 +61,7 @@ export function fromPartialInlineProvide(
 	return readRenamedWithAudit(
 		Capabilities.extend(
 			capabilities,
-			Capabilities.create<AppClockCapability>({
-				"app.clock": capabilities["legacy.clock"],
+			Capabilities.create<AppClockCapability>({appClock: capabilities.legacyClock,
 			}),
 		),
 	);

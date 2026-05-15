@@ -1,6 +1,6 @@
 import type { Capabilities, Capability } from "@beff/diy";
 
-type FsCapability = Capability<"core.fs", unknown>;
+type FsCapability = Capability<"fs", unknown>;
 
 declare const defaultCapabilities: Capabilities<FsCapability>;
 declare function use(value: unknown): void;

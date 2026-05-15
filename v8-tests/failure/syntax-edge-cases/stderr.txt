@@ -6,7 +6,7 @@ src/main.ts:11:8 unused capability
   12 | 	const { ...rest } = capabilities;
   13 | 	use(rest);
   14 | }
-  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities["read"]` read if it is required
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
 src/main.ts:12:10 escaped capabilities
   10 |
   11 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {

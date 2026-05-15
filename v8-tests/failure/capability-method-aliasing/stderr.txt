@@ -1,6 +1,6 @@
 src/main.ts:9:17 escaped capabilities
    7 | export function bad(capabilities: Capabilities<FsCapability>): void {
-   8 | 	const fs = capabilities["core.fs"];
+   8 | 	const fs = capabilities.fs;
 >  9 | 	const direct = capabilities;
      | 	               ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
   10 | 	let rebound: unknown = direct;
@@ -18,7 +18,7 @@ src/main.ts:11:12 escaped capabilities
   = help: keep capability flow statically analyzable: read services directly, destructure static service names, or forward `capabilities` as the first argument to a named effectful function
 src/main.ts:19:9 escaped capabilities
   17 | export function returns(capabilities: Capabilities<FsCapability>) {
-  18 | 	capabilities["core.fs"];
+  18 | 	capabilities.fs;
 > 19 | 	return capabilities;
      | 	       ^ Use `capabilities` only for static service property access, destructuring, or as the first argument to another effectful function.
   20 | }

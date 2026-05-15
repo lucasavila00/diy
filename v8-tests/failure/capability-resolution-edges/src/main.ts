@@ -12,14 +12,14 @@ type AnyCapability = Capability<string, unknown>;
 type MissingTypeNode = Capabilities;
 
 declare namespace Namespaced {
-	export type ReadCapability = Capability<"namespaced.read", unknown>;
+	export type ReadCapability = Capability<"namespacedReader", unknown>;
 }
 
 declare function use(value: unknown): void;
 declare const replacement: unknown;
 
 export function parenthesized(capabilities: Capabilities<ReadCapability>): void {
-	capabilities["read"];
+	capabilities.read;
 }
 
 export function missingTypeArgument(capabilities: MissingTypeNode): void {

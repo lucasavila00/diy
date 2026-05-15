@@ -1,18 +1,18 @@
 src/main.ts:6:8 unused capability
-  4 | type WriteCapability = Capability<"core.write", unknown>;
+  4 | type WriteCapability = Capability<"writer", unknown>;
   5 |
 > 6 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
-    |        ^ Declares unused capability "core.write".
-  7 | 	capabilities["core.read"];
+    |        ^ Declares unused capability "writer".
+  7 | 	capabilities.reader;
   8 | }
   9 |
-  = help: remove "core.write" from `Capabilities<...>`, or add a real `capabilities["core.write"]` read if it is required
+  = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
 src/main.ts:10:8 unused capability
    8 | }
    9 |
 > 10 | export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
-     |        ^ Declares unused capability "core.read".
-  11 | 	capabilities["core.write"];
+     |        ^ Declares unused capability "reader".
+  11 | 	capabilities.writer;
   12 | }
   13 |
-  = help: remove "core.read" from `Capabilities<...>`, or add a real `capabilities["core.read"]` read if it is required
+  = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required

@@ -202,7 +202,7 @@ function makeReason(
 						{
 							kind: "help" as const,
 							message:
-								'use a string literal or const reference, for example `Capability<"app.clock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`',
+								'use a string literal or const reference, for example `Capability<"appClock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`',
 						},
 					],
 				}

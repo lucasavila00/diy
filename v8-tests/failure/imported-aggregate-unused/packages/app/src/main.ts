@@ -6,5 +6,5 @@ import type { ModelCapability } from "../../model/src/types.ts";
 type AppCapability = Exclude<ModelCapability, SpawnCapability>;
 
 export function run(capabilities: Capabilities<AppCapability>): void {
-	capabilities["core.fs"];
+	capabilities.fs;
 }

@@ -1,17 +1,17 @@
 Module graph
 
 src/main.ts
-+-- readRenamed: app.clock
++-- readRenamed: appClock
 |
-+-- readRenamedWithAudit: app.clock, audit
++-- readRenamedWithAudit: appClock, audit
 |
 +-- fromStaticProvider: audit
 |
 +-- fromTopLevelObject: audit
 |  `-- calls: readRenamed
 |
-+-- fromExistingCapability: legacy.clock
++-- fromExistingCapability: legacyClock
 |  `-- calls: readRenamed
 |
-`-- fromPartialInlineProvide: audit, legacy.clock
+`-- fromPartialInlineProvide: audit, legacyClock
    `-- calls: readRenamedWithAudit

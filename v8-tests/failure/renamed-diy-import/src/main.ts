@@ -4,7 +4,7 @@ import type { Capabilities as CapabilityBag } from "@beff/diy/capabilities";
 
 import type { External as RenamedExternal } from "./external.ts";
 
-type FsCapability = Capability<"core.fs", unknown>;
+type FsCapability = Capability<"fs", unknown>;
 type AppCapabilities = Capabilities<FsCapability>;
 type RenamedCapabilities = CapabilitySet<FsCapability>;
 type RenamedCapabilitiesFromSubpath = CapabilityBag<FsCapability>;

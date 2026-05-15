@@ -2,11 +2,11 @@ src/main.ts:8:8 unused capability
    6 | declare function use(value: unknown): void;
    7 |
 >  8 | export function renamed(svc: Capabilities<FsCapability>): void {
-     |        ^ Declares unused capability "core.fs".
+     |        ^ Declares unused capability "fs".
    9 | 	use(svc);
   10 | }
   11 |
-  = help: remove "core.fs" from `Capabilities<...>`, or add a real `capabilities["core.fs"]` read if it is required
+  = help: remove "fs" from `Capabilities<...>`, or add a real `capabilities.fs` read if it is required
 src/main.ts:8:25 invalid capabilities parameter
    6 | declare function use(value: unknown): void;
    7 |

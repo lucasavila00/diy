@@ -2,7 +2,7 @@ import type { Capabilities, Capability } from "@beff/diy";
 
 import { EXTERNAL_REF } from "./constants.ts";
 
-export const LOCAL_REF = "app.local";
+export const LOCAL_REF = "local";
 
 type LocalService = { read(): string };
 type ExternalService = { read(): string };

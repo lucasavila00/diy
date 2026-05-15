@@ -6,13 +6,13 @@ import type { SecretCapability } from "./deps.ts";
 import type { AppCapability } from "./types.ts";
 
 export function run(capabilities: Capabilities<AppCapability>): void {
-	const envValues = ["PATH"].map((name) => capabilities["core.env"]);
-	capabilities["core.fs"];
+	const envValues = ["PATH"].map((name) => capabilities.env);
+	capabilities.fs;
 	readConfig(capabilities);
 	readClock(capabilities);
 	void envValues;
 	function nestedOnly(capabilities: Capabilities<SecretCapability>): void {
-		capabilities["core.secret"];
+		capabilities.secret;
 	}
 	void nestedOnly;
 }

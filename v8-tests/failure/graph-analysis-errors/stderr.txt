@@ -6,7 +6,7 @@ src/main.ts:5:8 unused capability
   6 | 	void capabilities;
   7 | }
   8 |
-  = help: remove "clock" from `Capabilities<...>`, or add a real `capabilities["clock"]` read if it is required
+  = help: remove "clock" from `Capabilities<...>`, or add a real `capabilities.clock` read if it is required
 src/main.ts:6:7 escaped capabilities
   4 |
   5 | export function run(capabilities: Capabilities<ClockCapability>): void {
