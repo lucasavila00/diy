@@ -1,4 +1,4 @@
 Module graph
 
 src/main.ts
-`-- run: aliasedReader, assertedReader, importedReader, localReader, topReader
+`-- run: aliasedReader, assertedReader, importedReader, localReader, reader-id, topReader

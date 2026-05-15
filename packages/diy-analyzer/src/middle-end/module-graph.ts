@@ -53,7 +53,7 @@ function buildGraphFunction(
 	const required = requiredByFunction[functionInfo.index] ?? new Set<string>();
 	return {
 		calls: functionInfo.calls.map((call) => {
-			/* istanbul ignore next -- graph mode rejects unresolved forwarding before formatting. */
+			/* c8 ignore next -- graph mode rejects unresolved forwarding before formatting. */
 			if (call.target == null) {
 				return {
 					calleeName: call.calleeName,
@@ -62,7 +62,7 @@ function buildGraphFunction(
 				};
 			}
 			const callee = arena.functions[call.target];
-			/* istanbul ignore next -- call targets are indexes from the arena function array. */
+			/* c8 ignore next -- call targets are indexes from the arena function array. */
 			if (callee == null) {
 				return {
 					calleeName: call.calleeName,
@@ -152,10 +152,10 @@ function sortedDifference(
 	values: ReadonlySet<string>,
 	excluded: ReadonlySet<string>,
 ): readonly string[] {
-	/* istanbul ignore next -- graph fixtures cover unused capabilities through failure output. */
+	/* c8 ignore next -- graph fixtures that pass normal analysis have no unused capabilities. */
 	return (
 		Array.from(values)
-			/* c8 ignore next -- graph fixtures cover unused capabilities through failure output. */
+			/* c8 ignore next -- graph fixtures that pass normal analysis have no unused capabilities. */
 			.filter((value) => !excluded.has(value))
 			.sort()
 	);

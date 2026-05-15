@@ -49,7 +49,7 @@ function displayProjectPath(projectPath: string, cwd: string): string {
 function formatReadError(error: unknown): string {
 	/* c8 ignore next -- fs read failures are Node error objects. */
 	if (error == null || typeof error !== "object") {
-		/* istanbul ignore next -- fs read failures are Node error objects. */
+		/* c8 ignore next -- fs read failures are Node error objects. */
 		return String(error);
 	}
 	/* c8 ignore next -- Node fs errors expose message/code in a stable shape. */
@@ -62,7 +62,7 @@ function formatReadError(error: unknown): string {
 	if (code == null || message.startsWith(`${code}: `)) {
 		return message;
 	}
-	/* istanbul ignore next -- Node fs messages already include the error code. */
+	/* c8 ignore next -- Node fs messages already include the error code. */
 	return `${code}: ${message}`;
 }
 

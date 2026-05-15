@@ -35,7 +35,7 @@ export function analyzeFrontend(
 			}
 			unsupported.push(item);
 		}
-		/* istanbul ignore next -- ModuleLoader only materializes configured source files. */
+		/* c8 ignore next -- ModuleLoader only materializes configured source files. */
 		if (!moduleInfo.reportable) {
 			continue;
 		}

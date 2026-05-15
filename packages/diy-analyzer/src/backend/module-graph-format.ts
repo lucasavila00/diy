@@ -14,7 +14,7 @@ export function formatDiyModuleGraph(graph: DiyModuleGraph, options: AnalyzeOpti
 	if (modules.length === 0) {
 		return "No functions found.\n";
 	}
-	/* istanbul ignore next -- CLI/tests pass cwd explicitly. */
+	/* c8 ignore next -- CLI/tests pass cwd explicitly. */
 	const cwd = resolve(options.cwd ?? process.cwd());
 	const labels = buildFunctionLabels(cwd, modules);
 	const lines = ["Module graph", ""];
@@ -61,7 +61,7 @@ function formatFunction(
 }
 
 function formatCall(labels: ReadonlyMap<string, string>, call: DiyModuleGraphCall): string {
-	/* istanbul ignore next -- graph mode rejects unresolved forwarding before formatting. */
+	/* c8 ignore next -- graph mode rejects unresolved forwarding before formatting. */
 	if (call.filePath == null || call.functionName == null) {
 		return call.calleeName;
 	}
@@ -129,6 +129,6 @@ function functionKey(filePath: string, functionName: string): string {
 }
 
 function formatList(values: readonly string[]): string {
-	/* istanbul ignore next -- materialized graph functions have at least one capability. */
+	/* c8 ignore next -- materialized graph functions have at least one capability. */
 	return values.length === 0 ? "(none)" : values.join(", ");
 }

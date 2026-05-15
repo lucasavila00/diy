@@ -54,11 +54,11 @@ export class ModuleLoader {
 	async load(filePath: string): Promise<ModuleInfo | null> {
 		const resolvedPath = resolve(filePath);
 		const existing = this.modules.get(resolvedPath);
-		/* istanbul ignore next -- fixture loading reaches each configured file once. */
+		/* c8 ignore next -- fixture loading reaches each configured file once. */
 		if (existing != null) {
 			return existing;
 		}
-		/* istanbul ignore next -- file paths come from globbed source files. */
+		/* c8 ignore next -- file paths come from globbed source files. */
 		if (!this.isSourceFile(resolvedPath) || !existsSync(resolvedPath)) {
 			return null;
 		}
@@ -136,7 +136,7 @@ export class ModuleLoader {
 
 	materializeFunctions(): void {
 		for (const moduleInfo of this.modules.values()) {
-			/* istanbul ignore next -- materialization is called once per program build. */
+			/* c8 ignore next -- materialization is called once per program build. */
 			if (moduleInfo.functions.size > 0) {
 				continue;
 			}
@@ -258,18 +258,18 @@ function collectImports(body: readonly unknown[], imports: Map<string, ImportedB
 			continue;
 		}
 		const source = getLiteralString(node["source"]);
-		/* istanbul ignore next -- parser import declarations always carry literal sources. */
+		/* c8 ignore next -- parser import declarations always carry literal sources. */
 		if (source == null) {
 			continue;
 		}
 		for (const specifierValue of getArray(node["specifiers"])) {
 			const specifier = getNode(specifierValue);
-			/* istanbul ignore next -- parser import specifier arrays contain specifier nodes. */
+			/* c8 ignore next -- parser import specifier arrays contain specifier nodes. */
 			if (specifier == null) {
 				continue;
 			}
 			const localName = getIdentifierName(specifier["local"]);
-			/* istanbul ignore next -- parser import specifiers always carry local identifiers. */
+			/* c8 ignore next -- parser import specifiers always carry local identifiers. */
 			if (localName == null) {
 				continue;
 			}
@@ -291,7 +291,7 @@ function collectImports(body: readonly unknown[], imports: Map<string, ImportedB
 function collectAliases(body: readonly unknown[], aliases: Map<string, unknown>): void {
 	for (const statement of body) {
 		const node = getNode(statement);
-		/* istanbul ignore next -- parser program bodies contain AST nodes. */
+		/* c8 ignore next -- parser program bodies contain AST nodes. */
 		if (node == null) {
 			continue;
 		}
@@ -356,7 +356,7 @@ export async function loadResolutionDependencies(loader: ModuleLoader): Promise<
 				) {
 					continue;
 				}
-				/* istanbul ignore next -- dependency loading is limited to configured source files. */
+				/* c8 ignore next -- dependency loading is limited to configured source files. */
 				const loaded = await loader.load(resolvedPath);
 				/* c8 ignore next -- loader.load returns null for paths outside the configured source set. */
 				if (loaded != null) {

@@ -76,7 +76,7 @@ export function buildMiddleEndArena(
 
 	for (const [modulePosition, moduleInfo] of moduleInfos.entries()) {
 		const moduleIndex = moduleIndices[modulePosition];
-		/* istanbul ignore next -- module indices are created from the same moduleInfos array. */
+		/* c8 ignore next -- module indices are created from the same moduleInfos array. */
 		if (moduleIndex == null) {
 			continue;
 		}
@@ -110,7 +110,7 @@ export function buildMiddleEndArena(
 
 	for (const [functionPosition, functionInfo] of functions.entries()) {
 		const moduleInfo = moduleInfos[functionInfo.moduleIndex];
-		/* istanbul ignore next -- function moduleIndex is assigned from moduleInfos positions. */
+		/* c8 ignore next -- function moduleIndex is assigned from moduleInfos positions. */
 		if (moduleInfo == null) {
 			continue;
 		}
@@ -155,12 +155,12 @@ function resolveArenaCallee(
 		return null;
 	}
 	const resolvedPath = loader.resolveImport(moduleInfo.filePath, imported.source);
-	/* istanbul ignore next -- unresolved imports are reported before graph resolution matters. */
+	/* c8 ignore next -- unresolved imports are reported before graph resolution matters. */
 	if (resolvedPath == null) {
 		return null;
 	}
 	const importedModuleIndex = moduleIndexByPath.get(resolvedPath);
-	/* istanbul ignore next -- resolved imports point at modules in the arena. */
+	/* c8 ignore next -- resolved imports point at modules in the arena. */
 	if (importedModuleIndex == null) {
 		return null;
 	}

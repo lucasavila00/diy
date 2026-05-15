@@ -20,7 +20,7 @@ export function analyzeRequiredCapabilities(
 		changed = false;
 		for (const functionInfo of arena.functions) {
 			const required = requiredByFunction[functionInfo.index];
-			/* istanbul ignore next -- requiredByFunction is built from arena.functions. */
+			/* c8 ignore next -- requiredByFunction is built from arena.functions. */
 			if (required == null) {
 				continue;
 			}
@@ -29,7 +29,7 @@ export function analyzeRequiredCapabilities(
 					continue;
 				}
 				const calleeRequired = requiredByFunction[call.target];
-				/* istanbul ignore next -- call targets are indexes from arena.functions. */
+				/* c8 ignore next -- call targets are indexes from arena.functions. */
 				if (calleeRequired == null) {
 					continue;
 				}
@@ -62,12 +62,12 @@ function resolveProvidedCapabilities(
 		return new Set();
 	}
 	const moduleInfo = arena.modules[functionInfo.moduleIndex];
-	/* istanbul ignore next -- function moduleIndex is assigned from arena.modules. */
+	/* c8 ignore next -- function moduleIndex is assigned from arena.modules. */
 	if (moduleInfo == null) {
 		return new Set();
 	}
 	const sourceModule = loader.getModule(moduleInfo.filePath);
-	/* istanbul ignore next -- arena modules are backed by loaded source modules. */
+	/* c8 ignore next -- arena modules are backed by loaded source modules. */
 	if (sourceModule == null) {
 		return new Set();
 	}
@@ -95,7 +95,7 @@ function buildUnsupported(
 	const unsupportedFunctionIndices = new Set<FunctionIndex>();
 	for (const functionInfo of arena.functions) {
 		const moduleInfo = arena.modules[functionInfo.moduleIndex];
-		/* istanbul ignore next -- function moduleIndex is assigned from arena.modules. */
+		/* c8 ignore next -- function moduleIndex is assigned from arena.modules. */
 		if (moduleInfo == null || !moduleInfo.reportable) {
 			continue;
 		}
@@ -168,11 +168,11 @@ function unsupportedNotes(reason: UnsupportedReason): readonly DiyAnalyzerNote[]
 				},
 			];
 	}
-	/* istanbul ignore next -- switch is exhaustive over UnsupportedReason. */
+	/* c8 ignore next -- switch is exhaustive over UnsupportedReason. */
 	return assertNever(reason);
 }
 
-/* istanbul ignore next -- exhaustiveness guard. */
+/* c8 ignore next -- exhaustiveness guard. */
 function assertNever(value: never): never {
 	throw new Error(`Unhandled unsupported reason: ${String(value)}`);
 }

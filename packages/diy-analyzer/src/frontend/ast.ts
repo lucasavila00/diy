@@ -134,7 +134,7 @@ export function getFunctionName(node: AstNode, parent: AstNode | null): string |
 	if (idName != null) {
 		return idName;
 	}
-	/* istanbul ignore next -- covered by variable-declared function fixtures when emitted by parser. */
+	/* c8 ignore next -- covered by variable-declared function fixtures when emitted by parser. */
 	if (parent?.type === "VariableDeclarator") {
 		return getIdentifierName(parent["id"]);
 	}

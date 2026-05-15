@@ -118,7 +118,7 @@ function formatDiagnostic(
 			: `${displayPath}:${item.line}${item.column == null ? "" : `:${item.column}`}`;
 	const location = `${lineColumn} ${name}`;
 	const source = readSourceFile(item.filePath);
-	/* istanbul ignore next -- analyzer diagnostics point at loaded source files. */
+	/* c8 ignore next -- analyzer diagnostics point at loaded source files. */
 	if (source == null || item.line == null) {
 		return `${location} ${message}${formatNotes(notes)}`;
 	}
@@ -142,13 +142,13 @@ function readSourceFile(filePath: string): string | null {
 	try {
 		return readFileSync(filePath, "utf8");
 	} catch {
-		/* istanbul ignore next -- normal analyzer diagnostics use existing files. */
+		/* c8 ignore next -- normal analyzer diagnostics use existing files. */
 		return null;
 	}
 }
 
 export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions = {}): string {
-	/* istanbul ignore next -- CLI/tests pass cwd explicitly. */
+	/* c8 ignore next -- CLI/tests pass cwd explicitly. */
 	const cwd = resolve(options.cwd ?? process.cwd());
 	const lines: string[] = [];
 	for (const finding of analysis.findings) {

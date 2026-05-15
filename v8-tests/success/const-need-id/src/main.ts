@@ -7,6 +7,7 @@ const TOP_LEVEL_READ_ID = "topReader";
 type AppCapability =
 	| Capability<"assertedReader", unknown>
 	| Capability<"aliasedReader", unknown>
+	| Capability<"reader-id", unknown>
 	| Capability<"importedReader", unknown>
 	| Capability<"localReader", unknown>
 	| Capability<"topReader", unknown>;
@@ -22,12 +23,14 @@ export function run(capabilities: Capabilities<AppCapability>): void {
 	capabilities[TOP_LEVEL_READ_ID];
 	const {
 		["localReader"]: localRead,
-		"aliasedReader": aliasedRead,
+		aliasedReader: aliasedRead,
+		"reader-id": hyphenRead,
 		[TOP_LEVEL_READ_ID]: topRead,
 		importedReader: importedRead,
 	} = capabilities;
 	void localRead;
 	void aliasedRead;
+	void hyphenRead;
 	void topRead;
 	void importedRead;
 }

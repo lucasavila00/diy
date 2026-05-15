@@ -9,7 +9,7 @@ export async function analyzeDiyModuleGraph(
 	config: DiySourceConfig,
 	options: AnalyzeOptions = {},
 ): Promise<DiyModuleGraph> {
-	/* istanbul ignore next -- CLI/tests always pass cwd; default is process-entry convenience. */
+	/* c8 ignore next -- CLI/tests always pass cwd; default is process-entry convenience. */
 	const cwd = resolve(options.cwd ?? process.cwd());
 	const program = await buildDiyProgram(config, cwd);
 	return analyzeModuleGraph(program.loader, program.modules);

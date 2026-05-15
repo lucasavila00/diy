@@ -36,7 +36,7 @@ export function analyzeDiySyntax(
 	loader: ModuleLoader,
 	moduleInfo: ModuleInfo,
 ): readonly DiyAnalyzerViolation[] {
-	/* istanbul ignore next -- callers only invoke syntax analysis for reportable modules. */
+	/* c8 ignore next -- callers only invoke syntax analysis for reportable modules. */
 	if (!moduleInfo.reportable) {
 		return [];
 	}
@@ -81,7 +81,7 @@ export function analyzeDiySyntax(
 				? `${lineForNode(node)}:${getIdentifierName(node) ?? ""}`
 				: `${node.start}:${node.end}`;
 		/* c8 ignore stop */
-		/* istanbul ignore next -- each AST identifier is visited once. */
+		/* c8 ignore next -- each AST identifier is visited once. */
 		if (reportedCapabilityRanges.has(rangeKey)) {
 			return;
 		}
@@ -330,7 +330,7 @@ export function analyzeDiySyntax(
 		}
 		for (const specifierValue of getArray(node["specifiers"])) {
 			const specifier = getNode(specifierValue);
-			/* istanbul ignore next -- parser export specifier arrays contain specifier nodes. */
+			/* c8 ignore next -- parser export specifier arrays contain specifier nodes. */
 			if (specifier?.type !== "ExportSpecifier") {
 				continue;
 			}
@@ -453,7 +453,7 @@ function isNonValueIdentifierParent(parent: AstNode | null): boolean {
 }
 
 function isCapabilitiesParamIdentifier(node: AstNode, parent: AstNode | null): boolean {
-	/* istanbul ignore next -- identifier visits always provide a parent. */
+	/* c8 ignore next -- identifier visits always provide a parent. */
 	if (parent == null) {
 		return false;
 	}

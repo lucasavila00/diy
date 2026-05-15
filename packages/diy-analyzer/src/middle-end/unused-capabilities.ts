@@ -30,18 +30,18 @@ export function analyzeUnusedCapabilities(
 	const requiredCapabilities = analyzeRequiredCapabilities(loader, arena);
 	unsupported.push(...requiredCapabilities.unsupported);
 	for (const moduleInfo of arena.modules) {
-		/* istanbul ignore next -- ModuleLoader only materializes configured source files. */
+		/* c8 ignore next -- ModuleLoader only materializes configured source files. */
 		if (!moduleInfo.reportable) {
 			continue;
 		}
 		for (const functionIndex of moduleInfo.functions) {
 			const functionInfo = arena.functions[functionIndex];
-			/* istanbul ignore next -- module function indexes are created from arena.functions. */
+			/* c8 ignore next -- module function indexes are created from arena.functions. */
 			if (functionInfo == null) {
 				continue;
 			}
 			const sourceModule = loader.getModule(moduleInfo.filePath);
-			/* istanbul ignore next -- arena modules are backed by loaded source modules. */
+			/* c8 ignore next -- arena modules are backed by loaded source modules. */
 			if (sourceModule == null) {
 				continue;
 			}
@@ -105,7 +105,7 @@ export function analyzeUnusedCapabilities(
 				continue;
 			}
 			const required = requiredCapabilities.requiredByFunction[functionInfo.index];
-			/* istanbul ignore next -- requiredByFunction is built from arena.functions. */
+			/* c8 ignore next -- requiredByFunction is built from arena.functions. */
 			if (required == null) {
 				continue;
 			}
