@@ -1,4 +1,4 @@
-import type { DiyAnalyzerNote, DiyAnalyzerViolation } from "../middle-end/types.ts";
+import type { DiyAnalyzerNote, DiyAnalyzerViolation } from "../model/types.ts";
 import {
 	getArray,
 	getFunctionName,

@@ -1,8 +1,8 @@
 import type { ModuleLoader } from "../frontend/module-loader.ts";
 import type { UnsupportedReason } from "../frontend/types.ts";
+import type { DiyAnalyzerNote, DiyAnalyzerUnsupported } from "../model/types.ts";
 import type { ArenaCall, ArenaFunction, FunctionIndex, MiddleEndArena } from "./arena.ts";
 import { resolveCapabilityIds } from "./capabilities.ts";
-import type { DiyAnalyzerNote, DiyAnalyzerUnsupported } from "./types.ts";
 
 type RequiredCapabilitiesAnalysis = {
 	readonly requiredByFunction: readonly ReadonlySet<string>[];

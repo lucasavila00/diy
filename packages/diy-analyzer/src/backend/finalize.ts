@@ -3,7 +3,7 @@ import type {
 	DiyAnalyzerViolation,
 	DiyAnalysis,
 	DiyUnusedCapabilityFinding,
-} from "../middle-end/types.ts";
+} from "../model/types.ts";
 import { sortFindings, sortUnsupported, sortViolations } from "./format.ts";
 
 export function finalizeAnalysis(input: {

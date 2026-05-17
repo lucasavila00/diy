@@ -4,7 +4,7 @@ import type {
 	DiyAnalyzerUnsupported,
 	DiyAnalyzerViolation,
 	DiyUnusedCapabilityFinding,
-} from "./types.ts";
+} from "../model/types.ts";
 import { analyzeUnusedCapabilities } from "./unused-capabilities.ts";
 
 type MiddleEndAnalysis = {

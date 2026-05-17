@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { buildDiyProgram } from "../frontend/program.ts";
 import type { DiySourceConfig } from "../frontend/source-files.ts";
 import { analyzeModuleGraph } from "../middle-end/module-graph.ts";
-import type { AnalyzeOptions, DiyModuleGraph } from "../middle-end/types.ts";
+import type { AnalyzeOptions, DiyModuleGraph } from "../model/types.ts";
 
 export async function analyzeDiyModuleGraph(
 	config: DiySourceConfig,

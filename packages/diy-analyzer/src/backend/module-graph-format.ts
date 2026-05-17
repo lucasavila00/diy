@@ -1,13 +1,13 @@
 import { relative, resolve } from "node:path";
 
-import { normalizePath } from "../frontend/source-files.ts";
 import type {
 	AnalyzeOptions,
 	DiyModuleGraph,
 	DiyModuleGraphCall,
 	DiyModuleGraphFunction,
 	DiyModuleGraphModule,
-} from "../middle-end/types.ts";
+} from "../model/types.ts";
+import { normalizePath } from "../shared/path.ts";
 
 export function formatDiyModuleGraph(graph: DiyModuleGraph, options: AnalyzeOptions = {}): string {
 	const modules = graph.modules.filter((moduleInfo) => moduleInfo.functions.length > 0);

@@ -34,7 +34,7 @@ export type ParseErrorInfo = {
 
 export type FunctionInfo = {
 	readonly calls: readonly CapabilitiesForwardingCall[];
-	readonly declared: ReadonlySet<string>;
+	readonly declaredType: unknown;
 	readonly direct: ReadonlySet<string>;
 	readonly provideChecks: readonly CapabilitiesProvideCheck[];
 	readonly filePath: string;

@@ -1,13 +1,13 @@
 import type { ModuleLoader } from "../frontend/module-loader.ts";
 import type { ModuleInfo } from "../frontend/types.ts";
-import { buildMiddleEndArena } from "./arena.ts";
-import { resolveCapabilityIds } from "./capabilities.ts";
-import { analyzeRequiredCapabilities } from "./required-capabilities.ts";
 import type {
 	DiyAnalyzerUnsupported,
 	DiyAnalyzerViolation,
 	DiyUnusedCapabilityFinding,
-} from "./types.ts";
+} from "../model/types.ts";
+import { buildMiddleEndArena } from "./arena.ts";
+import { resolveCapabilityIds } from "./capabilities.ts";
+import { analyzeRequiredCapabilities } from "./required-capabilities.ts";
 
 type UnusedCapabilityResult = {
 	readonly findings: readonly DiyUnusedCapabilityFinding[];

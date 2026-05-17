@@ -2,10 +2,6 @@ import { resolve } from "node:path";
 
 import { glob } from "tinyglobby";
 
-export function normalizePath(filePath: string): string {
-	return filePath.replaceAll("\\", "/");
-}
-
 export type DiySourceConfig = {
 	readonly ignore?: readonly string[];
 	readonly include: readonly string[];

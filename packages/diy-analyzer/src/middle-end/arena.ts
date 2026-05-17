@@ -5,6 +5,8 @@ import type {
 	ModuleInfo,
 	UnsupportedReason,
 } from "../frontend/types.ts";
+import { resolveCapabilityIds } from "./capabilities.ts";
+import type { TypeResolutionReason } from "./types.ts";
 
 export type ModuleIndex = number & {
 	readonly __brand: "ModuleIndex";
@@ -83,13 +85,14 @@ export function buildMiddleEndArena(
 		const moduleFunctionIndices: FunctionIndex[] = [];
 		const functionsByName = functionIndexByModule.get(moduleIndex);
 		for (const functionInfo of moduleInfo.functions.values()) {
+			const declared = resolveCapabilityIds(loader, moduleInfo, functionInfo.declaredType, []);
 			const functionIndex = makeFunctionIndex(functions.length);
 			functionsByName?.set(functionInfo.name, functionIndex);
 			moduleFunctionIndices.push(functionIndex);
 			functions.push({
 				calls: [],
 				column: functionInfo.column,
-				declared: functionInfo.declared,
+				declared: declared.ids,
 				direct: functionInfo.direct,
 				filePath: functionInfo.filePath,
 				forwardsTransformedCapabilities: functionInfo.forwardsTransformedCapabilities,
@@ -98,7 +101,10 @@ export function buildMiddleEndArena(
 				moduleIndex,
 				name: functionInfo.name,
 				provideChecks: functionInfo.provideChecks,
-				unsupportedReasons: functionInfo.unsupportedReasons,
+				unsupportedReasons: [
+					...declared.reasons.map(makeCapabilityResolutionReason),
+					...functionInfo.unsupportedReasons,
+				],
 			});
 		}
 		const module = modules[moduleIndex];
@@ -166,6 +172,36 @@ function resolveArenaCallee(
 	}
 	/* c8 ignore next -- resolved imported functions are present in the module function index. */
 	return functionIndexByModule.get(importedModuleIndex)?.get(imported.importedName) ?? null;
+}
+
+function makeCapabilityResolutionReason(reason: TypeResolutionReason): UnsupportedReason {
+	const unsupported: {
+		column?: number;
+		filePath?: string;
+		kind: "capability-resolution";
+		line?: number;
+		message: string;
+		notes?: readonly { readonly kind: "help" | "note"; readonly message: string }[];
+	} = {
+		kind: "capability-resolution",
+		message: reason.message,
+	};
+	/* c8 ignore next -- capability resolution reasons include a column. */
+	if (reason.column != null) {
+		unsupported.column = reason.column;
+	}
+	/* c8 ignore next -- capability resolution reasons include a source file. */
+	if (reason.filePath != null) {
+		unsupported.filePath = reason.filePath;
+	}
+	/* c8 ignore next -- capability resolution reasons include a line. */
+	if (reason.line != null) {
+		unsupported.line = reason.line;
+	}
+	if (reason.notes != null) {
+		unsupported.notes = reason.notes;
+	}
+	return unsupported;
 }
 
 function makeModuleIndex(position: number): ModuleIndex {

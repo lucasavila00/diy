@@ -1,3 +1,4 @@
+import { materializeFunctionFacts } from "./function-facts.ts";
 import { loadResolutionDependencies, ModuleLoader } from "./module-loader.ts";
 import { expandSourceFiles } from "./source-files.ts";
 import type { DiySourceConfig } from "./source-files.ts";
@@ -17,7 +18,7 @@ export async function buildDiyProgram(config: DiySourceConfig, cwd: string): Pro
 		await loader.load(filePath);
 	}
 	await loadResolutionDependencies(loader);
-	loader.materializeFunctions();
+	materializeFunctionFacts(loader);
 	return {
 		coveredFiles,
 		loader,

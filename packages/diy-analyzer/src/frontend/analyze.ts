@@ -1,4 +1,4 @@
-import type { DiyAnalyzerUnsupported, DiyAnalyzerViolation } from "../middle-end/types.ts";
+import type { DiyAnalyzerUnsupported, DiyAnalyzerViolation } from "../model/types.ts";
 import type { ModuleLoader } from "./module-loader.ts";
 import { analyzeDiySyntax } from "./syntax-rules.ts";
 import type { ModuleInfo } from "./types.ts";

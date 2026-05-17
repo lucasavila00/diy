@@ -3,7 +3,6 @@ import { relative, resolve } from "node:path";
 
 import { codeFrameColumns } from "@babel/code-frame";
 
-import { normalizePath } from "../frontend/source-files.ts";
 import type {
 	AnalyzeOptions,
 	DiyAnalyzerNote,
@@ -11,7 +10,8 @@ import type {
 	DiyAnalyzerViolation,
 	DiyAnalysis,
 	DiyUnusedCapabilityFinding,
-} from "../middle-end/types.ts";
+} from "../model/types.ts";
+import { normalizePath } from "../shared/path.ts";
 
 export function sortFindings(
 	findings: readonly DiyUnusedCapabilityFinding[],

@@ -5,7 +5,7 @@ import { analyzeFrontend } from "../frontend/analyze.ts";
 import { buildDiyProgram } from "../frontend/program.ts";
 import type { DiySourceConfig } from "../frontend/source-files.ts";
 import { analyzeMiddleEnd } from "../middle-end/analyze.ts";
-import type { AnalyzeOptions, DiyAnalysis } from "../middle-end/types.ts";
+import type { AnalyzeOptions, DiyAnalysis } from "../model/types.ts";
 
 export async function analyzeDiy(
 	config: DiySourceConfig,

@@ -1,15 +1,15 @@
 import type { ModuleLoader } from "../frontend/module-loader.ts";
 import type { ModuleInfo } from "../frontend/types.ts";
-import { buildMiddleEndArena } from "./arena.ts";
-import type { ArenaFunction, ArenaModule, MiddleEndArena } from "./arena.ts";
-import { analyzeRequiredCapabilities } from "./required-capabilities.ts";
 import type {
 	DiyModuleGraph,
 	DiyModuleGraphCall,
 	DiyModuleGraphFunction,
 	DiyModuleGraphImport,
 	DiyModuleGraphModule,
-} from "./types.ts";
+} from "../model/types.ts";
+import { buildMiddleEndArena } from "./arena.ts";
+import type { ArenaFunction, ArenaModule, MiddleEndArena } from "./arena.ts";
+import { analyzeRequiredCapabilities } from "./required-capabilities.ts";
 
 export function analyzeModuleGraph(
 	loader: ModuleLoader,

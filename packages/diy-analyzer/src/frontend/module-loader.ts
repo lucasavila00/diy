@@ -12,31 +12,19 @@ import {
 	resolveModuleName,
 	sys as tsSys,
 } from "../../tsc-slim/out.js";
-import { resolveCapabilityIds } from "../middle-end/capabilities.ts";
 import {
 	getArray,
-	getFirstParam,
 	getFunctionName,
 	getIdentifierName,
 	getLiteralString,
 	getNode,
-	getParamType,
 	isFunctionNode,
-	lineForOffset,
 	locationForOffset,
 	makeLineStarts,
 	unwrapDeclaration,
 } from "./ast.ts";
-import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
-import { scanFunctionBody } from "./function-scan.ts";
 import { collectStringConstantBindings } from "./string-constants.ts";
-import type {
-	AstNode,
-	FunctionInfo,
-	ImportedBinding,
-	ModuleInfo,
-	UnsupportedReason,
-} from "./types.ts";
+import type { AstNode, ImportedBinding, ModuleInfo } from "./types.ts";
 
 export class ModuleLoader {
 	private readonly modules = new Map<string, ModuleInfo>();
@@ -134,55 +122,6 @@ export class ModuleLoader {
 		return this.sourceFiles.has(resolve(filePath));
 	}
 
-	materializeFunctions(): void {
-		for (const moduleInfo of this.modules.values()) {
-			/* c8 ignore next -- materialization is called once per program build. */
-			if (moduleInfo.functions.size > 0) {
-				continue;
-			}
-			for (const [name, functionNode] of moduleInfo.functionNodes) {
-				const functionInfo = this.readFunction(moduleInfo, name, functionNode);
-				if (functionInfo != null) {
-					moduleInfo.functions.set(name, functionInfo);
-				}
-			}
-		}
-	}
-
-	private readFunction(
-		moduleInfo: ModuleInfo,
-		name: string,
-		functionNode: AstNode,
-	): FunctionInfo | null {
-		const firstParam = getFirstParam(functionNode);
-		const allowedType = getDiyCapabilitiesAllowedType(moduleInfo, getParamType(firstParam));
-		if (allowedType == null) {
-			return null;
-		}
-		const declared = resolveCapabilityIds(this, moduleInfo, allowedType, []);
-		const scan = scanFunctionBody(this, moduleInfo, functionNode);
-		const functionLocation = locationForOffset(moduleInfo.lineStarts, functionNode.start);
-		return {
-			calls: scan.calls,
-			column: functionLocation.column,
-			declared: declared.ids,
-			direct: scan.direct,
-			provideChecks: scan.provideChecks.map((check) => ({
-				column: locationForOffset(moduleInfo.lineStarts, check.start).column,
-				extraType: check.extraType,
-				line: lineForOffset(moduleInfo.lineStarts, check.start),
-			})),
-			filePath: moduleInfo.filePath,
-			forwardsTransformedCapabilities: scan.forwardsTransformedCapabilities,
-			line: functionLocation.line,
-			name,
-			unsupportedReasons: [
-				...declared.reasons.map(makeCapabilityResolutionReason),
-				...scan.unsupportedReasons,
-			],
-		};
-	}
-
 	private resolveCompilerOptions(): CompilerOptions {
 		if (this.compilerOptions != null) {
 			return this.compilerOptions;
@@ -206,42 +145,6 @@ export class ModuleLoader {
 		this.compilerOptions = compilerOptions;
 		return compilerOptions;
 	}
-}
-
-function makeCapabilityResolutionReason(reason: {
-	readonly column?: number;
-	readonly filePath?: string;
-	readonly line?: number;
-	readonly message: string;
-	readonly notes?: readonly { readonly kind: "help" | "note"; readonly message: string }[];
-}): UnsupportedReason {
-	const unsupported: {
-		column?: number;
-		filePath?: string;
-		kind: "capability-resolution";
-		line?: number;
-		message: string;
-		notes?: readonly { readonly kind: "help" | "note"; readonly message: string }[];
-	} = {
-		kind: "capability-resolution",
-		message: reason.message,
-	};
-	/* c8 ignore next -- capability resolution reasons include a column. */
-	if (reason.column != null) {
-		unsupported.column = reason.column;
-	}
-	/* c8 ignore next -- capability resolution reasons include a source file. */
-	if (reason.filePath != null) {
-		unsupported.filePath = reason.filePath;
-	}
-	/* c8 ignore next -- capability resolution reasons include a line. */
-	if (reason.line != null) {
-		unsupported.line = reason.line;
-	}
-	if (reason.notes != null) {
-		unsupported.notes = reason.notes;
-	}
-	return unsupported;
 }
 
 function getFirstErrorLabel(error: {
