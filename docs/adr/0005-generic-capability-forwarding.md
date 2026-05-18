@@ -128,6 +128,11 @@ Imported first-argument forwarding should also be resolved when the callee's sou
 available and its first parameter is a DIY capability parameter, including generic forms
 such as `Capabilities<Allowed>`.
 
+When a framework callback needs a `Capabilities<...>` parameter only to preserve generic
+or contextual typing and the body does not read from it, authors should name the
+parameter `_capabilities`. The analyzer treats that spelling as intentional and does not
+report unused capabilities for that function.
+
 This creates a useful split:
 
 - application code forwarding `Capabilities<AppCapability>` into an imported generic

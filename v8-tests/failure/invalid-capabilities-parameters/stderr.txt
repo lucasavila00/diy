@@ -7,6 +7,7 @@ src/main.ts:8:8 unused capability
   10 | }
   11 |
   = help: remove "fs" from `Capabilities<...>`, or add a real `capabilities.fs` read if it is required
+  = help: if the type annotation is intentional for contextual typing, name the parameter `_capabilities`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:8:25 invalid capabilities parameter
