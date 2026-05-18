@@ -38,6 +38,15 @@ src/main.ts:27:8 unused capability
   30 | }
   = help: remove "read-id" from `Capabilities<...>`, or add a real `capabilities["read-id"]` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+src/main.ts:2:8 renamed diy import
+  1 | import type { Capabilities, Capability } from "@beff/diy";
+> 2 | import * as diy from "@beff/diy";
+    |        ^ Do not rename imports from @beff/diy; import exported names directly.
+  3 |
+  4 | type ReadCapability = Capability<"read", unknown>;
+  5 | type ReadIdCapability = Capability<"read-id", unknown>;
+  = help: use `import type { Capabilities, Capability } from "@beff/diy"`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:13:8 aliased capability service
   11 |
   12 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {

@@ -36,18 +36,11 @@ export function analyzeRequiredCapabilities(
 				if (calleeRequired == null) {
 					continue;
 				}
-				if (opaqueRequiredByFunction[call.target] === true) {
-					if (functionInfo.declaredOpaque) {
-						if (opaqueRequiredByFunction[functionInfo.index] !== true) {
-							opaqueRequiredByFunction[functionInfo.index] = true;
+				if (opaqueRequiredByFunction[call.target] === true && !functionInfo.declaredOpaque) {
+					for (const id of functionInfo.declared) {
+						if (!required.has(id)) {
+							required.add(id);
 							changed = true;
-						}
-					} else {
-						for (const id of functionInfo.declared) {
-							if (!required.has(id)) {
-								required.add(id);
-								changed = true;
-							}
 						}
 					}
 				}

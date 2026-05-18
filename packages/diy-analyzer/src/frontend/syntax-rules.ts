@@ -294,18 +294,7 @@ export function analyzeDiySyntax(
 		if (!publicDiyImportSources.has(getLiteralString(node["source"]) ?? "")) {
 			return;
 		}
-		for (const specifierValue of getArray(node["specifiers"])) {
-			const specifier = getNode(specifierValue);
-			if (specifier?.type !== "ImportSpecifier") {
-				continue;
-			}
-			/* c8 ignore next -- import specifiers use identifier or literal names. */
-			const importedName =
-				getIdentifierName(specifier["imported"]) ?? getLiteralString(specifier["imported"]);
-			const localName = getIdentifierName(specifier["local"]);
-			if (importedName == null || localName == null || importedName === localName) {
-				continue;
-			}
+		const reportRenamedDiyImport = (specifier: AstNode): void => {
 			report(
 				specifier,
 				"renamed diy import",
@@ -317,6 +306,32 @@ export function analyzeDiySyntax(
 					},
 				],
 			);
+		};
+		for (const specifierValue of getArray(node["specifiers"])) {
+			const specifier = getNode(specifierValue);
+			/* c8 ignore next -- parser import specifier arrays contain specifier nodes. */
+			if (specifier == null) {
+				continue;
+			}
+			if (
+				specifier.type === "ImportDefaultSpecifier" ||
+				specifier.type === "ImportNamespaceSpecifier"
+			) {
+				reportRenamedDiyImport(specifier);
+				continue;
+			}
+			/* c8 ignore next -- parser import declarations only use known import specifier nodes. */
+			if (specifier.type !== "ImportSpecifier") {
+				continue;
+			}
+			/* c8 ignore next -- import specifiers use identifier or literal names. */
+			const importedName =
+				getIdentifierName(specifier["imported"]) ?? getLiteralString(specifier["imported"]);
+			const localName = getIdentifierName(specifier["local"]);
+			if (importedName == null || localName == null || importedName === localName) {
+				continue;
+			}
+			reportRenamedDiyImport(specifier);
 		}
 	};
 

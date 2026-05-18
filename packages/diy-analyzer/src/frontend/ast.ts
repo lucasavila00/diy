@@ -55,6 +55,7 @@ export function getTypeParameterNames(node: AstNode): ReadonlySet<string> {
 	const typeParameters = getNode(node["typeParameters"]);
 	for (const parameter of getArray(typeParameters?.["params"])) {
 		const name = getIdentifierName(getNode(parameter)?.["name"]);
+		/* c8 ignore next -- parser type parameters always carry identifier names. */
 		if (name != null) {
 			names.add(name);
 		}

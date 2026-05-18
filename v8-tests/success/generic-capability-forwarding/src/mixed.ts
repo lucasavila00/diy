@@ -18,5 +18,4 @@ function forwardOpaque<Allowed extends Capability<string, unknown>>(
 
 function acceptOpaque<Allowed extends Capability<string, unknown>>(
 	capabilities: Capabilities<Allowed>,
-): void {
-}
+): void {}
