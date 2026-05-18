@@ -12,8 +12,16 @@ src/main.ts
 |
 +-- Service.contextual: bar, foo
 |
++-- Service.chainedAlias: bar, foo
+|
++-- Service.genericContextual: bar, foo
+|
++-- Service.forwardCallback: bar, foo
+|
 +-- Outer.Inner.helper: bar
 |
 +-- SiblingA.helper: foo
 |
-`-- SiblingB.helper: bar
++-- SiblingB.helper: bar
+|
+`-- ModuleFallback.helper: foo

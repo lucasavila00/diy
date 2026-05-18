@@ -7,7 +7,7 @@ type TypeAliasModule = {
 	readonly namespaceAliasTypeParameters: Map<string, Map<string, readonly TypeAliasParameter[]>>;
 };
 
-export type ResolvedTypeAlias = {
+type ResolvedTypeAlias = {
 	readonly namespaceName: string | null;
 	readonly type: unknown;
 	readonly typeParameters: readonly TypeAliasParameter[];

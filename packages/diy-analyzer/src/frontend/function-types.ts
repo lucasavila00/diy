@@ -9,7 +9,7 @@ import {
 import { hasLocalTypeAlias, resolveLocalTypeAlias } from "./scoped-aliases.ts";
 import type { AstNode, ModuleInfo } from "./types.ts";
 
-export type FunctionTypeFirstParamInfo = {
+type FunctionTypeFirstParamInfo = {
 	readonly opaqueTypeNames: ReadonlySet<string>;
 	readonly type: unknown;
 };

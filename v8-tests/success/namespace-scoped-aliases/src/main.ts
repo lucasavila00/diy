@@ -6,8 +6,13 @@ type SharedCapability = FooCapability;
 
 export namespace Service {
 	type ServiceCapability = FooCapability | BarCapability;
+	type AliasCapability = ServiceCapability;
 	type ProvidedCapability = BarCapability;
 	type ServiceHandler = (capabilities: Capabilities<ServiceCapability>) => string;
+	type GenericServiceHandler<Allowed extends ServiceCapability> = (
+		capabilities: Capabilities<Allowed>,
+	) => string;
+	type ServiceCallback = (capabilities: Capabilities<ServiceCapability>) => Promise<void>;
 
 	export const helperA = async (
 		capabilities: Capabilities<ServiceCapability>,
@@ -36,6 +41,19 @@ export namespace Service {
 
 	export const contextual: ServiceHandler = (capabilities) =>
 		`${capabilities.foo.doThing("contextual")}:${capabilities.bar.compute(1)}`;
+
+	export const chainedAlias = (capabilities: Capabilities<AliasCapability>): string =>
+		`${capabilities.foo.doThing("chain")}:${capabilities.bar.compute(1)}`;
+
+	export const genericContextual: GenericServiceHandler<ServiceCapability> = (capabilities) =>
+		`${capabilities.foo.doThing("generic")}:${capabilities.bar.compute(1)}`;
+
+	export const forwardCallback = async (
+		capabilities: Capabilities<ServiceCapability>,
+		callback: ServiceCallback,
+	): Promise<void> => {
+		await callback(capabilities);
+	};
 }
 
 export namespace Outer {
@@ -59,4 +77,9 @@ export namespace SiblingB {
 
 	export const helper = (capabilities: Capabilities<LocalCapability>): number =>
 		capabilities.bar.compute(1);
+}
+
+export namespace ModuleFallback {
+	export const helper = (capabilities: Capabilities<SharedCapability>): string =>
+		capabilities.foo.doThing("module");
 }
