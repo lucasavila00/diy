@@ -93,6 +93,7 @@ export function buildMiddleEndArena(
 				moduleInfo,
 				functionInfo.declaredType,
 				functionInfo.typeParameters,
+				functionInfo.namespaceName,
 			);
 			const functionIndex = makeFunctionIndex(functions.length);
 			functionsByName?.set(functionInfo.name, functionIndex);

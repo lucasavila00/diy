@@ -79,7 +79,13 @@ function resolveProvidedCapabilities(
 	if (sourceModule == null) {
 		return new Set();
 	}
-	const provided = resolveCapabilityIds(loader, sourceModule, call.providedType);
+	const provided = resolveCapabilityIds(
+		loader,
+		sourceModule,
+		call.providedType,
+		new Set(),
+		functionInfo.namespaceName,
+	);
 	if (provided.reasons.length > 0) {
 		return new Set();
 	}

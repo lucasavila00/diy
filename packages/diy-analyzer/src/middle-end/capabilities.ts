@@ -8,16 +8,20 @@ import {
 	locationForOffset,
 } from "../frontend/ast.ts";
 import type { ModuleLoader } from "../frontend/module-loader.ts";
+import { resolveLocalTypeAlias } from "../frontend/scoped-aliases.ts";
 import { resolveStringConstantName } from "../frontend/string-constants.ts";
 import type { StringConstantModule } from "../frontend/string-constants.ts";
-import type { ImportedBinding } from "../frontend/types.ts";
+import type { ImportedBinding, TypeAliasParameter } from "../frontend/types.ts";
 import type { TypeResolution, TypeResolutionReason } from "./types.ts";
 
 type CapabilityModule = StringConstantModule & {
 	readonly aliases: Map<string, unknown>;
+	readonly aliasTypeParameters: Map<string, readonly TypeAliasParameter[]>;
 	readonly filePath: string;
 	readonly imports: Map<string, ImportedBinding>;
 	readonly lineStarts: readonly number[];
+	readonly namespaceAliases: Map<string, Map<string, unknown>>;
+	readonly namespaceAliasTypeParameters: Map<string, Map<string, readonly TypeAliasParameter[]>>;
 };
 
 type MutableTypeResolution = {
@@ -29,6 +33,7 @@ type MutableTypeResolution = {
 
 type CapabilityResolutionContext = {
 	readonly aliases: Map<string, MutableTypeResolution>;
+	readonly namespaceName: string | null;
 	readonly opaqueTypeNames: ReadonlySet<string>;
 };
 
@@ -37,8 +42,13 @@ export function resolveCapabilityIds(
 	moduleInfo: CapabilityModule,
 	typeNode: unknown,
 	opaqueTypeNames: ReadonlySet<string> = new Set(),
+	namespaceName: string | null = null,
 ): TypeResolution {
-	const context: CapabilityResolutionContext = { aliases: new Map(), opaqueTypeNames };
+	const context: CapabilityResolutionContext = {
+		aliases: new Map(),
+		namespaceName,
+		opaqueTypeNames,
+	};
 	return freezeResolution(resolveCapabilityIdsInner(context, loader, moduleInfo, typeNode));
 }
 
@@ -96,9 +106,16 @@ function resolveCapabilityIdsInner(
 		}
 		return makeResolution(ids, [...included.reasons, ...excluded.reasons]);
 	}
-	const localAlias = moduleInfo.aliases.get(typeName);
+	const localAlias = resolveLocalTypeAlias(moduleInfo, typeName, context.namespaceName);
 	if (localAlias != null) {
-		return resolveAlias(context, loader, moduleInfo, typeName, localAlias);
+		return resolveAlias(
+			context,
+			loader,
+			moduleInfo,
+			typeName,
+			localAlias.type,
+			localAlias.namespaceName,
+		);
 	}
 	const imported = moduleInfo.imports.get(typeName);
 	if (imported == null) {
@@ -134,7 +151,7 @@ function resolveCapabilityIdsInner(
 			[makeReason(moduleInfo, node, `unresolved imported capability alias ${typeName}`)],
 		);
 	}
-	return resolveAlias(context, loader, importedModule, imported.importedName, alias);
+	return resolveAlias(context, loader, importedModule, imported.importedName, alias, null);
 }
 
 function resolveAlias(
@@ -143,8 +160,9 @@ function resolveAlias(
 	moduleInfo: CapabilityModule,
 	typeName: string,
 	alias: unknown,
+	aliasNamespaceName: string | null,
 ): MutableTypeResolution {
-	const key = `${moduleInfo.filePath}:${typeName}`;
+	const key = `${moduleInfo.filePath}:${aliasNamespaceName ?? ""}:${typeName}`;
 	const existing = context.aliases.get(key);
 	if (existing != null) {
 		return existing;
@@ -157,7 +175,15 @@ function resolveAlias(
 	while (changed) {
 		const beforeIds = placeholder.ids.size;
 		const beforeReasons = placeholder.reasons.length;
-		mergeResolution(placeholder, resolveCapabilityIdsInner(context, loader, moduleInfo, alias));
+		mergeResolution(
+			placeholder,
+			resolveCapabilityIdsInner(
+				{ ...context, namespaceName: aliasNamespaceName },
+				loader,
+				moduleInfo,
+				alias,
+			),
+		);
 		changed = beforeIds !== placeholder.ids.size || beforeReasons !== placeholder.reasons.length;
 	}
 	placeholder.resolving = false;

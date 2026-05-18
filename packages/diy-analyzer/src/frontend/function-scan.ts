@@ -45,6 +45,7 @@ export function scanFunctionBody(
 	loader: ModuleLoader,
 	moduleInfo: ModuleInfo,
 	functionNode: AstNode,
+	namespaceName: string | null,
 ): FunctionScan {
 	const direct = new Set<string>();
 	const calls: ScannedCapabilitiesForwardingCall[] = [];
@@ -67,7 +68,7 @@ export function scanFunctionBody(
 				const name = getIdentifierName(getIdentifierFromParam(param));
 				if (name != null) {
 					scope.set(name, null);
-					if (isTypedCapabilitiesCallback(moduleInfo, param)) {
+					if (isTypedCapabilitiesCallback(moduleInfo, param, namespaceName)) {
 						typedCallbacks.add(name);
 					}
 				}
@@ -180,8 +181,16 @@ export function scanFunctionBody(
 	};
 }
 
-function isTypedCapabilitiesCallback(moduleInfo: ModuleInfo, param: unknown): boolean {
-	const firstParamType = getFunctionTypeFirstParamType(moduleInfo, getParamType(getNode(param)));
+function isTypedCapabilitiesCallback(
+	moduleInfo: ModuleInfo,
+	param: unknown,
+	namespaceName: string | null,
+): boolean {
+	const firstParamType = getFunctionTypeFirstParamType(
+		moduleInfo,
+		getParamType(getNode(param)),
+		namespaceName,
+	);
 	return getDiyCapabilitiesAllowedType(moduleInfo, firstParamType) != null;
 }
 

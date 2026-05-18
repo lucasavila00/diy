@@ -31,6 +31,8 @@ export type ModuleInfo = {
 	readonly functions: Map<string, FunctionInfo>;
 	readonly imports: Map<string, ImportedBinding>;
 	readonly lineStarts: readonly number[];
+	readonly namespaceAliases: Map<string, Map<string, unknown>>;
+	readonly namespaceAliasTypeParameters: Map<string, Map<string, readonly TypeAliasParameter[]>>;
 	readonly parseErrors: readonly ParseErrorInfo[];
 	readonly reportable: boolean;
 	readonly source: string;

@@ -83,13 +83,21 @@ export class ModuleLoader {
 			functions: new Map(),
 			imports: new Map(),
 			lineStarts,
+			namespaceAliases: new Map(),
+			namespaceAliasTypeParameters: new Map(),
 			parseErrors,
 			reportable: this.sourceFiles.has(resolvedPath),
 			source,
 		};
 		this.modules.set(resolvedPath, moduleInfo);
 		collectImports(body, moduleInfo.imports);
-		collectAliases(body, moduleInfo.aliases, moduleInfo.aliasTypeParameters);
+		collectAliases(
+			body,
+			moduleInfo.aliases,
+			moduleInfo.aliasTypeParameters,
+			moduleInfo.namespaceAliases,
+			moduleInfo.namespaceAliasTypeParameters,
+		);
 		collectStringConstantBindings(body, moduleInfo.constants, moduleInfo.constantExports);
 		collectFunctionNodes(body, null, moduleInfo);
 		return moduleInfo;
@@ -210,6 +218,26 @@ function collectAliases(
 	body: readonly unknown[],
 	aliases: Map<string, unknown>,
 	aliasTypeParameters: Map<string, readonly TypeAliasParameter[]>,
+	namespaceAliases: Map<string, Map<string, unknown>>,
+	namespaceAliasTypeParameters: Map<string, Map<string, readonly TypeAliasParameter[]>>,
+): void {
+	collectAliasStatements(
+		body,
+		aliases,
+		aliasTypeParameters,
+		namespaceAliases,
+		namespaceAliasTypeParameters,
+		null,
+	);
+}
+
+function collectAliasStatements(
+	body: readonly unknown[],
+	aliases: Map<string, unknown>,
+	aliasTypeParameters: Map<string, readonly TypeAliasParameter[]>,
+	namespaceAliases: Map<string, Map<string, unknown>>,
+	namespaceAliasTypeParameters: Map<string, Map<string, readonly TypeAliasParameter[]>>,
+	namespaceName: string | null,
 ): void {
 	for (const statement of body) {
 		const node = getNode(statement);
@@ -218,16 +246,72 @@ function collectAliases(
 			continue;
 		}
 		const declaration = unwrapDeclaration(node);
-		if (declaration.type !== "TSTypeAliasDeclaration") {
+		if (declaration.type === "TSTypeAliasDeclaration") {
+			collectAliasDeclaration(
+				declaration,
+				aliases,
+				aliasTypeParameters,
+				namespaceAliases,
+				namespaceAliasTypeParameters,
+				namespaceName,
+			);
 			continue;
 		}
-		const name = getIdentifierName(declaration["id"]);
-		/* c8 ignore next -- parser type aliases have identifier names. */
-		if (name != null) {
-			aliases.set(name, declaration["typeAnnotation"]);
-			aliasTypeParameters.set(name, collectAliasTypeParameters(declaration));
+		if (declaration.type === "TSModuleDeclaration") {
+			const localNamespaceName = getIdentifierName(declaration["id"]);
+			const namespaceBody = getNode(declaration["body"]);
+			if (localNamespaceName == null || namespaceBody?.type !== "TSModuleBlock") {
+				continue;
+			}
+			const childNamespaceName =
+				namespaceName == null ? localNamespaceName : `${namespaceName}.${localNamespaceName}`;
+			collectAliasStatements(
+				getArray(namespaceBody["body"]),
+				aliases,
+				aliasTypeParameters,
+				namespaceAliases,
+				namespaceAliasTypeParameters,
+				childNamespaceName,
+			);
 		}
 	}
+}
+
+function collectAliasDeclaration(
+	declaration: AstNode,
+	aliases: Map<string, unknown>,
+	aliasTypeParameters: Map<string, readonly TypeAliasParameter[]>,
+	namespaceAliases: Map<string, Map<string, unknown>>,
+	namespaceAliasTypeParameters: Map<string, Map<string, readonly TypeAliasParameter[]>>,
+	namespaceName: string | null,
+): void {
+	const name = getIdentifierName(declaration["id"]);
+	/* c8 ignore next -- parser type aliases have identifier names. */
+	if (name == null) {
+		return;
+	}
+	if (namespaceName == null) {
+		aliases.set(name, declaration["typeAnnotation"]);
+		aliasTypeParameters.set(name, collectAliasTypeParameters(declaration));
+		return;
+	}
+	const namespaceAliasMap = getOrInsertMap(namespaceAliases, namespaceName);
+	const namespaceAliasTypeParametersMap = getOrInsertMap(
+		namespaceAliasTypeParameters,
+		namespaceName,
+	);
+	namespaceAliasMap.set(name, declaration["typeAnnotation"]);
+	namespaceAliasTypeParametersMap.set(name, collectAliasTypeParameters(declaration));
+}
+
+function getOrInsertMap<T>(map: Map<string, Map<string, T>>, key: string): Map<string, T> {
+	const existing = map.get(key);
+	if (existing != null) {
+		return existing;
+	}
+	const next = new Map<string, T>();
+	map.set(key, next);
+	return next;
 }
 
 function collectAliasTypeParameters(declaration: AstNode): readonly TypeAliasParameter[] {
@@ -300,7 +384,10 @@ function collectFunctionNodes(
 		}
 	}
 	const childClosureTypedCallbacks = isFunctionNode(declaration)
-		? mergeSets(closureTypedCallbacks, getTypedCallbackParamNames(moduleInfo, declaration))
+		? mergeSets(
+				closureTypedCallbacks,
+				getTypedCallbackParamNames(moduleInfo, declaration, namespaceName),
+			)
 		: closureTypedCallbacks;
 	for (const [key, child] of Object.entries(declaration)) {
 		if (key === "type" || key === "start" || key === "end") {
@@ -317,14 +404,22 @@ function collectFunctionNodes(
 	}
 }
 
-function getTypedCallbackParamNames(moduleInfo: ModuleInfo, node: AstNode): ReadonlySet<string> {
+function getTypedCallbackParamNames(
+	moduleInfo: ModuleInfo,
+	node: AstNode,
+	namespaceName: string | null,
+): ReadonlySet<string> {
 	const names = new Set<string>();
 	for (const param of getArray(node["params"])) {
 		const name = getIdentifierName(getIdentifierFromParam(param));
 		if (name == null) {
 			continue;
 		}
-		const firstParamType = getFunctionTypeFirstParamType(moduleInfo, getParamType(getNode(param)));
+		const firstParamType = getFunctionTypeFirstParamType(
+			moduleInfo,
+			getParamType(getNode(param)),
+			namespaceName,
+		);
 		if (getDiyCapabilitiesAllowedType(moduleInfo, firstParamType) != null) {
 			names.add(name);
 		}

@@ -44,6 +44,7 @@ export function analyzeDiySyntax(
 	const violations: DiyAnalyzerViolation[] = [];
 	const functionStack: FunctionFrame[] = [];
 	const constantScopes: Map<string, StringConstantBinding>[] = [];
+	const namespaceStack: string[] = [];
 	const nodeStack: AstNode[] = [];
 	const reportedCapabilityRanges = new Set<string>();
 
@@ -141,6 +142,7 @@ export function analyzeDiySyntax(
 		const contextualFirstParamType = getFunctionTypeFirstParamType(
 			moduleInfo,
 			getContextualFunctionType(parent),
+			namespaceStack.at(-1) ?? null,
 		);
 		const trustsUntypedContextualCapabilities = isTrustedUntypedContextualCapabilitiesFunction(
 			node,
@@ -443,6 +445,16 @@ export function analyzeDiySyntax(
 		}
 
 		nodeStack.push(node);
+		const localNamespaceName =
+			node.type === "TSModuleDeclaration" ? getIdentifierName(node["id"]) : null;
+		if (localNamespaceName != null) {
+			const parentNamespaceName = namespaceStack.at(-1);
+			namespaceStack.push(
+				parentNamespaceName == null
+					? localNamespaceName
+					: `${parentNamespaceName}.${localNamespaceName}`,
+			);
+		}
 		const isFunction = isFunctionNode(node);
 		if (isFunction) {
 			enterFunction(node, parent);
@@ -473,6 +485,9 @@ export function analyzeDiySyntax(
 		}
 		if (createsConstantScope) {
 			constantScopes.pop();
+		}
+		if (localNamespaceName != null) {
+			namespaceStack.pop();
 		}
 		nodeStack.pop();
 	};

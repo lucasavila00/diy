@@ -35,9 +35,11 @@ function readFunction(
 	functionNode: AstNode,
 ): FunctionInfo | null {
 	const firstParam = getFirstParam(functionNode);
+	const namespaceName = moduleInfo.functionNamespaces.get(name) ?? null;
 	const contextualTypeInfo = getFunctionTypeFirstParamInfo(
 		moduleInfo,
 		moduleInfo.functionContextualTypes.get(name),
+		namespaceName,
 	);
 	const declaredType =
 		getDiyCapabilitiesAllowedType(moduleInfo, getParamType(firstParam)) ??
@@ -45,7 +47,7 @@ function readFunction(
 	if (declaredType == null) {
 		return null;
 	}
-	const scan = scanFunctionBody(loader, moduleInfo, functionNode);
+	const scan = scanFunctionBody(loader, moduleInfo, functionNode, namespaceName);
 	const functionLocation = locationForOffset(moduleInfo.lineStarts, functionNode.start);
 	return {
 		calls: scan.calls,
@@ -61,7 +63,7 @@ function readFunction(
 		forwardsTransformedCapabilities: scan.forwardsTransformedCapabilities,
 		line: functionLocation.line,
 		name,
-		namespaceName: moduleInfo.functionNamespaces.get(name) ?? null,
+		namespaceName,
 		suppressUnusedCapabilities:
 			getIdentifierName(getIdentifierFromParam(firstParam)) === "_capabilities",
 		typeParameters: new Set([

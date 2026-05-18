@@ -46,7 +46,13 @@ export function analyzeUnusedCapabilities(
 				continue;
 			}
 			for (const check of functionInfo.provideChecks) {
-				const extra = resolveCapabilityIds(loader, sourceModule, check.extraType);
+				const extra = resolveCapabilityIds(
+					loader,
+					sourceModule,
+					check.extraType,
+					new Set(),
+					functionInfo.namespaceName,
+				);
 				if (extra.reasons.length > 0) {
 					for (const reason of extra.reasons) {
 						/* c8 ignore next -- capability resolution reasons may omit notes. */

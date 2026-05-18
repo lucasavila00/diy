@@ -6,6 +6,7 @@ import {
 	getTypeArguments,
 	getTypeName,
 } from "./ast.ts";
+import { hasLocalTypeAlias, resolveLocalTypeAlias } from "./scoped-aliases.ts";
 import type { AstNode, ModuleInfo } from "./types.ts";
 
 export type FunctionTypeFirstParamInfo = {
@@ -25,20 +26,23 @@ export function getContextualFunctionType(parent: AstNode | null): unknown | nul
 export function getFunctionTypeFirstParamType(
 	moduleInfo: ModuleInfo,
 	typeNode: unknown,
+	namespaceName: string | null = null,
 ): unknown | null {
-	return getFunctionTypeFirstParamInfo(moduleInfo, typeNode)?.type ?? null;
+	return getFunctionTypeFirstParamInfo(moduleInfo, typeNode, namespaceName)?.type ?? null;
 }
 
 export function getFunctionTypeFirstParamInfo(
 	moduleInfo: ModuleInfo,
 	typeNode: unknown,
+	namespaceName: string | null = null,
 ): FunctionTypeFirstParamInfo | null {
-	return getFunctionTypeFirstParamInfoInner(moduleInfo, typeNode, [], new Set());
+	return getFunctionTypeFirstParamInfoInner(moduleInfo, typeNode, namespaceName, [], new Set());
 }
 
 function getFunctionTypeFirstParamInfoInner(
 	moduleInfo: ModuleInfo,
 	typeNode: unknown,
+	namespaceName: string | null,
 	seen: readonly string[],
 	opaqueTypeNames: ReadonlySet<string>,
 ): FunctionTypeFirstParamInfo | null {
@@ -50,6 +54,7 @@ function getFunctionTypeFirstParamInfoInner(
 		return getFunctionTypeFirstParamInfoInner(
 			moduleInfo,
 			node["typeAnnotation"],
+			namespaceName,
 			seen,
 			opaqueTypeNames,
 		);
@@ -67,17 +72,16 @@ function getFunctionTypeFirstParamInfoInner(
 	if (typeName == null) {
 		return null;
 	}
-	const localAlias = moduleInfo.aliases.get(typeName);
+	const localAlias = resolveLocalTypeAlias(moduleInfo, typeName, namespaceName);
 	if (localAlias == null) {
 		return null;
 	}
-	const key = `${moduleInfo.filePath}:${typeName}`;
+	const key = `${moduleInfo.filePath}:${localAlias.namespaceName ?? ""}:${typeName}`;
 	if (seen.includes(key)) {
 		return null;
 	}
 	const typeArguments = getTypeArguments(node);
-	/* c8 ignore next -- module loading records type parameters for every local type alias. */
-	const aliasParameters = moduleInfo.aliasTypeParameters.get(typeName) ?? [];
+	const aliasParameters = localAlias.typeParameters;
 	const substitutions = new Map<string, unknown>();
 	const contextualOpaqueTypeNames = new Set(opaqueTypeNames);
 	for (const [index, parameter] of aliasParameters.entries()) {
@@ -87,15 +91,20 @@ function getFunctionTypeFirstParamInfoInner(
 			continue;
 		}
 		substitutions.set(parameter.name, typeArgument);
-		if (isCapabilityConstraint(moduleInfo, parameter.constraint, [])) {
-			for (const opaqueName of unresolvedTypeReferenceNames(moduleInfo, typeArgument)) {
+		if (isCapabilityConstraint(moduleInfo, parameter.constraint, localAlias.namespaceName, [])) {
+			for (const opaqueName of unresolvedTypeReferenceNames(
+				moduleInfo,
+				typeArgument,
+				namespaceName,
+			)) {
 				contextualOpaqueTypeNames.add(opaqueName);
 			}
 		}
 	}
 	return getFunctionTypeFirstParamInfoInner(
 		moduleInfo,
-		substituteTypeParameters(localAlias, substitutions),
+		substituteTypeParameters(localAlias.type, substitutions),
+		localAlias.namespaceName,
 		[...seen, key],
 		contextualOpaqueTypeNames,
 	);
@@ -133,6 +142,7 @@ function substituteTypeParameters(
 function isCapabilityConstraint(
 	moduleInfo: ModuleInfo,
 	typeNode: unknown,
+	namespaceName: string | null,
 	seen: readonly string[],
 ): boolean {
 	const node = getNode(typeNode);
@@ -141,7 +151,7 @@ function isCapabilityConstraint(
 	}
 	/* c8 ignore next -- formatter removes parenthesized generic constraints in fixtures. */
 	if (node.type === "TSParenthesizedType") {
-		return isCapabilityConstraint(moduleInfo, node["typeAnnotation"], seen);
+		return isCapabilityConstraint(moduleInfo, node["typeAnnotation"], namespaceName, seen);
 	}
 	/* c8 ignore next -- non-reference generic constraints are treated as non-capability bounds. */
 	if (node.type !== "TSTypeReference") {
@@ -155,22 +165,26 @@ function isCapabilityConstraint(
 	if (typeName === "Capability") {
 		return true;
 	}
-	const localAlias = moduleInfo.aliases.get(typeName);
+	const localAlias = resolveLocalTypeAlias(moduleInfo, typeName, namespaceName);
 	/* c8 ignore next -- unresolved constraints are treated as non-capability bounds. */
 	if (localAlias == null) {
 		return false;
 	}
-	const key = `${moduleInfo.filePath}:${typeName}`;
+	const key = `${moduleInfo.filePath}:${localAlias.namespaceName ?? ""}:${typeName}`;
 	/* c8 ignore next -- recursive constraints are treated as non-capability bounds. */
 	if (seen.includes(key)) {
 		return false;
 	}
-	return isCapabilityConstraint(moduleInfo, localAlias, [...seen, key]);
+	return isCapabilityConstraint(moduleInfo, localAlias.type, localAlias.namespaceName, [
+		...seen,
+		key,
+	]);
 }
 
 function unresolvedTypeReferenceNames(
 	moduleInfo: ModuleInfo,
 	typeNode: unknown,
+	namespaceName: string | null,
 ): ReadonlySet<string> {
 	const names = new Set<string>();
 	const visit = (value: unknown): void => {
@@ -191,7 +205,7 @@ function unresolvedTypeReferenceNames(
 				name !== "Capability" &&
 				name !== "Capabilities" &&
 				name !== "Exclude" &&
-				!moduleInfo.aliases.has(name) &&
+				!hasLocalTypeAlias(moduleInfo, name, namespaceName) &&
 				!moduleInfo.imports.has(name)
 			) {
 				names.add(name);
