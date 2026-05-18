@@ -1,0 +1,22 @@
+*** Add File: /home/lucas/fluff/diy/v8-tests/failure/dynamic-forwarding-callees/stderr.txt
+src/main.ts:11:17 unsupported analysis
+   9 | };
+  10 |
+> 11 | export function loadComputed(capabilities: Capabilities<ReadCapability>): void {
+     |                 ^ unresolved capabilities forwarding callee
+  12 | 	registry["run"](capabilities);
+  13 | }
+  14 |
+  = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:15:17 unsupported analysis
+  13 | }
+  14 |
+> 15 | export function loadFromExpression(capabilities: Capabilities<ReadCapability>): void {
+     |                 ^ unresolved capabilities forwarding callee
+  16 | 	({ declaredRun }).declaredRun(capabilities);
+  17 | }
+  18 |
+  = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

@@ -216,10 +216,11 @@ function collectFunctionNodes(
 	value: unknown,
 	parent: AstNode | null,
 	moduleInfo: ModuleInfo,
+	namespaceName: string | null = null,
 ): void {
 	if (Array.isArray(value)) {
 		for (const item of value) {
-			collectFunctionNodes(item, parent, moduleInfo);
+			collectFunctionNodes(item, parent, moduleInfo, namespaceName);
 		}
 		return;
 	}
@@ -228,15 +229,25 @@ function collectFunctionNodes(
 		return;
 	}
 	const declaration = unwrapDeclaration(node);
+	const localNamespaceName =
+		declaration.type === "TSModuleDeclaration" ? getIdentifierName(declaration["id"]) : null;
+	let childNamespaceName = namespaceName;
+	if (localNamespaceName != null) {
+		childNamespaceName =
+			namespaceName == null
+				? localNamespaceName
+				: `${namespaceName}.${localNamespaceName}`;
+	}
 	if (isFunctionNode(declaration)) {
 		const name = getFunctionName(declaration, parent);
 		if (name != null) {
-			moduleInfo.functionNodes.set(name, declaration);
+			const qualifiedName = namespaceName == null ? name : `${namespaceName}.${name}`;
+			moduleInfo.functionNodes.set(qualifiedName, declaration);
 			const contextualType = getContextualFunctionType(parent);
 			if (contextualType == null) {
-				moduleInfo.functionContextualTypes.delete(name);
+				moduleInfo.functionContextualTypes.delete(qualifiedName);
 			} else {
-				moduleInfo.functionContextualTypes.set(name, contextualType);
+				moduleInfo.functionContextualTypes.set(qualifiedName, contextualType);
 			}
 		}
 	}
@@ -244,7 +255,7 @@ function collectFunctionNodes(
 		if (key === "type" || key === "start" || key === "end") {
 			continue;
 		}
-		collectFunctionNodes(child, declaration, moduleInfo);
+		collectFunctionNodes(child, declaration, moduleInfo, childNamespaceName);
 	}
 }
 

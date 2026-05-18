@@ -5,6 +5,7 @@ import {
 	getIdentifierName,
 	getNode,
 	getParamType,
+	getStaticMemberExpressionName,
 	getTypeArguments,
 	isCapabilitiesCreateCall,
 	isCapabilitiesExtendCall,
@@ -127,7 +128,7 @@ export function scanFunctionBody(
 					if (forwarded.provideCall != null) {
 						inlineForwardedProvideCalls.add(forwarded.provideCall);
 					}
-					const calleeName = getIdentifierName(node["callee"]);
+					const calleeName = getForwardingCalleeName(moduleInfo, node["callee"]);
 					if (calleeName == null) {
 						unsupportedReasons.push({
 							kind: "unresolved-forwarding-callee",
@@ -162,6 +163,18 @@ export function scanFunctionBody(
 		provideChecks,
 		unsupportedReasons,
 	};
+}
+
+function getForwardingCalleeName(moduleInfo: ModuleInfo, callee: unknown): string | null {
+	const identifierName = getIdentifierName(callee);
+	if (identifierName != null) {
+		return identifierName;
+	}
+	const staticName = getStaticMemberExpressionName(callee);
+	if (staticName == null || !moduleInfo.functionNodes.has(staticName)) {
+		return null;
+	}
+	return staticName;
 }
 
 function hasOwnCapabilitiesBinding(moduleInfo: ModuleInfo, functionNode: AstNode): boolean {

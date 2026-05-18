@@ -166,6 +166,22 @@ export function getMemberPropertyName(property: unknown): string | null {
 	return null;
 }
 
+export function getStaticMemberExpressionName(value: unknown): string | null {
+	const node = getNode(value);
+	if (node?.type === "Identifier") {
+		return getIdentifierName(node);
+	}
+	if (node?.type !== "MemberExpression" || node["computed"] === true) {
+		return null;
+	}
+	const objectName = getStaticMemberExpressionName(node["object"]);
+	const propertyName = getMemberPropertyName(node["property"]);
+	if (objectName == null || propertyName == null) {
+		return null;
+	}
+	return `${objectName}.${propertyName}`;
+}
+
 const capabilitiesHelperNames = new Set(["create", "extend", "merge", "override"]);
 
 export function isCapabilitiesServiceMember(node: unknown): boolean {
