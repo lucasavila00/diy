@@ -7,6 +7,7 @@ src/main.ts:7:8 unused capability
    9 | }
   10 |
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:11:8 unused capability
    9 | }
   10 |
@@ -16,6 +17,7 @@ src/main.ts:11:8 unused capability
   13 | }
   14 |
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:15:8 unused capability
   13 | }
   14 |
@@ -25,3 +27,4 @@ src/main.ts:15:8 unused capability
   17 | }
   18 |
   = help: remove "reader-id" from `Capabilities<...>`, or add a real `capabilities["reader-id"]` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

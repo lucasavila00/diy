@@ -7,3 +7,4 @@ src/main.ts:7:8 unsupported analysis
    9 | }
   10 |
   = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

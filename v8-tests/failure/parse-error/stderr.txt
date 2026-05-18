@@ -2,3 +2,4 @@ broken/main.fixture:1:15 unsupported analysis
 > 1 | const value = ;
     |               ^ Unexpected token
   2 |
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

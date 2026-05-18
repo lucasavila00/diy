@@ -7,3 +7,4 @@ src/main.ts:8:23 escaped capabilities
   10 | }
   11 |
   = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

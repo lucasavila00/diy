@@ -8,3 +8,4 @@ src/main.ts:13:3 redundant capability provider
   16 | 		),
   = note: `appClock` is already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

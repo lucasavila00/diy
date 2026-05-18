@@ -7,6 +7,7 @@ src/main.ts:8:8 unused capability
   10 | }
   11 |
   = help: remove "fs" from `Capabilities<...>`, or add a real `capabilities.fs` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:8:25 invalid capabilities parameter
    6 | declare function use(value: unknown): void;
    7 |
@@ -16,6 +17,7 @@ src/main.ts:8:25 invalid capabilities parameter
   10 | }
   11 |
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:12:38 invalid capabilities parameter
   10 | }
   11 |
@@ -25,6 +27,7 @@ src/main.ts:12:38 invalid capabilities parameter
   14 | 	use(capabilities);
   15 | }
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:17:27 invalid capabilities parameter
   15 | }
   16 |
@@ -34,6 +37,7 @@ src/main.ts:17:27 invalid capabilities parameter
   19 | }
   20 |
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:21:25 invalid capabilities parameter
   19 | }
   20 |
@@ -43,6 +47,7 @@ src/main.ts:21:25 invalid capabilities parameter
   23 | }
   24 |
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:17:8 unsupported analysis
   15 | }
   16 |
@@ -52,3 +57,4 @@ src/main.ts:17:8 unsupported analysis
   19 | }
   20 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

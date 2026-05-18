@@ -82,6 +82,23 @@ function formatNotes(notes: readonly DiyAnalyzerNote[] | undefined): string {
 	return `\n${notes.map((note) => `  = ${note.kind}: ${note.message}`).join("\n")}`;
 }
 
+function notesWithSuppressionHelp(
+	name: string,
+	notes: readonly DiyAnalyzerNote[] | undefined,
+): readonly DiyAnalyzerNote[] {
+	if (name === "invalid diagnostic suppression" || name === "unused diagnostic suppression") {
+		return notes ?? [];
+	}
+	return [
+		...(notes ?? []),
+		{
+			kind: "help",
+			message:
+				"for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line",
+		},
+	];
+}
+
 function unusedCapabilityNotes(
 	id: string,
 	extraNotes: readonly DiyAnalyzerNote[] | undefined,
@@ -159,7 +176,7 @@ export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions
 					finding,
 					"unused capability",
 					`Declares unused capability "${id}".`,
-					unusedCapabilityNotes(id, finding.notes),
+					notesWithSuppressionHelp("unused capability", unusedCapabilityNotes(id, finding.notes)),
 				),
 			);
 		}
@@ -173,12 +190,20 @@ export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions
 				violation,
 				violation.name,
 				`${violation.reason}${capabilityIds}`,
-				violation.notes,
+				notesWithSuppressionHelp(violation.name, violation.notes),
 			),
 		);
 	}
 	for (const item of analysis.unsupported) {
-		lines.push(formatDiagnostic(cwd, item, "unsupported analysis", item.reason, item.notes));
+		lines.push(
+			formatDiagnostic(
+				cwd,
+				item,
+				"unsupported analysis",
+				item.reason,
+				notesWithSuppressionHelp("unsupported analysis", item.notes),
+			),
+		);
 	}
 	return lines.length === 0 ? "" : `${lines.join("\n")}\n`;
 }

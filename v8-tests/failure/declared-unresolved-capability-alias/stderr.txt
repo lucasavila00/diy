@@ -7,3 +7,4 @@ src/main.ts:5:27 unsupported analysis
   7 | export function load(capabilities: Capabilities<AnyClockCapability>): Date {
   8 | 	capabilities.appClock;
   = help: use a string literal or const reference, for example `Capability<"appClock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

@@ -4,9 +4,11 @@ src/main.ts:1:15 re-exported diy capabilities
   2 | export type { Capabilities as DiyCapabilities } from "@beff/diy/capabilities";
   3 |
   = help: use `import type { Capabilities } from "@beff/diy"` in each module that needs it
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:2:15 re-exported diy capabilities
   1 | export type { Capabilities } from "@beff/diy";
 > 2 | export type { Capabilities as DiyCapabilities } from "@beff/diy/capabilities";
     |               ^ Do not re-export Capabilities from @beff/diy; import it directly where it is used.
   3 |
   = help: use `import type { Capabilities } from "@beff/diy"` in each module that needs it
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

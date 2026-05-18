@@ -7,6 +7,7 @@ src/main.ts:5:8 unused capability
   7 | }
   8 |
   = help: remove "clock" from `Capabilities<...>`, or add a real `capabilities.clock` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:6:7 escaped capabilities
   4 |
   5 | export function run(capabilities: Capabilities<ClockCapability>): void {
@@ -15,3 +16,4 @@ src/main.ts:6:7 escaped capabilities
   7 | }
   8 |
   = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

@@ -8,6 +8,7 @@ src/main.ts:9:9 redundant capability provider
   12 | export function loadBoth(
   = note: `write` is already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 src/main.ts:15:9 redundant capability provider
   13 | 	capabilities: Capabilities<ReadCapability | WriteCapability>,
   14 | ): Capabilities<ReadCapability | WriteCapability> {
@@ -18,3 +19,4 @@ src/main.ts:15:9 redundant capability provider
   18 | 	);
   = note: `read`, `write` are already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
