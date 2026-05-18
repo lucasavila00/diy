@@ -8,6 +8,7 @@ src/main.ts:8:13 aliased capability service
   11 | 	let rebound: unknown = direct;
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:9:20 aliased capability service
    7 | export function bad(capabilities: Capabilities<FsCapability>): void {
    8 | 	const fs = capabilities.fs;
@@ -18,6 +19,7 @@ src/main.ts:9:20 aliased capability service
   12 | 	rebound = capabilities;
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:10:17 escaped capabilities
    8 | 	const fs = capabilities.fs;
    9 | 	const bracketFs = capabilities["fs"];
@@ -28,6 +30,7 @@ src/main.ts:10:17 escaped capabilities
   13 | 	rebound = capabilities.fs;
   = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:12:12 escaped capabilities
   10 | 	const direct = capabilities;
   11 | 	let rebound: unknown = direct;
@@ -38,6 +41,7 @@ src/main.ts:12:12 escaped capabilities
   15 | 	use(bracketFs);
   = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:13:12 aliased capability service
   11 | 	let rebound: unknown = direct;
   12 | 	rebound = capabilities;
@@ -48,6 +52,7 @@ src/main.ts:13:12 aliased capability service
   16 | 	use(direct);
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:22:9 escaped capabilities
   20 | export function returns(capabilities: Capabilities<FsCapability>) {
   21 | 	capabilities.fs;

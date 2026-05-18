@@ -8,6 +8,7 @@ src/main.ts:12:8 unused capability
   15 | }
   = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:17:8 unused capability
   15 | }
   16 |
@@ -18,6 +19,7 @@ src/main.ts:17:8 unused capability
   20 | }
   = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:22:8 unused capability
   20 | }
   21 |
@@ -28,6 +30,7 @@ src/main.ts:22:8 unused capability
   25 | }
   = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:27:8 unused capability
   25 | }
   26 |
@@ -38,6 +41,7 @@ src/main.ts:27:8 unused capability
   30 | }
   = help: remove "read-id" from `Capabilities<...>`, or add a real `capabilities["read-id"]` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:2:8 renamed diy import
   1 | import type { Capabilities, Capability } from "@beff/diy";
 > 2 | import * as diy from "@beff/diy";
@@ -47,6 +51,7 @@ src/main.ts:2:8 renamed diy import
   5 | type ReadIdCapability = Capability<"read-id", unknown>;
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:13:8 aliased capability service
   11 |
   12 | export function destructureRest(capabilities: Capabilities<ReadCapability>): void {
@@ -57,6 +62,7 @@ src/main.ts:13:8 aliased capability service
   16 |
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:18:8 aliased capability service
   16 |
   17 | export function destructureService(capabilities: Capabilities<ReadCapability>): void {
@@ -67,6 +73,7 @@ src/main.ts:18:8 aliased capability service
   21 |
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:23:8 aliased capability service
   21 |
   22 | export function destructureComputedService(capabilities: Capabilities<ReadCapability>): void {
@@ -77,6 +84,7 @@ src/main.ts:23:8 aliased capability service
   26 |
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:28:8 aliased capability service
   26 |
   27 | export function destructureLiteralService(capabilities: Capabilities<ReadIdCapability>): void {
@@ -87,6 +95,7 @@ src/main.ts:28:8 aliased capability service
   31 |
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:34:3 aliased capability service
   32 | export function assignDestructuredService(capabilities: Capabilities<ReadCapability>): void {
   33 | 	let read: unknown;
@@ -97,6 +106,7 @@ src/main.ts:34:3 aliased capability service
   37 | }
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:40:20 escaped capabilities
   38 |
   39 | export function duplicateEscape(capabilities: Capabilities<ReadCapability>): void {
@@ -107,6 +117,7 @@ src/main.ts:40:20 escaped capabilities
   43 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
   = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:44:17 invalid capabilities parameter
   42 |
   43 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
@@ -117,6 +128,7 @@ src/main.ts:44:17 invalid capabilities parameter
   47 | 	inner(capabilities);
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:52:2 invalid capabilities parameter
   50 | export function destructuredParam(
   51 | 	{ value }: { value: unknown },
@@ -127,6 +139,7 @@ src/main.ts:52:2 invalid capabilities parameter
   55 | 	use(value);
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:60:1 re-exported diy capabilities
   58 | }
   59 |
@@ -137,6 +150,7 @@ src/main.ts:60:1 re-exported diy capabilities
   63 |
   = help: use `import type { Capabilities } from "@beff/diy"` in each module that needs it
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:61:1 re-exported diy capabilities
   59 |
   60 | export * from "@beff/diy/capabilities";
@@ -146,6 +160,7 @@ src/main.ts:61:1 re-exported diy capabilities
   63 |
   = help: use `import type { Capabilities } from "@beff/diy"` in each module that needs it
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:39:8 unsupported analysis
   37 | }
   38 |
@@ -156,6 +171,7 @@ src/main.ts:39:8 unsupported analysis
   42 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:43:8 unsupported analysis
   41 | }
   42 |

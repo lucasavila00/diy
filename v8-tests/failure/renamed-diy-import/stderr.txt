@@ -7,6 +7,7 @@ src/main.ts:2:8 renamed diy import
   5 | import type { Capabilities } from "@beff/diy";
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:3:8 renamed diy import
   1 | // @ts-expect-error -- analyzer fixture intentionally checks default imports from diy.
   2 | import DiyDefault from "@beff/diy";
@@ -17,6 +18,7 @@ src/main.ts:3:8 renamed diy import
   6 | import {
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:4:10 renamed diy import
   2 | import DiyDefault from "@beff/diy";
   3 | import * as DiyNamespace from "@beff/diy";
@@ -27,6 +29,7 @@ src/main.ts:4:10 renamed diy import
   7 | 	type Capabilities as CapabilityBag,
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:4:46 renamed diy import
   2 | import DiyDefault from "@beff/diy";
   3 | import * as DiyNamespace from "@beff/diy";
@@ -37,6 +40,7 @@ src/main.ts:4:46 renamed diy import
   7 | 	type Capabilities as CapabilityBag,
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:7:2 renamed diy import
    5 | import type { Capabilities } from "@beff/diy";
    6 | import {
@@ -47,6 +51,7 @@ src/main.ts:7:2 renamed diy import
   10 | 	Capabilities as DiyCapabilities,
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:9:2 renamed diy import
    7 | 	type Capabilities as CapabilityBag,
    8 | 	type Capability,
@@ -57,6 +62,7 @@ src/main.ts:9:2 renamed diy import
   12 | // @ts-expect-error -- analyzer fixture intentionally checks default imports from diy.
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:10:2 renamed diy import
    8 | 	type Capability,
    9 | 	type Capability as DiySubpathCapability,
@@ -67,6 +73,7 @@ src/main.ts:10:2 renamed diy import
   13 | import DiyCapabilitiesDefault from "@beff/diy/capabilities";
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:13:8 renamed diy import
   11 | } from "@beff/diy/capabilities";
   12 | // @ts-expect-error -- analyzer fixture intentionally checks default imports from diy.
@@ -77,6 +84,7 @@ src/main.ts:13:8 renamed diy import
   16 | import type { External as RenamedExternal } from "./external.ts";
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:14:8 renamed diy import
   12 | // @ts-expect-error -- analyzer fixture intentionally checks default imports from diy.
   13 | import DiyCapabilitiesDefault from "@beff/diy/capabilities";

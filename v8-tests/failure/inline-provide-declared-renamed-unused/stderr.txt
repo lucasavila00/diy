@@ -8,6 +8,7 @@ src/main.ts:12:8 unused capability
   15 | 			capabilities,
   = help: remove "appClock" from `Capabilities<...>`, or add a real `capabilities.appClock` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:14:3 redundant capability provider
   12 | export function load(capabilities: Capabilities<LegacyClockCapability | AppClockCapability>): Date {
   13 | 	return readRenamed(

@@ -8,6 +8,7 @@ src/main.ts:11:6 dynamic capability access
   14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:13:6 dynamic capability access
   11 | 	use(capabilities[id]);
   12 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -18,6 +19,7 @@ src/main.ts:13:6 dynamic capability access
   16 | 	use(capabilities?.fs);
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:15:6 dynamic capability access
   13 | 	use(capabilities[`fs${id}`]);
   14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -28,6 +30,7 @@ src/main.ts:15:6 dynamic capability access
   18 | 	const { [dynamicId]: fs } = capabilities;
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:16:6 dynamic capability access
   14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   15 | 	use(capabilities[dynamicId]);
@@ -38,6 +41,7 @@ src/main.ts:16:6 dynamic capability access
   19 | 	use(fs);
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:18:8 aliased capability service
   16 | 	use(capabilities?.fs);
   17 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -48,6 +52,7 @@ src/main.ts:18:8 aliased capability service
   21 | 	const { [`fs${id}`]: templatedFs } = capabilities;
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:21:8 aliased capability service
   19 | 	use(fs);
   20 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -58,6 +63,7 @@ src/main.ts:21:8 aliased capability service
   24 |
   = help: read services inline from `capabilities`, for example `capabilities.reader`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:30:7 dynamic capability access
   28 | 	check(capabilities: Capabilities<FsCapability>): void {
   29 | 		// @ts-expect-error intentionally invalid for analyzer coverage

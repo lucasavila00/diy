@@ -8,6 +8,7 @@ src/main.ts:25:37 invalid capabilities parameter
   28 |
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:31:2 invalid capabilities parameter
   29 | export function directMissingTypeArgument(
   30 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -18,6 +19,7 @@ src/main.ts:31:2 invalid capabilities parameter
   34 | }
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:10:22 unsupported analysis
    8 |
    9 | type ReadCapability = Capability<"read", unknown>;
@@ -28,6 +30,7 @@ src/main.ts:10:22 unsupported analysis
   13 |
   = help: use a string literal or const reference, for example `Capability<"appClock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:36:8 unsupported analysis
   34 | }
   35 |
@@ -38,6 +41,7 @@ src/main.ts:36:8 unsupported analysis
   39 | ): void {
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:38:29 unsupported analysis
   36 | export function rawType(
   37 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -47,6 +51,7 @@ src/main.ts:38:29 unsupported analysis
   40 | 	use(capabilities);
   41 | }
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:43:8 unsupported analysis
   41 | }
   42 |
@@ -57,6 +62,7 @@ src/main.ts:43:8 unsupported analysis
   46 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:43:54 unsupported analysis
   41 | }
   42 |
@@ -66,6 +72,7 @@ src/main.ts:43:54 unsupported analysis
   45 | }
   46 |
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:47:8 unsupported analysis
   45 | }
   46 |
@@ -76,6 +83,7 @@ src/main.ts:47:8 unsupported analysis
   50 | ): void {
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:49:29 unsupported analysis
   47 | export function unresolvedLocal(
   48 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -85,6 +93,7 @@ src/main.ts:49:29 unsupported analysis
   51 | 	use(capabilities);
   52 | }
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:49:44 unsupported analysis
   47 | export function unresolvedLocal(
   48 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -94,6 +103,7 @@ src/main.ts:49:44 unsupported analysis
   51 | 	use(capabilities);
   52 | }
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:54:8 unsupported analysis
   52 | }
   53 |
@@ -104,6 +114,7 @@ src/main.ts:54:8 unsupported analysis
   57 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:54:61 unsupported analysis
   52 | }
   53 |
@@ -113,6 +124,7 @@ src/main.ts:54:61 unsupported analysis
   56 | }
   57 |
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:58:8 unsupported analysis
   56 | }
   57 |
@@ -123,6 +135,7 @@ src/main.ts:58:8 unsupported analysis
   61 | ): void {
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:60:29 unsupported analysis
   58 | export function unresolvedImportedAlias(
   59 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -132,6 +145,7 @@ src/main.ts:60:29 unsupported analysis
   62 | 	use(capabilities);
   63 | }
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:65:8 unsupported analysis
   63 | }
   64 |
@@ -142,6 +156,7 @@ src/main.ts:65:8 unsupported analysis
   68 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:69:8 unsupported analysis
   67 | }
   68 |
@@ -152,6 +167,7 @@ src/main.ts:69:8 unsupported analysis
   72 | ): void {
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:71:29 unsupported analysis
   69 | export function unresolvedDefaultImport(
   70 | 	// @ts-expect-error intentionally invalid for analyzer coverage
@@ -161,6 +177,7 @@ src/main.ts:71:29 unsupported analysis
   73 | 	use(capabilities);
   74 | }
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:76:8 unsupported analysis
   74 | }
   75 |
@@ -171,6 +188,7 @@ src/main.ts:76:8 unsupported analysis
   79 |
   = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:80:8 unsupported analysis
   78 | }
   79 |

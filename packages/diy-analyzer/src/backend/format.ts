@@ -205,5 +205,5 @@ export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions
 			),
 		);
 	}
-	return lines.length === 0 ? "" : `${lines.join("\n")}\n`;
+	return lines.length === 0 ? "" : `${lines.join("\n\n")}\n`;
 }
