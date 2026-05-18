@@ -1,5 +1,11 @@
 # @beff/diy-cli
 
+## 0.0.5
+
+### Patch Changes
+
+- diagnostic supressions
+
 ## 0.0.4
 
 ### Patch Changes

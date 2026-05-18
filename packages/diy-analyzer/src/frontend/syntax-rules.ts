@@ -367,6 +367,9 @@ export function analyzeDiySyntax(
 		if (isNonValueIdentifierParent(parent) || isCapabilitiesParamIdentifier(node, parent)) {
 			return;
 		}
+		if (isObjectLiteralPropertyKey(node, parent)) {
+			return;
+		}
 		if (parent?.type === "MemberExpression" && parent["object"] === node) {
 			return;
 		}
@@ -475,4 +478,13 @@ function isCapabilitiesParamIdentifier(node: AstNode, parent: AstNode | null): b
 		return getArray(parent["params"]).some((param) => getIdentifierFromParam(param) === node);
 	}
 	return parent.type === "AssignmentPattern" && parent["left"] === node;
+}
+
+function isObjectLiteralPropertyKey(node: AstNode, parent: AstNode | null): boolean {
+	return (
+		parent?.type === "Property" &&
+		parent["key"] === node &&
+		parent["value"] !== node &&
+		parent["shorthand"] !== true
+	);
 }

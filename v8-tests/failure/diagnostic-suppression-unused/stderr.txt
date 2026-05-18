@@ -1,0 +1,9 @@
+src/main.ts:6:2 unused diagnostic suppression
+  4 |
+  5 | export function start(capabilities: Capabilities<FsCapability>): void {
+> 6 | 	// diy-ignore-next-line -- stale framework suppression
+    | 	^ `diy-ignore-next-line` did not suppress any DIY diagnostic.
+  7 | 	capabilities.fs;
+  8 | }
+  9 |
+  = help: remove this directive or move it to the line before the diagnostic
