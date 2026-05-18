@@ -7,11 +7,13 @@ export type Capability<Id extends string, Service> = {
 
 type CapabilityId<T> = T extends Capability<infer Id, unknown> ? Id : never;
 
-type ServiceForId<Allowed, Id extends string> =
-	Allowed extends Capability<Id, infer Service> ? Service : never;
-
 type ServiceMap<Allowed extends Capability<string, unknown>> = {
-	readonly [Id in CapabilityId<Allowed>]: ServiceForId<Allowed, Id>;
+	readonly [Single in Allowed as CapabilityId<Single>]: Single extends Capability<
+		string,
+		infer Service
+	>
+		? Service
+		: never;
 };
 
 type ServiceOverrides<Allowed extends Capability<string, unknown>> = Partial<ServiceMap<Allowed>>;
