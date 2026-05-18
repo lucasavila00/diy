@@ -34,6 +34,7 @@ export type ArenaFunction = {
 	readonly calls: readonly ArenaCall[];
 	readonly column: number;
 	readonly declared: ReadonlySet<string>;
+	readonly declaredOpaque: boolean;
 	readonly direct: ReadonlySet<string>;
 	readonly filePath: string;
 	readonly forwardsTransformedCapabilities: boolean;
@@ -85,7 +86,12 @@ export function buildMiddleEndArena(
 		const moduleFunctionIndices: FunctionIndex[] = [];
 		const functionsByName = functionIndexByModule.get(moduleIndex);
 		for (const functionInfo of moduleInfo.functions.values()) {
-			const declared = resolveCapabilityIds(loader, moduleInfo, functionInfo.declaredType, []);
+			const declared = resolveCapabilityIds(
+				loader,
+				moduleInfo,
+				functionInfo.declaredType,
+				functionInfo.typeParameters,
+			);
 			const functionIndex = makeFunctionIndex(functions.length);
 			functionsByName?.set(functionInfo.name, functionIndex);
 			moduleFunctionIndices.push(functionIndex);
@@ -93,6 +99,7 @@ export function buildMiddleEndArena(
 				calls: [],
 				column: functionInfo.column,
 				declared: declared.ids,
+				declaredOpaque: declared.opaque,
 				direct: functionInfo.direct,
 				filePath: functionInfo.filePath,
 				forwardsTransformedCapabilities: functionInfo.forwardsTransformedCapabilities,

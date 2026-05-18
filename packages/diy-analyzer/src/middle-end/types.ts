@@ -2,6 +2,7 @@ import type { DiyAnalyzerNote } from "../model/types.ts";
 
 export type TypeResolution = {
 	readonly ids: ReadonlySet<string>;
+	readonly opaque: boolean;
 	readonly reasons: readonly TypeResolutionReason[];
 };
 

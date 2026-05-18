@@ -50,6 +50,18 @@ export function getTypeArguments(node: AstNode): readonly unknown[] {
 	return getArray(typeArguments?.["params"]);
 }
 
+export function getTypeParameterNames(node: AstNode): ReadonlySet<string> {
+	const names = new Set<string>();
+	const typeParameters = getNode(node["typeParameters"]);
+	for (const parameter of getArray(typeParameters?.["params"])) {
+		const name = getIdentifierName(getNode(parameter)?.["name"]);
+		if (name != null) {
+			names.add(name);
+		}
+	}
+	return names;
+}
+
 export function getFirstParam(node: AstNode): AstNode | null {
 	return getNode(getArray(node["params"])[0]);
 }

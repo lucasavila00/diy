@@ -1,4 +1,10 @@
-import { getFirstParam, getParamType, lineForOffset, locationForOffset } from "./ast.ts";
+import {
+	getFirstParam,
+	getParamType,
+	getTypeParameterNames,
+	lineForOffset,
+	locationForOffset,
+} from "./ast.ts";
 import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
 import { scanFunctionBody } from "./function-scan.ts";
 import type { ModuleLoader } from "./module-loader.ts";
@@ -46,6 +52,7 @@ function readFunction(
 		forwardsTransformedCapabilities: scan.forwardsTransformedCapabilities,
 		line: functionLocation.line,
 		name,
+		typeParameters: getTypeParameterNames(functionNode),
 		unsupportedReasons: scan.unsupportedReasons,
 	};
 }

@@ -1,0 +1,20 @@
+src/main.ts:6:8 unsupported analysis
+  4 | type BetaCapability = Capability<"beta", { write(text: string): void }>;
+  5 |
+> 6 | export function readGenericCapability<Allowed extends AlphaCapability>(
+    |        ^ generic capabilities parameter reads services directly
+  7 | 	capabilities: Capabilities<Allowed>,
+  8 | ): void {
+  9 | 	// @ts-expect-error -- analyzer fixture intentionally reads from an opaque generic parameter.
+  = help: use a concrete `Capabilities<...>` type for functions that read services directly
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+src/main.ts:13:8 unsupported analysis
+  11 | }
+  12 |
+> 13 | export function readGenericUnion<Allowed extends AlphaCapability | BetaCapability>(
+     |        ^ generic capabilities parameter reads services directly
+  14 | 	capabilities: Capabilities<Allowed>,
+  15 | ): void {
+  16 | 	// @ts-expect-error -- analyzer fixture intentionally reads from an opaque generic parameter.
+  = help: use a concrete `Capabilities<...>` type for functions that read services directly
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

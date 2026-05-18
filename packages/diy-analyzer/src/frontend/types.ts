@@ -42,6 +42,7 @@ export type FunctionInfo = {
 	readonly column: number;
 	readonly line: number;
 	readonly name: string;
+	readonly typeParameters: ReadonlySet<string>;
 	readonly unsupportedReasons: readonly UnsupportedReason[];
 };
 

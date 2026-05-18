@@ -1,0 +1,23 @@
+Module graph
+
+src/app.ts
+`-- createAppToolServer: alpha, beta, gamma
+   `-- calls: createGenericToolServer
+
+src/mixed.ts
++-- readKnownAndForwardGeneric: alpha
+|  `-- calls: forwardOpaque
+|
++-- forwardOpaque: (none)
+|  `-- calls: acceptOpaque
+|
+`-- acceptOpaque: (none)
+
+src/transport.ts
++-- createGenericToolServer: (none)
+|  `-- calls: startGenericTransport
+|
++-- startGenericTransport: (none)
+|  `-- calls: finishGenericTransport
+|
+`-- finishGenericTransport: (none)

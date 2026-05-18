@@ -15,6 +15,9 @@ export function analyzeRequiredCapabilities(
 	arena: MiddleEndArena,
 ): RequiredCapabilitiesAnalysis {
 	const requiredByFunction = arena.functions.map((functionInfo) => baseRequired(functionInfo));
+	const opaqueRequiredByFunction = arena.functions.map((functionInfo) =>
+		baseOpaqueRequired(functionInfo),
+	);
 	let changed = true;
 	while (changed) {
 		changed = false;
@@ -33,6 +36,21 @@ export function analyzeRequiredCapabilities(
 				if (calleeRequired == null) {
 					continue;
 				}
+				if (opaqueRequiredByFunction[call.target] === true) {
+					if (functionInfo.declaredOpaque) {
+						if (opaqueRequiredByFunction[functionInfo.index] !== true) {
+							opaqueRequiredByFunction[functionInfo.index] = true;
+							changed = true;
+						}
+					} else {
+						for (const id of functionInfo.declared) {
+							if (!required.has(id)) {
+								required.add(id);
+								changed = true;
+							}
+						}
+					}
+				}
 				const provided = resolveProvidedCapabilities(loader, arena, functionInfo, call);
 				for (const id of calleeRequired) {
 					if (provided.has(id)) {
@@ -46,10 +64,7 @@ export function analyzeRequiredCapabilities(
 			}
 		}
 	}
-	return {
-		requiredByFunction,
-		...buildUnsupported(arena),
-	};
+	return { requiredByFunction, ...buildUnsupported(arena) };
 }
 
 function resolveProvidedCapabilities(
@@ -71,7 +86,7 @@ function resolveProvidedCapabilities(
 	if (sourceModule == null) {
 		return new Set();
 	}
-	const provided = resolveCapabilityIds(loader, sourceModule, call.providedType, []);
+	const provided = resolveCapabilityIds(loader, sourceModule, call.providedType);
 	if (provided.reasons.length > 0) {
 		return new Set();
 	}
@@ -88,6 +103,17 @@ function baseRequired(functionInfo: ArenaFunction): Set<string> {
 	return required;
 }
 
+function baseOpaqueRequired(functionInfo: ArenaFunction): boolean {
+	return (
+		functionInfo.declaredOpaque &&
+		(functionInfo.calls.length > 0 ||
+			functionInfo.forwardsTransformedCapabilities ||
+			functionInfo.unsupportedReasons.some(
+				(reason) => reason.kind === "unresolved-forwarding-callee",
+			))
+	);
+}
+
 function buildUnsupported(
 	arena: MiddleEndArena,
 ): Pick<RequiredCapabilitiesAnalysis, "unsupported" | "unsupportedFunctionIndices"> {
@@ -98,6 +124,13 @@ function buildUnsupported(
 		/* c8 ignore next -- function moduleIndex is assigned from arena.modules. */
 		if (moduleInfo == null || !moduleInfo.reportable) {
 			continue;
+		}
+		if (
+			functionInfo.declaredOpaque &&
+			Array.from(functionInfo.direct).some((id) => !functionInfo.declared.has(id))
+		) {
+			unsupportedFunctionIndices.add(functionInfo.index);
+			unsupported.push(opaqueCapabilitiesReadUnsupported(functionInfo));
 		}
 		for (const reason of functionInfo.unsupportedReasons) {
 			unsupportedFunctionIndices.add(functionInfo.index);
@@ -113,6 +146,23 @@ function buildUnsupported(
 		}
 	}
 	return { unsupported, unsupportedFunctionIndices };
+}
+
+function opaqueCapabilitiesReadUnsupported(functionInfo: ArenaFunction): DiyAnalyzerUnsupported {
+	return {
+		column: functionInfo.column,
+		filePath: functionInfo.filePath,
+		functionName: functionInfo.name,
+		line: functionInfo.line,
+		notes: [
+			{
+				kind: "help",
+				message:
+					"use a concrete `Capabilities<...>` type for functions that read services directly",
+			},
+		],
+		reason: "generic capabilities parameter reads services directly",
+	};
 }
 
 function makeUnsupported(

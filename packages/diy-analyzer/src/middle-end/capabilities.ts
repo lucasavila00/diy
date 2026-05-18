@@ -22,21 +22,23 @@ type CapabilityModule = StringConstantModule & {
 
 type MutableTypeResolution = {
 	readonly ids: Set<string>;
+	opaque: boolean;
 	readonly reasons: TypeResolutionReason[];
 	resolving: boolean;
 };
 
 type CapabilityResolutionContext = {
 	readonly aliases: Map<string, MutableTypeResolution>;
+	readonly opaqueTypeNames: ReadonlySet<string>;
 };
 
 export function resolveCapabilityIds(
 	loader: ModuleLoader,
 	moduleInfo: CapabilityModule,
 	typeNode: unknown,
-	_stack: readonly string[] = [],
+	opaqueTypeNames: ReadonlySet<string> = new Set(),
 ): TypeResolution {
-	const context: CapabilityResolutionContext = { aliases: new Map() };
+	const context: CapabilityResolutionContext = { aliases: new Map(), opaqueTypeNames };
 	return freezeResolution(resolveCapabilityIdsInner(context, loader, moduleInfo, typeNode));
 }
 
@@ -74,6 +76,9 @@ function resolveCapabilityIdsInner(
 			[],
 			[makeReason(moduleInfo, node, "unsupported qualified type reference")],
 		);
+	}
+	if (context.opaqueTypeNames.has(typeName)) {
+		return makeResolution([], [], true);
 	}
 	const typeArguments = getTypeArguments(node);
 	if (typeName === "Capability") {
@@ -162,11 +167,13 @@ function resolveAlias(
 function makeResolution(
 	ids: Iterable<string> = [],
 	reasons: Iterable<TypeResolutionReason> = [],
+	opaque = false,
 ): MutableTypeResolution {
-	return { ids: new Set(ids), reasons: Array.from(reasons), resolving: false };
+	return { ids: new Set(ids), opaque, reasons: Array.from(reasons), resolving: false };
 }
 
 function mergeResolution(target: MutableTypeResolution, source: MutableTypeResolution): void {
+	target.opaque = target.opaque || source.opaque;
 	for (const id of source.ids) {
 		target.ids.add(id);
 	}
@@ -180,6 +187,7 @@ function mergeResolution(target: MutableTypeResolution, source: MutableTypeResol
 function freezeResolution(resolution: MutableTypeResolution): TypeResolution {
 	return {
 		ids: new Set(resolution.ids),
+		opaque: resolution.opaque,
 		reasons: Array.from(resolution.reasons).sort(compareReasons),
 	};
 }
