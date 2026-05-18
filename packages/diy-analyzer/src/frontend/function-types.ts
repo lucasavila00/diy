@@ -1,5 +1,17 @@
-import { getArray, getNode, getParamType, getTypeName } from "./ast.ts";
+import {
+	getArray,
+	getIdentifierName,
+	getNode,
+	getParamType,
+	getTypeArguments,
+	getTypeName,
+} from "./ast.ts";
 import type { AstNode, ModuleInfo } from "./types.ts";
+
+export type FunctionTypeFirstParamInfo = {
+	readonly opaqueTypeNames: ReadonlySet<string>;
+	readonly type: unknown;
+};
 
 export function getContextualFunctionType(parent: AstNode | null): unknown | null {
 	if (parent?.type !== "VariableDeclarator") {
@@ -14,23 +26,39 @@ export function getFunctionTypeFirstParamType(
 	moduleInfo: ModuleInfo,
 	typeNode: unknown,
 ): unknown | null {
-	return getFunctionTypeFirstParamTypeInner(moduleInfo, typeNode, []);
+	return getFunctionTypeFirstParamInfo(moduleInfo, typeNode)?.type ?? null;
 }
 
-function getFunctionTypeFirstParamTypeInner(
+export function getFunctionTypeFirstParamInfo(
+	moduleInfo: ModuleInfo,
+	typeNode: unknown,
+): FunctionTypeFirstParamInfo | null {
+	return getFunctionTypeFirstParamInfoInner(moduleInfo, typeNode, [], new Set());
+}
+
+function getFunctionTypeFirstParamInfoInner(
 	moduleInfo: ModuleInfo,
 	typeNode: unknown,
 	seen: readonly string[],
-): unknown | null {
+	opaqueTypeNames: ReadonlySet<string>,
+): FunctionTypeFirstParamInfo | null {
 	const node = getNode(typeNode);
 	if (node == null) {
 		return null;
 	}
 	if (node.type === "TSParenthesizedType") {
-		return getFunctionTypeFirstParamTypeInner(moduleInfo, node["typeAnnotation"], seen);
+		return getFunctionTypeFirstParamInfoInner(
+			moduleInfo,
+			node["typeAnnotation"],
+			seen,
+			opaqueTypeNames,
+		);
 	}
 	if (node.type === "TSFunctionType") {
-		return getParamType(getNode(getArray(node["params"])[0]));
+		return {
+			opaqueTypeNames,
+			type: getParamType(getNode(getArray(node["params"])[0])),
+		};
 	}
 	if (node.type !== "TSTypeReference") {
 		return null;
@@ -47,5 +75,135 @@ function getFunctionTypeFirstParamTypeInner(
 	if (seen.includes(key)) {
 		return null;
 	}
-	return getFunctionTypeFirstParamTypeInner(moduleInfo, localAlias, [...seen, key]);
+	const typeArguments = getTypeArguments(node);
+	/* c8 ignore next -- module loading records type parameters for every local type alias. */
+	const aliasParameters = moduleInfo.aliasTypeParameters.get(typeName) ?? [];
+	const substitutions = new Map<string, unknown>();
+	const contextualOpaqueTypeNames = new Set(opaqueTypeNames);
+	for (const [index, parameter] of aliasParameters.entries()) {
+		const typeArgument = typeArguments[index];
+		/* c8 ignore next -- contextual aliases in fixtures provide their type arguments. */
+		if (typeArgument == null) {
+			continue;
+		}
+		substitutions.set(parameter.name, typeArgument);
+		if (isCapabilityConstraint(moduleInfo, parameter.constraint, [])) {
+			for (const opaqueName of unresolvedTypeReferenceNames(moduleInfo, typeArgument)) {
+				contextualOpaqueTypeNames.add(opaqueName);
+			}
+		}
+	}
+	return getFunctionTypeFirstParamInfoInner(
+		moduleInfo,
+		substituteTypeParameters(localAlias, substitutions),
+		[...seen, key],
+		contextualOpaqueTypeNames,
+	);
+}
+
+function substituteTypeParameters(
+	value: unknown,
+	substitutions: ReadonlyMap<string, unknown>,
+): unknown {
+	if (substitutions.size === 0) {
+		return value;
+	}
+	if (Array.isArray(value)) {
+		return value.map((item) => substituteTypeParameters(item, substitutions));
+	}
+	const node = getNode(value);
+	if (node == null) {
+		return value;
+	}
+	const typeName = node.type === "TSTypeReference" ? getTypeName(node) : null;
+	if (typeName != null && getTypeArguments(node).length === 0) {
+		const replacement = substitutions.get(typeName);
+		/* c8 ignore next -- substitutions only replace matching type-parameter references. */
+		if (replacement != null) {
+			return replacement;
+		}
+	}
+	const next: Record<string, unknown> = {};
+	for (const [key, child] of Object.entries(node)) {
+		next[key] = substituteTypeParameters(child, substitutions);
+	}
+	return next;
+}
+
+function isCapabilityConstraint(
+	moduleInfo: ModuleInfo,
+	typeNode: unknown,
+	seen: readonly string[],
+): boolean {
+	const node = getNode(typeNode);
+	if (node == null) {
+		return false;
+	}
+	/* c8 ignore next -- formatter removes parenthesized generic constraints in fixtures. */
+	if (node.type === "TSParenthesizedType") {
+		return isCapabilityConstraint(moduleInfo, node["typeAnnotation"], seen);
+	}
+	/* c8 ignore next -- non-reference generic constraints are treated as non-capability bounds. */
+	if (node.type !== "TSTypeReference") {
+		return false;
+	}
+	const typeName = getTypeName(node);
+	/* c8 ignore next -- qualified constraints are treated as non-capability bounds. */
+	if (typeName == null) {
+		return false;
+	}
+	if (typeName === "Capability") {
+		return true;
+	}
+	const localAlias = moduleInfo.aliases.get(typeName);
+	/* c8 ignore next -- unresolved constraints are treated as non-capability bounds. */
+	if (localAlias == null) {
+		return false;
+	}
+	const key = `${moduleInfo.filePath}:${typeName}`;
+	/* c8 ignore next -- recursive constraints are treated as non-capability bounds. */
+	if (seen.includes(key)) {
+		return false;
+	}
+	return isCapabilityConstraint(moduleInfo, localAlias, [...seen, key]);
+}
+
+function unresolvedTypeReferenceNames(
+	moduleInfo: ModuleInfo,
+	typeNode: unknown,
+): ReadonlySet<string> {
+	const names = new Set<string>();
+	const visit = (value: unknown): void => {
+		if (Array.isArray(value)) {
+			for (const item of value) {
+				visit(item);
+			}
+			return;
+		}
+		const node = getNode(value);
+		if (node == null) {
+			return;
+		}
+		if (node.type === "TSTypeReference") {
+			const name = getIdentifierName(node["typeName"]);
+			if (
+				name != null &&
+				name !== "Capability" &&
+				name !== "Capabilities" &&
+				name !== "Exclude" &&
+				!moduleInfo.aliases.has(name) &&
+				!moduleInfo.imports.has(name)
+			) {
+				names.add(name);
+			}
+		}
+		for (const [key, child] of Object.entries(node)) {
+			if (key === "type" || key === "start" || key === "end") {
+				continue;
+			}
+			visit(child);
+		}
+	};
+	visit(typeNode);
+	return names;
 }

@@ -165,14 +165,14 @@ Options:
 
 DIY's analyzer is intentionally strict so dependency flow stays easy to follow:
 
-- Capabilities parameters must be named `capabilities`.
+- Capabilities parameters must be named `capabilities`, or `_capabilities` when the parameter is intentionally unused but the `Capabilities<...>` annotation is still needed for a framework or generic callback shape.
 - Capabilities parameters must be typed as `Capabilities<...>`.
 - Capabilities parameters must be the first function parameter.
 - Capability services must be read inline with static property access such as `capabilities.clock.now()`, not local service aliases or destructuring.
 - Computed capability keys must use a string literal capability ID or a resolvable `const` string identifier.
 - The `capabilities` object must not be stored, returned, or passed around except through the supported forwarding pattern.
 - The `capabilities` value may be forwarded as the first argument to another effectful function.
-- Declared capabilities that are not used directly or transitively are reported as unused.
+- Declared capabilities that are not used directly or transitively are reported as unused. Use `_capabilities: Capabilities<...>` for intentionally unused framework parameters that exist only to guide contextual typing.
 
 ## Advanced Features
 

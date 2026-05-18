@@ -44,6 +44,7 @@ export function analyzeDiySyntax(
 	const violations: DiyAnalyzerViolation[] = [];
 	const functionStack: FunctionFrame[] = [];
 	const constantScopes: Map<string, StringConstantBinding>[] = [];
+	const nodeStack: AstNode[] = [];
 	const reportedCapabilityRanges = new Set<string>();
 
 	/* c8 ignore next -- only used by the defensive missing-range fallback. */
@@ -141,6 +142,11 @@ export function analyzeDiySyntax(
 			moduleInfo,
 			getContextualFunctionType(parent),
 		);
+		const trustsUntypedContextualCapabilities = isTrustedUntypedContextualCapabilitiesFunction(
+			node,
+			parent,
+			nodeStack,
+		);
 		const functionConstants = new Map<string, StringConstantBinding>();
 		for (const param of params) {
 			const name = getIdentifierName(getIdentifierFromParam(param));
@@ -157,10 +163,11 @@ export function analyzeDiySyntax(
 				const identifier = getIdentifierFromParam(param);
 				return (
 					getIdentifierName(identifier) === "capabilities" &&
-					getDiyCapabilitiesAllowedType(
+					(getDiyCapabilitiesAllowedType(
 						moduleInfo,
 						getEffectiveParamType(param, params, contextualFirstParamType),
-					) != null
+					) != null ||
+						trustsUntypedContextualCapabilities)
 				);
 			}),
 			name: getFunctionName(node, parent),
@@ -178,18 +185,27 @@ export function analyzeDiySyntax(
 			const hasUnrelatedCapabilitiesType =
 				isCapabilitiesType(typeNode) && !hasDiyCapabilitiesReference;
 			const name = getIdentifierName(identifier);
+			const isCapabilitiesName = name === "capabilities" || name === "_capabilities";
+			if (
+				trustsUntypedContextualCapabilities &&
+				index === 0 &&
+				isCapabilitiesName &&
+				getParamType(param) == null
+			) {
+				continue;
+			}
 			if (!hasDiyCapabilitiesType && name !== "capabilities") {
 				continue;
 			}
 			if (name === "capabilities" && hasUnrelatedCapabilitiesType) {
 				continue;
 			}
-			if (name !== "capabilities") {
+			if (!isCapabilitiesName) {
 				report(
 					/* c8 ignore next -- invalid parameter reports use the parsed parameter node. */
 					param ?? identifier,
 					"invalid capabilities parameter",
-					"Capabilities parameters must be named `capabilities`.",
+					"Capabilities parameters must be named `capabilities` or `_capabilities`.",
 					[capabilitiesParameterHelp()],
 				);
 			}
@@ -426,6 +442,7 @@ export function analyzeDiySyntax(
 			return;
 		}
 
+		nodeStack.push(node);
 		const isFunction = isFunctionNode(node);
 		if (isFunction) {
 			enterFunction(node, parent);
@@ -457,6 +474,7 @@ export function analyzeDiySyntax(
 		if (createsConstantScope) {
 			constantScopes.pop();
 		}
+		nodeStack.pop();
 	};
 
 	visit(moduleInfo.body, null);
@@ -473,6 +491,45 @@ function getEffectiveParamType(
 	contextualFirstParamType: unknown | null,
 ): unknown {
 	return getParamType(getNode(param)) ?? (params[0] === param ? contextualFirstParamType : null);
+}
+
+function isTrustedUntypedContextualCapabilitiesFunction(
+	node: AstNode,
+	parent: AstNode | null,
+	nodeStack: readonly AstNode[],
+): boolean {
+	if (node.type !== "ArrowFunctionExpression" && node.type !== "FunctionExpression") {
+		return false;
+	}
+	const firstParam = getNode(getArray(node["params"])[0]);
+	const firstParamName = getIdentifierName(getIdentifierFromParam(firstParam));
+	if (
+		getParamType(firstParam) != null ||
+		(firstParamName !== "capabilities" && firstParamName !== "_capabilities")
+	) {
+		return false;
+	}
+	return isDirectCallArgument(parent, node) || isInsideCallArgumentObject(nodeStack);
+}
+
+function isDirectCallArgument(parent: AstNode | null, node: AstNode): boolean {
+	return parent?.type === "CallExpression" && getArray(parent["arguments"]).includes(node);
+}
+
+function isInsideCallArgumentObject(nodeStack: readonly AstNode[]): boolean {
+	for (let index = nodeStack.length - 2; index >= 0; index -= 1) {
+		const node = nodeStack[index];
+		if (node?.type !== "ObjectExpression") {
+			continue;
+		}
+		for (let parentIndex = index - 1; parentIndex >= 0; parentIndex -= 1) {
+			const parent = nodeStack[parentIndex];
+			if (parent?.type === "CallExpression" && getArray(parent["arguments"]).includes(node)) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 function capabilitiesParameterHelp(): DiyAnalyzerNote {

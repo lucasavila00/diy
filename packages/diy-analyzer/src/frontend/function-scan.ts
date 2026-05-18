@@ -15,6 +15,7 @@ import {
 	isCapabilitiesStaticTransformCall,
 } from "./ast.ts";
 import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
+import { getFunctionTypeFirstParamType } from "./function-types.ts";
 import type { ModuleLoader } from "./module-loader.ts";
 import {
 	collectVariableDeclarationConstants,
@@ -53,14 +54,22 @@ export function scanFunctionBody(
 	const unsupportedReasons: UnsupportedReason[] = [];
 	const body = functionNode["body"];
 	const constantScopes: Map<string, StringConstantBinding>[] = [];
+	/* c8 ignore next -- module loading records closure callbacks for every collected function. */
+	const typedCallbackScopes: Set<string>[] = [
+		new Set(moduleInfo.functionClosureCallbacks.get(functionNode) ?? []),
+	];
 
 	const enterScope = (node: AstNode): void => {
 		const scope = new Map<string, StringConstantBinding>();
+		const typedCallbacks = new Set<string>();
 		if (isFunctionNode(node)) {
 			for (const param of getArray(node["params"])) {
 				const name = getIdentifierName(getIdentifierFromParam(param));
 				if (name != null) {
 					scope.set(name, null);
+					if (isTypedCapabilitiesCallback(moduleInfo, param)) {
+						typedCallbacks.add(name);
+					}
 				}
 			}
 		}
@@ -71,6 +80,7 @@ export function scanFunctionBody(
 			}
 		}
 		constantScopes.push(scope);
+		typedCallbackScopes.push(typedCallbacks);
 	};
 
 	enterScope(functionNode);
@@ -134,6 +144,8 @@ export function scanFunctionBody(
 							kind: "unresolved-forwarding-callee",
 							message: "unresolved capabilities forwarding callee",
 						});
+					} else if (isTypedCallbackName(calleeName, typedCallbackScopes)) {
+						forwardsTransformedCapabilities = true;
 					} else {
 						calls.push({
 							calleeName,
@@ -151,11 +163,14 @@ export function scanFunctionBody(
 		}
 		if (createsScope) {
 			constantScopes.pop();
+			typedCallbackScopes.pop();
 		}
 	};
 
 	visit(body);
 	constantScopes.pop();
+	typedCallbackScopes.pop();
+	typedCallbackScopes.pop();
 	return {
 		calls,
 		direct,
@@ -163,6 +178,21 @@ export function scanFunctionBody(
 		provideChecks,
 		unsupportedReasons,
 	};
+}
+
+function isTypedCapabilitiesCallback(moduleInfo: ModuleInfo, param: unknown): boolean {
+	const firstParamType = getFunctionTypeFirstParamType(moduleInfo, getParamType(getNode(param)));
+	return getDiyCapabilitiesAllowedType(moduleInfo, firstParamType) != null;
+}
+
+function isTypedCallbackName(
+	calleeName: string,
+	typedCallbackScopes: readonly ReadonlySet<string>[],
+): boolean {
+	if (calleeName.includes(".")) {
+		return false;
+	}
+	return typedCallbackScopes.some((scope) => scope.has(calleeName));
 }
 
 function getForwardingCalleeName(moduleInfo: ModuleInfo, callee: unknown): string | null {
@@ -200,7 +230,7 @@ type ForwardedCapabilitiesArgument = {
 };
 
 function getForwardedCapabilitiesArgument(node: AstNode): ForwardedCapabilitiesArgument | null {
-	const firstArgument = getArray(node["arguments"])[0];
+	const firstArgument = unwrapExpression(getArray(node["arguments"])[0]);
 	if (getIdentifierName(firstArgument) === "capabilities") {
 		return { provideCall: null, providedType: null };
 	}
@@ -212,6 +242,18 @@ function getForwardedCapabilitiesArgument(node: AstNode): ForwardedCapabilitiesA
 		provideCall: firstArgumentNode,
 		providedType: getCapabilitiesCreateType(getArray(firstArgumentNode["arguments"])[1]),
 	};
+}
+
+function unwrapExpression(value: unknown): unknown {
+	let current = getNode(value);
+	while (
+		current?.type === "TSAsExpression" ||
+		current?.type === "TSTypeAssertion" ||
+		current?.type === "TSNonNullExpression"
+	) {
+		current = getNode(current["expression"]);
+	}
+	return current ?? value;
 }
 
 function getCapabilitiesCreateType(value: unknown): unknown | null {

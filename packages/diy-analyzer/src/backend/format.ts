@@ -110,6 +110,11 @@ function unusedCapabilityNotes(
 				`remove "${id}" from \`Capabilities<...>\`, or add a real ` +
 				`\`${formatCapabilityRead(id)}\` read if it is required`,
 		},
+		{
+			kind: "help",
+			message:
+				"if the type annotation is intentional for contextual typing, name the parameter `_capabilities`",
+		},
 		...(extraNotes ?? []),
 	];
 }

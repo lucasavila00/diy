@@ -104,6 +104,9 @@ export function analyzeUnusedCapabilities(
 			if (requiredCapabilities.unsupportedFunctionIndices.has(functionInfo.index)) {
 				continue;
 			}
+			if (functionInfo.suppressUnusedCapabilities) {
+				continue;
+			}
 			const required = requiredCapabilities.requiredByFunction[functionInfo.index];
 			/* c8 ignore next -- requiredByFunction is built from arena.functions. */
 			if (required == null) {

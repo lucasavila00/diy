@@ -1,5 +1,11 @@
 # @beff/diy-cli
 
+## 0.0.13
+
+### Patch Changes
+
+- bug fixes
+
 ## 0.0.12
 
 ### Patch Changes

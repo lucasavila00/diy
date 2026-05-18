@@ -13,7 +13,7 @@ src/main.ts:8:25 invalid capabilities parameter
    6 | declare function use(value: unknown): void;
    7 |
 >  8 | export function renamed(svc: Capabilities<FsCapability>): void {
-     |                         ^ Capabilities parameters must be named `capabilities`.
+     |                         ^ Capabilities parameters must be named `capabilities` or `_capabilities`.
    9 | 	use(svc);
   10 | }
   11 |

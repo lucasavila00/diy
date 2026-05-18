@@ -15,17 +15,20 @@ import {
 import {
 	getArray,
 	getFunctionName,
+	getIdentifierFromParam,
 	getIdentifierName,
 	getLiteralString,
 	getNode,
+	getParamType,
 	isFunctionNode,
 	locationForOffset,
 	makeLineStarts,
 	unwrapDeclaration,
 } from "./ast.ts";
-import { getContextualFunctionType } from "./function-types.ts";
+import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
+import { getContextualFunctionType, getFunctionTypeFirstParamType } from "./function-types.ts";
 import { collectStringConstantBindings } from "./string-constants.ts";
-import type { AstNode, ImportedBinding, ModuleInfo } from "./types.ts";
+import type { AstNode, ImportedBinding, ModuleInfo, TypeAliasParameter } from "./types.ts";
 
 export class ModuleLoader {
 	private readonly modules = new Map<string, ModuleInfo>();
@@ -68,11 +71,13 @@ export class ModuleLoader {
 		});
 		const moduleInfo: ModuleInfo = {
 			aliases: new Map(),
+			aliasTypeParameters: new Map(),
 			body,
 			constantExports: new Map(),
 			constants: new Map(),
 			filePath: resolvedPath,
 			functionContextualTypes: new Map(),
+			functionClosureCallbacks: new WeakMap(),
 			functionNamespaces: new Map(),
 			functionNodes: new Map(),
 			functions: new Map(),
@@ -84,7 +89,7 @@ export class ModuleLoader {
 		};
 		this.modules.set(resolvedPath, moduleInfo);
 		collectImports(body, moduleInfo.imports);
-		collectAliases(body, moduleInfo.aliases);
+		collectAliases(body, moduleInfo.aliases, moduleInfo.aliasTypeParameters);
 		collectStringConstantBindings(body, moduleInfo.constants, moduleInfo.constantExports);
 		collectFunctionNodes(body, null, moduleInfo);
 		return moduleInfo;
@@ -201,7 +206,11 @@ function collectImports(body: readonly unknown[], imports: Map<string, ImportedB
 	}
 }
 
-function collectAliases(body: readonly unknown[], aliases: Map<string, unknown>): void {
+function collectAliases(
+	body: readonly unknown[],
+	aliases: Map<string, unknown>,
+	aliasTypeParameters: Map<string, readonly TypeAliasParameter[]>,
+): void {
 	for (const statement of body) {
 		const node = getNode(statement);
 		/* c8 ignore next -- parser program bodies contain AST nodes. */
@@ -216,8 +225,27 @@ function collectAliases(body: readonly unknown[], aliases: Map<string, unknown>)
 		/* c8 ignore next -- parser type aliases have identifier names. */
 		if (name != null) {
 			aliases.set(name, declaration["typeAnnotation"]);
+			aliasTypeParameters.set(name, collectAliasTypeParameters(declaration));
 		}
 	}
+}
+
+function collectAliasTypeParameters(declaration: AstNode): readonly TypeAliasParameter[] {
+	const typeParameters = getNode(declaration["typeParameters"]);
+	return getArray(typeParameters?.["params"]).flatMap((paramValue) => {
+		const param = getNode(paramValue);
+		const name = getIdentifierName(param?.["name"]);
+		/* c8 ignore next -- parser type parameters have identifier names. */
+		if (name == null) {
+			return [];
+		}
+		return [
+			{
+				constraint: param?.["constraint"] ?? null,
+				name,
+			},
+		];
+	});
 }
 
 function collectFunctionNodes(
@@ -226,10 +254,18 @@ function collectFunctionNodes(
 	moduleInfo: ModuleInfo,
 	namespaceName: string | null = null,
 	ownerName: string | null = null,
+	closureTypedCallbacks: ReadonlySet<string> = new Set(),
 ): void {
 	if (Array.isArray(value)) {
 		for (const item of value) {
-			collectFunctionNodes(item, parent, moduleInfo, namespaceName, ownerName);
+			collectFunctionNodes(
+				item,
+				parent,
+				moduleInfo,
+				namespaceName,
+				ownerName,
+				closureTypedCallbacks,
+			);
 		}
 		return;
 	}
@@ -250,6 +286,7 @@ function collectFunctionNodes(
 		const name = getCollectedFunctionName(moduleInfo, declaration, parent, ownerName);
 		const qualifiedName = namespaceName == null ? name : `${namespaceName}.${name}`;
 		moduleInfo.functionNodes.set(qualifiedName, declaration);
+		moduleInfo.functionClosureCallbacks.set(declaration, closureTypedCallbacks);
 		if (namespaceName == null) {
 			moduleInfo.functionNamespaces.delete(qualifiedName);
 		} else {
@@ -262,12 +299,47 @@ function collectFunctionNodes(
 			moduleInfo.functionContextualTypes.set(qualifiedName, contextualType);
 		}
 	}
+	const childClosureTypedCallbacks = isFunctionNode(declaration)
+		? mergeSets(closureTypedCallbacks, getTypedCallbackParamNames(moduleInfo, declaration))
+		: closureTypedCallbacks;
 	for (const [key, child] of Object.entries(declaration)) {
 		if (key === "type" || key === "start" || key === "end") {
 			continue;
 		}
-		collectFunctionNodes(child, declaration, moduleInfo, childNamespaceName, childOwnerName);
+		collectFunctionNodes(
+			child,
+			declaration,
+			moduleInfo,
+			childNamespaceName,
+			childOwnerName,
+			childClosureTypedCallbacks,
+		);
 	}
+}
+
+function getTypedCallbackParamNames(moduleInfo: ModuleInfo, node: AstNode): ReadonlySet<string> {
+	const names = new Set<string>();
+	for (const param of getArray(node["params"])) {
+		const name = getIdentifierName(getIdentifierFromParam(param));
+		if (name == null) {
+			continue;
+		}
+		const firstParamType = getFunctionTypeFirstParamType(moduleInfo, getParamType(getNode(param)));
+		if (getDiyCapabilitiesAllowedType(moduleInfo, firstParamType) != null) {
+			names.add(name);
+		}
+	}
+	return names;
+}
+
+function mergeSets(left: ReadonlySet<string>, right: ReadonlySet<string>): ReadonlySet<string> {
+	if (left.size === 0) {
+		return right;
+	}
+	if (right.size === 0) {
+		return left;
+	}
+	return new Set([...left, ...right]);
 }
 
 function getCollectedFunctionName(

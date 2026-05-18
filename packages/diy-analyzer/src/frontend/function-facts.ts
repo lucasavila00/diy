@@ -1,5 +1,7 @@
 import {
 	getFirstParam,
+	getIdentifierFromParam,
+	getIdentifierName,
 	getParamType,
 	getTypeParameterNames,
 	lineForOffset,
@@ -7,7 +9,7 @@ import {
 } from "./ast.ts";
 import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
 import { scanFunctionBody } from "./function-scan.ts";
-import { getFunctionTypeFirstParamType } from "./function-types.ts";
+import { getFunctionTypeFirstParamInfo } from "./function-types.ts";
 import type { ModuleLoader } from "./module-loader.ts";
 import type { AstNode, FunctionInfo, ModuleInfo } from "./types.ts";
 
@@ -33,13 +35,13 @@ function readFunction(
 	functionNode: AstNode,
 ): FunctionInfo | null {
 	const firstParam = getFirstParam(functionNode);
-	const contextualType = getFunctionTypeFirstParamType(
+	const contextualTypeInfo = getFunctionTypeFirstParamInfo(
 		moduleInfo,
 		moduleInfo.functionContextualTypes.get(name),
 	);
 	const declaredType =
 		getDiyCapabilitiesAllowedType(moduleInfo, getParamType(firstParam)) ??
-		getDiyCapabilitiesAllowedType(moduleInfo, contextualType);
+		getDiyCapabilitiesAllowedType(moduleInfo, contextualTypeInfo?.type);
 	if (declaredType == null) {
 		return null;
 	}
@@ -60,7 +62,12 @@ function readFunction(
 		line: functionLocation.line,
 		name,
 		namespaceName: moduleInfo.functionNamespaces.get(name) ?? null,
-		typeParameters: getTypeParameterNames(functionNode),
+		suppressUnusedCapabilities:
+			getIdentifierName(getIdentifierFromParam(firstParam)) === "_capabilities",
+		typeParameters: new Set([
+			...getTypeParameterNames(functionNode),
+			...(contextualTypeInfo?.opaqueTypeNames ?? []),
+		]),
 		unsupportedReasons: scan.unsupportedReasons,
 	};
 }

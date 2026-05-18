@@ -12,13 +12,20 @@ export type ImportedBinding = {
 
 export type StringConstantBinding = string | null;
 
+export type TypeAliasParameter = {
+	readonly constraint: unknown | null;
+	readonly name: string;
+};
+
 export type ModuleInfo = {
 	readonly aliases: Map<string, unknown>;
+	readonly aliasTypeParameters: Map<string, readonly TypeAliasParameter[]>;
 	readonly body: readonly unknown[];
 	readonly constantExports: Map<string, string>;
 	readonly constants: Map<string, StringConstantBinding>;
 	readonly filePath: string;
 	readonly functionContextualTypes: Map<string, unknown>;
+	readonly functionClosureCallbacks: WeakMap<AstNode, ReadonlySet<string>>;
 	readonly functionNamespaces: Map<string, string>;
 	readonly functionNodes: Map<string, AstNode>;
 	readonly functions: Map<string, FunctionInfo>;
@@ -46,6 +53,7 @@ export type FunctionInfo = {
 	readonly line: number;
 	readonly name: string;
 	readonly namespaceName: string | null;
+	readonly suppressUnusedCapabilities: boolean;
 	readonly typeParameters: ReadonlySet<string>;
 	readonly unsupportedReasons: readonly UnsupportedReason[];
 };

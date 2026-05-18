@@ -44,6 +44,7 @@ export type ArenaFunction = {
 	readonly name: string;
 	readonly namespaceName: string | null;
 	readonly provideChecks: readonly CapabilitiesProvideCheck[];
+	readonly suppressUnusedCapabilities: boolean;
 	readonly unsupportedReasons: readonly UnsupportedReason[];
 };
 
@@ -110,6 +111,7 @@ export function buildMiddleEndArena(
 				name: functionInfo.name,
 				namespaceName: functionInfo.namespaceName,
 				provideChecks: functionInfo.provideChecks,
+				suppressUnusedCapabilities: functionInfo.suppressUnusedCapabilities,
 				unsupportedReasons: [
 					...declared.reasons.map(makeCapabilityResolutionReason),
 					...functionInfo.unsupportedReasons,
