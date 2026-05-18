@@ -1,5 +1,13 @@
 # @private/diy-e2e-nested-callback-need
 
+## 0.0.11
+
+### Patch Changes
+
+- Updated dependencies
+  - @beff/diy@0.0.11
+  - @beff/diy-cli@0.0.11
+
 ## 0.0.10
 
 ### Patch Changes

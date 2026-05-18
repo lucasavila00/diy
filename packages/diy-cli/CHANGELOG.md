@@ -1,5 +1,11 @@
 # @beff/diy-cli
 
+## 0.0.11
+
+### Patch Changes
+
+- more funcs
+
 ## 0.0.10
 
 ### Patch Changes
