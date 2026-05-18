@@ -1,3 +1,14 @@
+src/main.ts:28:7 unused capability
+  26 | 	#fs: unknown;
+  27 |
+> 28 | 	check(capabilities: Capabilities<FsCapability>): void {
+     | 	     ^ Declares unused capability "fs".
+  29 | 		// @ts-expect-error intentionally invalid for analyzer coverage
+  30 | 		use(capabilities.#fs);
+  31 | 	}
+  = help: remove "fs" from `Capabilities<...>`, or add a real `capabilities.fs` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:11:6 dynamic capability access
    9 |
   10 | 	// @ts-expect-error intentionally invalid for analyzer coverage

@@ -1,0 +1,13 @@
+Module graph
+
+src/main.ts
++-- migration.up: date, mongo
+|
++-- methodContainer.run: logger
+|
++-- Worker.execute: random
+|
++-- <anonymous>@28:2: date
+|
+`-- run: logger, random
+   `-- calls: methodContainer.run, Worker.execute

@@ -30,3 +30,14 @@ src/main.ts:15:8 unused capability
   18 |
   = help: remove "reader-id" from `Capabilities<...>`, or add a real `capabilities["reader-id"]` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:20:6 unused capability
+  18 |
+  19 | const migration = {
+> 20 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
+     | 	    ^ Declares unused capability "writer".
+  21 | 		capabilities.reader;
+  22 | 	},
+  23 | };
+  = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

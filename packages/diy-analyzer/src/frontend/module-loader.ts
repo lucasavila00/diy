@@ -224,10 +224,11 @@ function collectFunctionNodes(
 	parent: AstNode | null,
 	moduleInfo: ModuleInfo,
 	namespaceName: string | null = null,
+	ownerName: string | null = null,
 ): void {
 	if (Array.isArray(value)) {
 		for (const item of value) {
-			collectFunctionNodes(item, parent, moduleInfo, namespaceName);
+			collectFunctionNodes(item, parent, moduleInfo, namespaceName, ownerName);
 		}
 		return;
 	}
@@ -243,25 +244,72 @@ function collectFunctionNodes(
 		childNamespaceName =
 			namespaceName == null ? localNamespaceName : `${namespaceName}.${localNamespaceName}`;
 	}
+	const childOwnerName = getChildOwnerName(declaration, ownerName);
 	if (isFunctionNode(declaration)) {
-		const name = getFunctionName(declaration, parent);
-		if (name != null) {
-			const qualifiedName = namespaceName == null ? name : `${namespaceName}.${name}`;
-			moduleInfo.functionNodes.set(qualifiedName, declaration);
-			const contextualType = getContextualFunctionType(parent);
-			if (contextualType == null) {
-				moduleInfo.functionContextualTypes.delete(qualifiedName);
-			} else {
-				moduleInfo.functionContextualTypes.set(qualifiedName, contextualType);
-			}
+		const name = getCollectedFunctionName(moduleInfo, declaration, parent, ownerName);
+		const qualifiedName = namespaceName == null ? name : `${namespaceName}.${name}`;
+		moduleInfo.functionNodes.set(qualifiedName, declaration);
+		const contextualType = getContextualFunctionType(parent);
+		if (contextualType == null) {
+			moduleInfo.functionContextualTypes.delete(qualifiedName);
+		} else {
+			moduleInfo.functionContextualTypes.set(qualifiedName, contextualType);
 		}
 	}
 	for (const [key, child] of Object.entries(declaration)) {
 		if (key === "type" || key === "start" || key === "end") {
 			continue;
 		}
-		collectFunctionNodes(child, declaration, moduleInfo, childNamespaceName);
+		collectFunctionNodes(child, declaration, moduleInfo, childNamespaceName, childOwnerName);
 	}
+}
+
+function getCollectedFunctionName(
+	moduleInfo: ModuleInfo,
+	node: AstNode,
+	parent: AstNode | null,
+	ownerName: string | null,
+): string {
+	const normalName = getFunctionName(node, parent);
+	if (normalName != null) {
+		return normalName;
+	}
+	const propertyName = getParentPropertyName(parent);
+	if (propertyName != null) {
+		/* c8 ignore next -- property traversal supplies an owner name before visiting the value. */
+		return ownerName ?? propertyName;
+	}
+	const location = locationForOffset(moduleInfo.lineStarts, node.start);
+	return `<anonymous>@${location.line}:${location.column}`;
+}
+
+function getChildOwnerName(node: AstNode, ownerName: string | null): string | null {
+	if (node.type === "VariableDeclarator") {
+		return getIdentifierName(node["id"]) ?? ownerName;
+	}
+	if (
+		node.type === "ClassDeclaration" ||
+		node.type === "ClassExpression" ||
+		node.type === "TSModuleDeclaration"
+	) {
+		return getIdentifierName(node["id"]) ?? ownerName;
+	}
+	const propertyName = getParentPropertyName(node);
+	if (propertyName != null) {
+		return ownerName == null ? propertyName : `${ownerName}.${propertyName}`;
+	}
+	return ownerName;
+}
+
+function getParentPropertyName(parent: AstNode | null): string | null {
+	if (parent?.type !== "Property" && parent?.type !== "MethodDefinition") {
+		return null;
+	}
+	return getStaticPropertyName(parent["key"]);
+}
+
+function getStaticPropertyName(value: unknown): string | null {
+	return getIdentifierName(value) ?? getLiteralString(value);
 }
 
 function isAnalyzableTypeScriptFile(filePath: string): boolean {

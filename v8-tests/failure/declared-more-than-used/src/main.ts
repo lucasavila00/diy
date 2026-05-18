@@ -15,3 +15,11 @@ export function save(capabilities: Capabilities<ReadCapability | WriteCapability
 export function hyphenated(capabilities: Capabilities<ReadCapability | HyphenCapability>): void {
 	capabilities.reader;
 }
+
+const migration = {
+	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
+		capabilities.reader;
+	},
+};
+
+void migration;
