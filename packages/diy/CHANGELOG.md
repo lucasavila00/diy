@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.7
+
+### Patch Changes
+
+- fix module resolution bug
+
 ## 0.0.6
 
 ### Patch Changes
