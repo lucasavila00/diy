@@ -2,7 +2,7 @@
 
 Date: 2026-05-18
 
-Status: Accepted
+Status: Accepted (fixed in `diy-cli@0.0.7`)
 
 ## Context
 

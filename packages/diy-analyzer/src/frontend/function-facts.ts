@@ -7,6 +7,7 @@ import {
 } from "./ast.ts";
 import { getDiyCapabilitiesAllowedType } from "./diy-imports.ts";
 import { scanFunctionBody } from "./function-scan.ts";
+import { getFunctionTypeFirstParamType } from "./function-types.ts";
 import type { ModuleLoader } from "./module-loader.ts";
 import type { AstNode, FunctionInfo, ModuleInfo } from "./types.ts";
 
@@ -32,7 +33,13 @@ function readFunction(
 	functionNode: AstNode,
 ): FunctionInfo | null {
 	const firstParam = getFirstParam(functionNode);
-	const declaredType = getDiyCapabilitiesAllowedType(moduleInfo, getParamType(firstParam));
+	const contextualType = getFunctionTypeFirstParamType(
+		moduleInfo,
+		moduleInfo.functionContextualTypes.get(name),
+	);
+	const declaredType =
+		getDiyCapabilitiesAllowedType(moduleInfo, getParamType(firstParam)) ??
+		getDiyCapabilitiesAllowedType(moduleInfo, contextualType);
 	if (declaredType == null) {
 		return null;
 	}

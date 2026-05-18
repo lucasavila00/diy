@@ -17,6 +17,7 @@ export type ModuleInfo = {
 	readonly constantExports: Map<string, string>;
 	readonly constants: Map<string, StringConstantBinding>;
 	readonly filePath: string;
+	readonly functionContextualTypes: Map<string, unknown>;
 	readonly functionNodes: Map<string, AstNode>;
 	readonly functions: Map<string, FunctionInfo>;
 	readonly imports: Map<string, ImportedBinding>;

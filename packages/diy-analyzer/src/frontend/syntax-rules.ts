@@ -18,6 +18,7 @@ import {
 	isDiyCapabilitiesType,
 	publicDiyImportSources,
 } from "./diy-imports.ts";
+import { getContextualFunctionType, getFunctionTypeFirstParamType } from "./function-types.ts";
 import type { ModuleLoader } from "./module-loader.ts";
 import {
 	collectVariableDeclarationConstants,
@@ -136,6 +137,10 @@ export function analyzeDiySyntax(
 
 	const enterFunction = (node: AstNode, parent: AstNode | null): void => {
 		const params = getArray(node["params"]);
+		const contextualFirstParamType = getFunctionTypeFirstParamType(
+			moduleInfo,
+			getContextualFunctionType(parent),
+		);
 		const functionConstants = new Map<string, StringConstantBinding>();
 		for (const param of params) {
 			const name = getIdentifierName(getIdentifierFromParam(param));
@@ -152,7 +157,10 @@ export function analyzeDiySyntax(
 				const identifier = getIdentifierFromParam(param);
 				return (
 					getIdentifierName(identifier) === "capabilities" &&
-					getDiyCapabilitiesAllowedType(moduleInfo, getParamType(getNode(param))) != null
+					getDiyCapabilitiesAllowedType(
+						moduleInfo,
+						getEffectiveParamType(param, params, contextualFirstParamType),
+					) != null
 				);
 			}),
 			name: getFunctionName(node, parent),
@@ -164,7 +172,7 @@ export function analyzeDiySyntax(
 				continue;
 			}
 
-			const typeNode = getParamType(param);
+			const typeNode = getEffectiveParamType(param, params, contextualFirstParamType);
 			const hasDiyCapabilitiesReference = isDiyCapabilitiesType(moduleInfo, typeNode);
 			const hasDiyCapabilitiesType = getDiyCapabilitiesAllowedType(moduleInfo, typeNode) != null;
 			const hasUnrelatedCapabilitiesType =
@@ -457,6 +465,14 @@ export function analyzeDiySyntax(
 
 function isDefaultParam(param: unknown): boolean {
 	return getNode(param)?.type === "AssignmentPattern";
+}
+
+function getEffectiveParamType(
+	param: unknown,
+	params: readonly unknown[],
+	contextualFirstParamType: unknown | null,
+): unknown {
+	return getParamType(getNode(param)) ?? (params[0] === param ? contextualFirstParamType : null);
 }
 
 function capabilitiesParameterHelp(): DiyAnalyzerNote {

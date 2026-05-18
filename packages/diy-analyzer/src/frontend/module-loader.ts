@@ -23,6 +23,7 @@ import {
 	makeLineStarts,
 	unwrapDeclaration,
 } from "./ast.ts";
+import { getContextualFunctionType } from "./function-types.ts";
 import { collectStringConstantBindings } from "./string-constants.ts";
 import type { AstNode, ImportedBinding, ModuleInfo } from "./types.ts";
 
@@ -71,6 +72,7 @@ export class ModuleLoader {
 			constantExports: new Map(),
 			constants: new Map(),
 			filePath: resolvedPath,
+			functionContextualTypes: new Map(),
 			functionNodes: new Map(),
 			functions: new Map(),
 			imports: new Map(),
@@ -83,7 +85,7 @@ export class ModuleLoader {
 		collectImports(body, moduleInfo.imports);
 		collectAliases(body, moduleInfo.aliases);
 		collectStringConstantBindings(body, moduleInfo.constants, moduleInfo.constantExports);
-		collectFunctionNodes(body, null, moduleInfo.functionNodes);
+		collectFunctionNodes(body, null, moduleInfo);
 		return moduleInfo;
 	}
 
@@ -213,11 +215,11 @@ function collectAliases(body: readonly unknown[], aliases: Map<string, unknown>)
 function collectFunctionNodes(
 	value: unknown,
 	parent: AstNode | null,
-	functions: Map<string, AstNode>,
+	moduleInfo: ModuleInfo,
 ): void {
 	if (Array.isArray(value)) {
 		for (const item of value) {
-			collectFunctionNodes(item, parent, functions);
+			collectFunctionNodes(item, parent, moduleInfo);
 		}
 		return;
 	}
@@ -229,14 +231,20 @@ function collectFunctionNodes(
 	if (isFunctionNode(declaration)) {
 		const name = getFunctionName(declaration, parent);
 		if (name != null) {
-			functions.set(name, declaration);
+			moduleInfo.functionNodes.set(name, declaration);
+			const contextualType = getContextualFunctionType(parent);
+			if (contextualType == null) {
+				moduleInfo.functionContextualTypes.delete(name);
+			} else {
+				moduleInfo.functionContextualTypes.set(name, contextualType);
+			}
 		}
 	}
 	for (const [key, child] of Object.entries(declaration)) {
 		if (key === "type" || key === "start" || key === "end") {
 			continue;
 		}
-		collectFunctionNodes(child, declaration, functions);
+		collectFunctionNodes(child, declaration, moduleInfo);
 	}
 }
 
