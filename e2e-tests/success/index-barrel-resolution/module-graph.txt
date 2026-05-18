@@ -1,0 +1,13 @@
+Module graph
+
+packages/app/src/bare.ts
+`-- loadBare: foo
+
+packages/core/src/capabilities/local.ts
+`-- loadLocal: foo
+
+packages/core/src/capabilities/nested/parent.ts
+`-- loadParent: foo
+
+packages/core/src/feature/relative.ts
+`-- loadRelative: foo
