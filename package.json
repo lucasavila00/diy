@@ -5,6 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"all": "pnpm run format && pnpm run lint:fix && pnpm run build && pnpm run typecheck && pnpm run test-fix && pnpm run test:v8:update && pnpm run test:e2e:update && pnpm run knip",
+		"benchmark:diy-capabilities": "node scripts/benchmark-diy-capabilities.mjs",
 		"build": "pnpm -r --if-present run build",
 		"check": "pnpm run typecheck && pnpm run test",
 		"changeset": "changeset",

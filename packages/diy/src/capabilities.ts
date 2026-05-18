@@ -1,19 +1,13 @@
+declare const capabilityId: unique symbol;
 declare const serviceType: unique symbol;
 
 export type Capability<Id extends string, Service> = {
-	readonly id: Id;
-	readonly [serviceType]?: Service;
+	readonly [capabilityId]: Id;
+	readonly [serviceType]: Service;
 };
 
-type CapabilityId<T> = T extends Capability<infer Id, unknown> ? Id : never;
-
 type ServiceMap<Allowed extends Capability<string, unknown>> = {
-	readonly [Single in Allowed as CapabilityId<Single>]: Single extends Capability<
-		string,
-		infer Service
-	>
-		? Service
-		: never;
+	readonly [Single in Allowed as Single[typeof capabilityId]]: Single[typeof serviceType];
 };
 
 type ServiceOverrides<Allowed extends Capability<string, unknown>> = Partial<ServiceMap<Allowed>>;

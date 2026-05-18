@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.16
+
+### Patch Changes
+
+- further ts performance optimization
+
 ## 0.0.15
 
 ### Patch Changes

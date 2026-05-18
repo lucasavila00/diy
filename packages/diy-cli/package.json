@@ -1,6 +1,6 @@
 {
 	"name": "@beff/diy-cli",
-	"version": "0.0.15",
+	"version": "0.0.16",
 	"bin": {
 		"diy-cli": "./bin/index.js"
 	},
