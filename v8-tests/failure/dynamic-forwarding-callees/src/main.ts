@@ -1,6 +1,6 @@
 import type { Capabilities, Capability } from "@beff/diy";
 
-type ReadCapability = Capability<"read", unknown>;
+export type ReadCapability = Capability<"read", unknown>;
 
 declare const registry: { run(capabilities: Capabilities<ReadCapability>): void };
 

@@ -179,16 +179,23 @@ function collectImports(body: readonly unknown[], imports: Map<string, ImportedB
 				continue;
 			}
 			if (specifier.type === "ImportDefaultSpecifier") {
-				imports.set(localName, { importedName: "default", source });
+				imports.set(localName, { importedName: "default", kind: "named", source });
 				continue;
 			}
-			if (specifier.type === "ImportSpecifier") {
-				imports.set(localName, {
-					/* c8 ignore next -- normal named imports use identifier imported names. */
-					importedName: getIdentifierName(specifier["imported"]) ?? localName,
-					source,
-				});
+			if (specifier.type === "ImportNamespaceSpecifier") {
+				imports.set(localName, { importedName: "*", kind: "namespace", source });
+				continue;
 			}
+			/* c8 ignore next -- parser import specifier variants are handled above. */
+			if (specifier.type !== "ImportSpecifier") {
+				continue;
+			}
+			imports.set(localName, {
+				/* c8 ignore next -- normal named imports use identifier imported names. */
+				importedName: getIdentifierName(specifier["imported"]) ?? localName,
+				kind: "named",
+				source,
+			});
 		}
 	}
 }
@@ -234,9 +241,7 @@ function collectFunctionNodes(
 	let childNamespaceName = namespaceName;
 	if (localNamespaceName != null) {
 		childNamespaceName =
-			namespaceName == null
-				? localNamespaceName
-				: `${namespaceName}.${localNamespaceName}`;
+			namespaceName == null ? localNamespaceName : `${namespaceName}.${localNamespaceName}`;
 	}
 	if (isFunctionNode(declaration)) {
 		const name = getFunctionName(declaration, parent);

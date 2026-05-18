@@ -5,6 +5,7 @@ export type AstNode = Record<string, unknown> & {
 };
 
 export type ImportedBinding = {
+	readonly kind: "named" | "namespace";
 	readonly importedName: string;
 	readonly source: string;
 };

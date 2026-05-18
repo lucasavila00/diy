@@ -1,0 +1,12 @@
+Module graph
+
+src/helpers.ts
++-- topLevelRead: read
+|
++-- Helpers.Nested.useWrite: write
+|
+`-- Helpers.Nested.useAudit: audit
+
+src/main.ts
+`-- run: audit, read, write
+   `-- calls: Helpers.Nested.useAudit, Helpers.Nested.useWrite, topLevelRead

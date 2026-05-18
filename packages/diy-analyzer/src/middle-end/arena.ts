@@ -163,7 +163,8 @@ function resolveArenaCallee(
 		return local;
 	}
 	const moduleInfo = modules[moduleIndex];
-	const imported = moduleInfo?.imports.get(calleeName);
+	const importedRoot = splitImportedCallee(calleeName);
+	const imported = moduleInfo?.imports.get(importedRoot.name);
 	if (moduleInfo == null || imported == null) {
 		return null;
 	}
@@ -177,8 +178,36 @@ function resolveArenaCallee(
 	if (importedModuleIndex == null) {
 		return null;
 	}
-	/* c8 ignore next -- resolved imported functions are present in the module function index. */
-	return functionIndexByModule.get(importedModuleIndex)?.get(imported.importedName) ?? null;
+	const importedFunctionName = resolveImportedFunctionName(imported, importedRoot.memberPath);
+	return functionIndexByModule.get(importedModuleIndex)?.get(importedFunctionName) ?? null;
+}
+
+function splitImportedCallee(calleeName: string): {
+	readonly memberPath: string | null;
+	readonly name: string;
+} {
+	const dotIndex = calleeName.indexOf(".");
+	if (dotIndex === -1) {
+		return { memberPath: null, name: calleeName };
+	}
+	return {
+		memberPath: calleeName.slice(dotIndex + 1),
+		name: calleeName.slice(0, dotIndex),
+	};
+}
+
+function resolveImportedFunctionName(imported: ImportedBinding, memberPath: string | null): string {
+	if (imported.kind === "namespace") {
+		/* c8 ignore next -- namespace imports are not callable in valid TypeScript. */
+		if (memberPath == null) {
+			return imported.importedName;
+		}
+		return memberPath;
+	}
+	if (memberPath == null) {
+		return imported.importedName;
+	}
+	return `${imported.importedName}.${memberPath}`;
 }
 
 function makeCapabilityResolutionReason(reason: TypeResolutionReason): UnsupportedReason {

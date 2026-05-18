@@ -171,10 +171,17 @@ function getForwardingCalleeName(moduleInfo: ModuleInfo, callee: unknown): strin
 		return identifierName;
 	}
 	const staticName = getStaticMemberExpressionName(callee);
-	if (staticName == null || !moduleInfo.functionNodes.has(staticName)) {
+	if (staticName == null) {
 		return null;
 	}
-	return staticName;
+	if (moduleInfo.functionNodes.has(staticName)) {
+		return staticName;
+	}
+	const importRoot = staticName.split(".")[0];
+	if (importRoot != null && moduleInfo.imports.has(importRoot)) {
+		return staticName;
+	}
+	return null;
 }
 
 function hasOwnCapabilitiesBinding(moduleInfo: ModuleInfo, functionNode: AstNode): boolean {
