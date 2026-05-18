@@ -42,6 +42,7 @@ export type ArenaFunction = {
 	readonly line: number;
 	readonly moduleIndex: ModuleIndex;
 	readonly name: string;
+	readonly namespaceName: string | null;
 	readonly provideChecks: readonly CapabilitiesProvideCheck[];
 	readonly unsupportedReasons: readonly UnsupportedReason[];
 };
@@ -107,6 +108,7 @@ export function buildMiddleEndArena(
 				line: functionInfo.line,
 				moduleIndex,
 				name: functionInfo.name,
+				namespaceName: functionInfo.namespaceName,
 				provideChecks: functionInfo.provideChecks,
 				unsupportedReasons: [
 					...declared.reasons.map(makeCapabilityResolutionReason),
@@ -138,6 +140,7 @@ export function buildMiddleEndArena(
 					functionIndexByModule,
 					functionInfo.moduleIndex,
 					call.calleeName,
+					functionInfo.namespaceName,
 				);
 				if (target == null) {
 					return call;
@@ -157,10 +160,20 @@ function resolveArenaCallee(
 	functionIndexByModule: ReadonlyMap<ModuleIndex, ReadonlyMap<string, FunctionIndex>>,
 	moduleIndex: ModuleIndex,
 	calleeName: string,
+	callerNamespaceName: string | null,
 ): FunctionIndex | null {
-	const local = functionIndexByModule.get(moduleIndex)?.get(calleeName);
+	const functionsByName = functionIndexByModule.get(moduleIndex);
+	const local = functionsByName?.get(calleeName);
 	if (local != null) {
 		return local;
+	}
+	const namespaceLocal = resolveNamespaceLocalCallee(
+		functionsByName,
+		calleeName,
+		callerNamespaceName,
+	);
+	if (namespaceLocal != null) {
+		return namespaceLocal;
 	}
 	const moduleInfo = modules[moduleIndex];
 	const importedRoot = splitImportedCallee(calleeName);
@@ -180,6 +193,26 @@ function resolveArenaCallee(
 	}
 	const importedFunctionName = resolveImportedFunctionName(imported, importedRoot.memberPath);
 	return functionIndexByModule.get(importedModuleIndex)?.get(importedFunctionName) ?? null;
+}
+
+function resolveNamespaceLocalCallee(
+	functionsByName: ReadonlyMap<string, FunctionIndex> | undefined,
+	calleeName: string,
+	callerNamespaceName: string | null,
+): FunctionIndex | null {
+	if (functionsByName == null || callerNamespaceName == null || calleeName.includes(".")) {
+		return null;
+	}
+	const namespaceParts = callerNamespaceName.split(".");
+	for (let length = namespaceParts.length; length > 0; length -= 1) {
+		const candidateName = `${namespaceParts.slice(0, length).join(".")}.${calleeName}`;
+		const candidate = functionsByName.get(candidateName);
+		if (candidate != null) {
+			return candidate;
+		}
+	}
+	/* c8 ignore next -- unresolved namespace fallbacks are reported as unresolved targets. */
+	return null;
 }
 
 function splitImportedCallee(calleeName: string): {

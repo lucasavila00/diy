@@ -59,6 +59,7 @@ function readFunction(
 		forwardsTransformedCapabilities: scan.forwardsTransformedCapabilities,
 		line: functionLocation.line,
 		name,
+		namespaceName: moduleInfo.functionNamespaces.get(name) ?? null,
 		typeParameters: getTypeParameterNames(functionNode),
 		unsupportedReasons: scan.unsupportedReasons,
 	};

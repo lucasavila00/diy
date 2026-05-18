@@ -73,6 +73,7 @@ export class ModuleLoader {
 			constants: new Map(),
 			filePath: resolvedPath,
 			functionContextualTypes: new Map(),
+			functionNamespaces: new Map(),
 			functionNodes: new Map(),
 			functions: new Map(),
 			imports: new Map(),
@@ -249,6 +250,11 @@ function collectFunctionNodes(
 		const name = getCollectedFunctionName(moduleInfo, declaration, parent, ownerName);
 		const qualifiedName = namespaceName == null ? name : `${namespaceName}.${name}`;
 		moduleInfo.functionNodes.set(qualifiedName, declaration);
+		if (namespaceName == null) {
+			moduleInfo.functionNamespaces.delete(qualifiedName);
+		} else {
+			moduleInfo.functionNamespaces.set(qualifiedName, namespaceName);
+		}
 		const contextualType = getContextualFunctionType(parent);
 		if (contextualType == null) {
 			moduleInfo.functionContextualTypes.delete(qualifiedName);

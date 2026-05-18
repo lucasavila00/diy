@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.12
+
+### Patch Changes
+
+- namespace bug
+
 ## 0.0.11
 
 ### Patch Changes

@@ -1,7 +1,12 @@
 Module graph
 
 src/main.ts
-+-- Helpers.Nested.useWrite: write
++-- Helpers.useRead: read
 |
-`-- run: read, write
++-- Helpers.Nested.useAudit: audit
+|
++-- Helpers.Nested.useWrite: audit, read, write
+|  `-- calls: Helpers.Nested.useAudit, Helpers.useRead
+|
+`-- run: audit, read, write
    `-- calls: Helpers.Nested.useWrite

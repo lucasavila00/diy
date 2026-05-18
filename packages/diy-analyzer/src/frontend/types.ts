@@ -19,6 +19,7 @@ export type ModuleInfo = {
 	readonly constants: Map<string, StringConstantBinding>;
 	readonly filePath: string;
 	readonly functionContextualTypes: Map<string, unknown>;
+	readonly functionNamespaces: Map<string, string>;
 	readonly functionNodes: Map<string, AstNode>;
 	readonly functions: Map<string, FunctionInfo>;
 	readonly imports: Map<string, ImportedBinding>;
@@ -44,6 +45,7 @@ export type FunctionInfo = {
 	readonly column: number;
 	readonly line: number;
 	readonly name: string;
+	readonly namespaceName: string | null;
 	readonly typeParameters: ReadonlySet<string>;
 	readonly unsupportedReasons: readonly UnsupportedReason[];
 };
