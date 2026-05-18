@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.6
+
+### Patch Changes
+
+- suggestions
+
 ## 0.0.5
 
 ### Patch Changes
