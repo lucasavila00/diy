@@ -4,25 +4,26 @@
 
 `@private/diy-analyzer` is a TypeScript analyzer for the DIY dependency-injection style used in this repo. The published `@beff/diy-cli` package is a thin binary wrapper around its bundled CLI. The pipeline is:
 
-1. `src/frontend/program.ts` builds the analyzer program from CLI inputs.
-2. `src/frontend/module-loader.ts` parses files with `oxc-parser` and records imports, aliases, and function nodes; `src/frontend/function-facts.ts` materializes syntax-level effectful function metadata.
-3. `src/frontend/analyze.ts` reports parser unsupported items and local syntax-rule violations.
-4. `src/middle-end/arena.ts` lowers frontend module metadata into indexed module/function arrays. Middle-end graph edges point to function indices, not object references or string IDs.
-5. `src/middle-end/analyze.ts` runs middle-end analysis passes.
-6. `src/middle-end/capabilities.ts` resolves declared capability IDs from `Capability<"...">`, unions, `Exclude`, local aliases, and imported aliases.
-7. `src/middle-end/unused-capabilities.ts` computes transitive required capabilities and reports unused declared capabilities plus redundant `Capabilities.extend`.
-8. `src/middle-end/module-graph.ts` builds the inspectable module/function/capability graph used by `--graph` and graph snapshots.
+1. `src/core/program.ts` builds the parsed analyzer program from CLI inputs.
+2. `src/core/module-loader.ts` parses files with `oxc-parser` and records shared imports, aliases, constants, and parse errors.
+3. `src/lint/analyze.ts` coordinates the default lint pass; `src/lint/syntax-rules.ts` contains only syntax lint rules.
+4. `src/dead-code/function-facts.ts` and `src/dead-code/function-scan.ts` collect effectful function metadata for dead-code analysis.
+5. `src/dead-code/arena.ts` lowers dead-code metadata into indexed module/function arrays. Graph edges point to function indices, not object references or string IDs.
+6. `src/dead-code/capabilities.ts` resolves declared capability IDs from `Capability<"...">`, unions, `Exclude`, local aliases, and imported aliases.
+7. `src/dead-code/unused-capabilities.ts` computes transitive required capabilities and reports unused declared capabilities plus redundant `Capabilities.extend`.
+8. `src/graph/module-graph.ts` builds the inspectable module/function/capability graph used by `--graph` and graph snapshots.
 9. `src/backend/finalize.ts` sorts the combined analysis result, `src/backend/format.ts` formats findings, violations, and unsupported-analysis reports, and `src/backend/module-graph-format.ts` formats graph inspection output.
-10. `src/app/analyze.ts` only coordinates the normal frontend, middle-end, and backend lint pipeline; `src/app/module-graph.ts` coordinates graph inspection; `src/app/cli.ts` wraps both for command-line use.
+10. `src/app/cli.ts` wraps CLI parsing and dispatches directly to lint, dead-code, or graph entrypoints.
 
 ## Module Boundaries
 
-- Put untyped Oxc AST guards, accessors, small DIY AST predicates, filesystem input expansion, parser/module graph behavior, effectful function body scanning, and local syntactic policy checks in `src/frontend/`.
-- Put indexed arena construction, type-level capability resolution, and semantic authority checks in `src/middle-end/`.
+- Put untyped Oxc AST guards, accessors, small DIY AST predicates, filesystem input expansion, parser/module loading, aliases, imports, and constants in `src/core/`.
+- Put only default syntax lint behavior in `src/lint/`.
+- Put effectful function body scanning, indexed arena construction, type-level capability resolution, and dead-code/reachability checks in `src/dead-code/`.
 - Put layer-neutral public result contracts in `src/model/`, and shared cross-layer utilities in `src/shared/`.
-- Middle-end graph passes should resolve loops through `FunctionIndex` / `ModuleIndex` values from `src/middle-end/arena.ts`; do not reintroduce string function IDs for graph traversal.
+- Graph passes should resolve loops through `FunctionIndex` / `ModuleIndex` values from `src/dead-code/arena.ts`; do not reintroduce string function IDs for graph traversal.
 - Put analysis result finalization, sorting, code-frame human-output formatting, and graph-output formatting in `src/backend/`.
-- Keep `src/app/analyze.ts` as a thin full-pipeline coordinator. It should not manually loop through modules, interpret parse errors, sort outputs, or contain rule details.
+- Keep `src/app/cli.ts` as CLI dispatch only. It should not manually loop through modules, interpret parse errors, sort outputs, or contain rule details.
 
 ## Rule Authoring
 

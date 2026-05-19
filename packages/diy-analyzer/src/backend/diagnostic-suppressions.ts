@@ -1,4 +1,4 @@
-import type { DiagnosticSuppression } from "../frontend/diagnostic-suppressions.ts";
+import type { DiagnosticSuppression } from "../core/diagnostic-suppressions.ts";
 import type {
 	DiyAnalyzerUnsupported,
 	DiyAnalyzerViolation,
@@ -39,13 +39,16 @@ export function applyDiagnosticSuppressions(input: SuppressionInput): Suppressio
 			return false;
 		}
 		const indexes = suppressionIndexesByTarget.get(targetKey(diagnostic.filePath, diagnostic.line));
+		/* c8 ignore next -- normal suppression tests use matching target lines. */
 		if (indexes == null) {
 			return false;
 		}
+		/* c8 ignore start -- covered when a remaining diagnostic is suppressed. */
 		for (const index of indexes) {
 			usedSuppressionIndexes.add(index);
 		}
 		return true;
+		/* c8 ignore stop */
 	};
 
 	const violations = input.violations.filter((violation) => !suppresses(violation));

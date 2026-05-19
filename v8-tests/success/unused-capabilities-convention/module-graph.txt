@@ -3,4 +3,4 @@ Module graph
 src/main.ts
 +-- typedButIntentionallyUnused: (none)
 |
-`-- nestedCallback: (none)
+`-- nestedCallback: alpha

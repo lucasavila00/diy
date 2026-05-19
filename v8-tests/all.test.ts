@@ -26,7 +26,7 @@ function fixtureDirs(parentDir: string): readonly string[] {
 
 async function runAnalyzerFixture(
 	caseDir: string,
-	commandOptions: { readonly graph: boolean; readonly project: string },
+	commandOptions: { readonly mode: "graph" | "lint"; readonly project: string },
 ): Promise<CapturedRun> {
 	let stderr = "";
 	let stdout = "";
@@ -64,7 +64,7 @@ async function failureRun(caseDir: string): Promise<CapturedRun> {
 	try {
 		command = readFileSync(commandPath, "utf8").trim();
 	} catch {
-		return runAnalyzerFixture(caseDir, { graph: false, project: "diy.json" });
+		return runAnalyzerFixture(caseDir, { mode: "lint", project: "diy.json" });
 	}
 
 	const marker = "packages/diy-cli/bin/index.js";
@@ -95,14 +95,14 @@ describe("DIY success e2e", () => {
 
 	for (const caseDir of caseDirs) {
 		it(`${basename(caseDir)} passes`, async () => {
-			const result = await runAnalyzerFixture(caseDir, { graph: false, project: "diy.json" });
+			const result = await runAnalyzerFixture(caseDir, { mode: "lint", project: "diy.json" });
 			expect(result.exitCode).toBe(0);
 			expect(result.stderr).toBe("");
 			expect(result.stdout).toMatch(/^DIY analyzer passed: \d+ files analyzed\.\n$/);
 		});
 
 		it(`${basename(caseDir)} matches module graph`, async () => {
-			const result = await runAnalyzerFixture(caseDir, { graph: true, project: "diy.json" });
+			const result = await runAnalyzerFixture(caseDir, { mode: "graph", project: "diy.json" });
 			expect(result.exitCode).toBe(0);
 			expect(result.stderr).toBe("");
 			await expect(result.stdout).toMatchFileSnapshot(join(caseDir, "module-graph.txt"));
@@ -127,7 +127,7 @@ describe("DIY contextual function type edge cases", () => {
 				].join("\n"),
 			);
 
-			const result = await runAnalyzerFixture(caseDir, { graph: false, project: "diy.json" });
+			const result = await runAnalyzerFixture(caseDir, { mode: "lint", project: "diy.json" });
 			expect(result.exitCode).toBe(0);
 			expect(result.stderr).toBe("");
 		} finally {

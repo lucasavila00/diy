@@ -38,10 +38,10 @@ const auditValue: Auditor = function (capabilities, value) {
 	capabilities.audit.record(value);
 };
 
-const ignoredUnknown: unknown = (_capabilities: unknown) => {};
+const ignoredUnknown: unknown = (ignored: unknown) => {};
 const ignoredQualified: Types.QualifiedReader = (_capabilities) => String(_capabilities);
 const ignoredImported: ImportedReader = (_capabilities) => String(_capabilities);
-const ignoredRecursive: Recursive = (_capabilities: unknown) => String(_capabilities);
+const ignoredRecursive: Recursive = (ignored: unknown) => String(ignored);
 
 export const run: Runner = (capabilities) => {
 	const value = readValue(capabilities);

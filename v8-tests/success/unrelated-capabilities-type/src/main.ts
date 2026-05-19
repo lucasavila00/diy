@@ -6,8 +6,8 @@ type ExternalCapability = {
 
 declare function use(value: unknown): void;
 
-export function load(capabilities: Capabilities<ExternalCapability>, id: string): void {
-	use(capabilities.need(id));
-	use(capabilities.need("externalDynamic"));
-	use(capabilities);
+export function load(externalCapabilities: Capabilities<ExternalCapability>, id: string): void {
+	use(externalCapabilities.need(id));
+	use(externalCapabilities.need("externalDynamic"));
+	use(externalCapabilities);
 }

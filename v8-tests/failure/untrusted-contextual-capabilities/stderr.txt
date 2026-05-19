@@ -2,19 +2,9 @@ src/main.ts:3:41 invalid capabilities parameter
   1 | type AlphaService = { read(): string };
   2 |
 > 3 | export const untypedStandalone = async (capabilities: {
-    |                                         ^ `capabilities` parameters must be typed as `Capabilities<...>`.
+    |                                         ^ `capabilities` parameters with a type annotation must use DIY `Capabilities<...>`.
   4 | 	readonly alpha: AlphaService;
   5 | }): Promise<string> => capabilities.alpha.read();
   6 |
-  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:8:15 invalid capabilities parameter
-   6 |
-   7 | export const untypedObject = {
->  8 | 	read: async (capabilities) => capabilities.alpha.read(),
-     | 	             ^ `capabilities` parameters must be typed as `Capabilities<...>`.
-   9 | } satisfies Record<string, (capabilities: { readonly alpha: AlphaService }) => Promise<string>>;
-  10 |
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

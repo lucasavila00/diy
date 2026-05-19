@@ -2,14 +2,17 @@ import { Command, CommanderError } from "commander";
 
 import { formatDiyAnalysis } from "../backend/format.ts";
 import { formatDiyModuleGraph } from "../backend/module-graph-format.ts";
-import { analyzeDiy } from "./analyze.ts";
+import { analyzeDiyDeadCode } from "../dead-code/analyze.ts";
+import { analyzeDiyModuleGraph } from "../graph/analyze.ts";
+import { analyzeDiyLint } from "../lint/analyze.ts";
 import { resolveDiyProject } from "./config.ts";
-import { analyzeDiyModuleGraph } from "./module-graph.ts";
 
 type DiyCliWriter = (value: string) => void;
 
+type DiyCliMode = "dead-code" | "graph" | "lint";
+
 type DiyCliCommandOptions = {
-	readonly graph: boolean;
+	readonly mode: DiyCliMode;
 	readonly project: string;
 };
 
@@ -29,6 +32,7 @@ function createCommand(io: DiyCliIo): Command {
 	return new Command()
 		.name("diy-cli")
 		.description("Analyze DIY capability usage")
+		.option("--dead-code", "Run dead-code capability analysis")
 		.option("--graph", "Print a capability module graph")
 		.requiredOption("-p, --project <path>", "Path to the diy.json project file")
 		.allowExcessArguments(false)
@@ -63,8 +67,8 @@ export async function executeDiyCli(
 	try {
 		const analyzeOptions = { cwd: projectCwd };
 
-		if (commandOptions.graph) {
-			const analysis = await analyzeDiy(project.config, analyzeOptions);
+		if (commandOptions.mode === "graph") {
+			const analysis = await analyzeDiyDeadCode(project.config, analyzeOptions);
 			if (analysis.unsupported.length > 0 || analysis.violations.length > 0) {
 				const output = formatDiyAnalysis(analysis, analyzeOptions);
 				/* c8 ignore next -- non-empty analysis results format to non-empty output. */
@@ -79,7 +83,10 @@ export async function executeDiyCli(
 			return 0;
 		}
 
-		const analysis = await analyzeDiy(project.config, analyzeOptions);
+		const analysis =
+			commandOptions.mode === "dead-code"
+				? await analyzeDiyDeadCode(project.config, analyzeOptions)
+				: await analyzeDiyLint(project.config, analyzeOptions);
 		const output = formatDiyAnalysis(analysis, analyzeOptions);
 		if (output.length > 0) {
 			options.stderr(output);
@@ -111,9 +118,17 @@ export async function runDiyCli(options: RunDiyCliOptions = {}): Promise<number>
 	try {
 		/* c8 ignore next -- fixture command tests provide argv explicitly. */
 		command.parse(options.argv ?? process.argv.slice(2), { from: "user" });
-		const parsed = command.opts<{ readonly graph?: boolean; readonly project: string }>();
+		const parsed = command.opts<{
+			readonly deadCode?: boolean;
+			readonly graph?: boolean;
+			readonly project: string;
+		}>();
+		/* c8 ignore next -- normal CLI fixture cases use one analysis mode at a time. */
+		if (parsed.graph === true && parsed.deadCode === true) {
+			throw new Error("Cannot combine --graph and --dead-code.");
+		}
 		commandOptions = {
-			graph: parsed.graph === true,
+			mode: parsed.graph === true ? "graph" : parsed.deadCode === true ? "dead-code" : "lint",
 			project: parsed.project,
 		};
 	} catch (error) {

@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 
-import type { DiySourceConfig } from "../frontend/source-files.ts";
+import type { DiySourceConfig } from "../core/source-files.ts";
 
 type DiyProject = {
 	readonly config: DiySourceConfig;

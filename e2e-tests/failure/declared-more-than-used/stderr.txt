@@ -7,5 +7,4 @@ src/main.ts:6:8 unused capability
   8 | }
   9 |
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
-  = help: if the type annotation is intentional for contextual typing, name the parameter `_capabilities`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

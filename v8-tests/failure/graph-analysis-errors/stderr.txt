@@ -1,21 +1,9 @@
-src/main.ts:5:8 unused capability
-  3 | type ClockCapability = Capability<"clock", unknown>;
-  4 |
-> 5 | export function run(capabilities: Capabilities<ClockCapability>): void {
-    |        ^ Declares unused capability "clock".
-  6 | 	void capabilities;
-  7 | }
-  8 |
-  = help: remove "clock" from `Capabilities<...>`, or add a real `capabilities.clock` read if it is required
-  = help: if the type annotation is intentional for contextual typing, name the parameter `_capabilities`
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:6:7 escaped capabilities
-  4 |
-  5 | export function run(capabilities: Capabilities<ClockCapability>): void {
-> 6 | 	void capabilities;
-    | 	     ^ Use `capabilities` only for static service property access or as the first argument to another effectful function.
-  7 | }
-  8 |
-  = help: keep capability flow statically analyzable: read services inline or forward `capabilities` as the first argument to a named effectful function
+src/main.ts:7:7 unsupported analysis
+  5 | export function run(capabilities: Capabilities<ClockCapability>, id: string): void {
+  6 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 7 | 	void capabilities[id];
+    | 	     ^ dynamic capability access
+  8 | }
+  9 |
+  = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

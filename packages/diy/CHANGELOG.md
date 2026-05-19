@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.17
+
+### Patch Changes
+
+- simpler linter
+
 ## 0.0.16
 
 ### Patch Changes
