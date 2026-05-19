@@ -20,7 +20,7 @@ type LintAnalysis = {
 	readonly violations: readonly DiyAnalyzerViolation[];
 };
 
-function analyzeLintModules(modules: readonly ModuleInfo[]): LintAnalysis {
+export function analyzeLintModules(modules: readonly ModuleInfo[]): LintAnalysis {
 	const violations: DiyAnalyzerViolation[] = [];
 	for (const moduleInfo of modules) {
 		/* c8 ignore next -- ModuleLoader only materializes configured source files. */

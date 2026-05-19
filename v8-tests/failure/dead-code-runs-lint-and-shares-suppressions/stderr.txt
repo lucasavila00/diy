@@ -1,0 +1,10 @@
+src/main.ts:33:41 invalid capabilities parameter
+  31 | };
+  32 |
+> 33 | export function misplaced(path: string, capabilities: Capabilities<ReadCapability>): void {
+     |                                         ^ Capabilities parameters must be the first parameter.
+  34 | 	use(path);
+  35 | 	capabilities.read;
+  36 | }
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

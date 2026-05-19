@@ -1,3 +1,14 @@
+src/main.ts:25:37 invalid capabilities parameter
+  23 | }
+  24 |
+> 25 | export function missingTypeArgument(capabilities: MissingTypeNode): void {
+     |                                     ^ `capabilities` parameters with a type annotation must use DIY `Capabilities<...>`.
+  26 | 	use(capabilities);
+  27 | }
+  28 |
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:10:22 unsupported analysis
    8 |
    9 | type ReadCapability = Capability<"read", unknown>;
