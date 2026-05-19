@@ -7,7 +7,7 @@ const root = dirname(fileURLToPath(new URL("../package.json", import.meta.url)))
 const cacheDir = join(root, ".cache", "diy-capabilities-benchmark");
 const sizes = [50, 100, 200, 400, 800];
 
-const oldQuadraticTypes = `declare const serviceType: unique symbol;
+const oldQuadraticTypes = withApi(`declare const serviceType: unique symbol;
 
 type Capability<Id extends string, Service> = {
 \treadonly id: Id;
@@ -24,9 +24,10 @@ type ServiceMap<Allowed extends Capability<string, unknown>> = {
 };
 
 type Capabilities<in Allowed extends Capability<string, unknown>> = ServiceMap<Allowed>;
-`;
+type ServiceOverrides<Allowed extends Capability<string, unknown>> = Partial<ServiceMap<Allowed>>;
+`);
 
-const remappedConditionalTypes = `declare const serviceType: unique symbol;
+const remappedConditionalTypes = withApi(`declare const serviceType: unique symbol;
 
 type Capability<Id extends string, Service> = {
 \treadonly id: Id;
@@ -45,21 +46,62 @@ type ServiceMap<Allowed extends Capability<string, unknown>> = {
 };
 
 type Capabilities<in Allowed extends Capability<string, unknown>> = ServiceMap<Allowed>;
-`;
+type ServiceOverrides<Allowed extends Capability<string, unknown>> = Partial<ServiceMap<Allowed>>;
+`);
 
-const currentSourceTypes = `import type {
+const privateTypeAliasTypes = withApi(`declare const capabilityId: unique symbol;
+declare const serviceType: unique symbol;
+
+type Capability<Id extends string, Service> = {
+\treadonly [capabilityId]: Id;
+\treadonly [serviceType]: Service;
+};
+
+type ServiceMap<Allowed extends Capability<string, unknown>> = {
+\treadonly [Single in Allowed as Single[typeof capabilityId]]: Single[typeof serviceType];
+};
+
+type Capabilities<in Allowed extends Capability<string, unknown>> = ServiceMap<Allowed>;
+type ServiceOverrides<Allowed extends Capability<string, unknown>> = Partial<ServiceMap<Allowed>>;
+`);
+
+const currentSourceTypes = `import {
 \tCapabilities,
-\tCapability,
+\ttype Capability,
 } from "../../packages/diy/src/capabilities.ts";
 `;
 
 const variants = [
 	["old-quadratic", oldQuadraticTypes],
 	["remapped-conditional", remappedConditionalTypes],
+	["private-type-alias", privateTypeAliasTypes],
 	["current-source", currentSourceTypes],
 ];
 
+function withApi(capabilityTypes) {
+	return `${capabilityTypes}
+declare const Capabilities: {
+\tcreate<Allowed extends Capability<string, unknown> = never>(
+\t\tserviceMap: ServiceMap<Allowed>,
+\t): Capabilities<Allowed>;
+\textend<
+\t\tAllowed extends Capability<string, unknown>,
+\t\tExtra extends Capability<string, unknown>,
+\t>(capabilities: Capabilities<Allowed>, extra: Capabilities<Extra>): Capabilities<Allowed | Extra>;
+\toverride<Allowed extends Capability<string, unknown>>(
+\t\tcapabilities: Capabilities<Allowed>,
+\t\treplacement: ServiceOverrides<Allowed>,
+\t): Capabilities<Allowed>;
+\tmerge<
+\t\tFirst extends Capability<string, unknown>,
+\t\tSecond extends Capability<string, unknown>,
+\t>(first: Capabilities<First>, second: Capabilities<Second>): Capabilities<First | Second>;
+};
+`;
+}
+
 function benchmarkSource(capabilityTypes, size) {
+	const split = size / 2;
 	const capabilities = Array.from({ length: size }, (_, index) => {
 		const id = `cap${index}`;
 		return `type Cap${index} = Capability<"${id}", {
@@ -68,12 +110,9 @@ function benchmarkSource(capabilityTypes, size) {
 }>;`;
 	}).join("\n");
 
-	const union = Array.from({ length: size }, (_, index) => `Cap${index}`).join(" | ");
-	const services = Array.from(
-		{ length: size },
-		(_, index) =>
-			`\tcap${index}: { value${index}: ${index}, method${index}: () => "cap${index}" as const },`,
-	).join("\n");
+	const all = capabilityUnion(0, size);
+	const firstHalf = capabilityUnion(0, split);
+	const secondHalf = capabilityUnion(split, size);
 	const reads = Array.from(
 		{ length: size },
 		(_, index) => `\tconst value${index}: ${index} = capabilities.cap${index}.value${index};`,
@@ -83,19 +122,41 @@ function benchmarkSource(capabilityTypes, size) {
 	return `${capabilityTypes}
 ${capabilities}
 
-type AllCapabilities = ${union};
+type AllCapabilities = ${all};
+type FirstHalf = ${firstHalf};
+type SecondHalf = ${secondHalf};
 
-const provided = {
-${services}
-} satisfies Capabilities<AllCapabilities>;
+const first = Capabilities.create<FirstHalf>({
+${serviceObject(0, split)}
+});
+const second = Capabilities.create<SecondHalf>({
+${serviceObject(split, size)}
+});
+const merged = Capabilities.merge(first, second);
+const extended = Capabilities.extend(first, second);
+const capabilities = Capabilities.override(merged, {
+\tcap0: { value0: 0, method0: () => "cap0" as const },
+});
 
 function use(capabilities: Capabilities<AllCapabilities>): void {
 ${reads}
 \tvoid [${voids}];
 }
 
-use(provided);
+use(capabilities);
+use(extended);
 `;
+}
+
+function capabilityUnion(start, end) {
+	return Array.from({ length: end - start }, (_, index) => `Cap${start + index}`).join(" | ");
+}
+
+function serviceObject(start, end) {
+	return Array.from({ length: end - start }, (_, index) => {
+		const capabilityIndex = start + index;
+		return `\tcap${capabilityIndex}: { value${capabilityIndex}: ${capabilityIndex}, method${capabilityIndex}: () => "cap${capabilityIndex}" as const },`;
+	}).join("\n");
 }
 
 function runTsc(filePath) {
@@ -191,31 +252,34 @@ for (const size of sizes) {
 
 	const oldQuadratic = results.get("old-quadratic");
 	const remappedConditional = results.get("remapped-conditional");
+	const privateTypeAlias = results.get("private-type-alias");
 	const currentSource = results.get("current-source");
 
 	rows.push({
 		size,
 		oldQuadratic,
 		remappedConditional,
+		privateTypeAlias,
 		currentSource,
 		dropFromOld: percentageDrop(oldQuadratic.instantiations, currentSource.instantiations),
 		dropFromRemapped: percentageDrop(
 			remappedConditional.instantiations,
 			currentSource.instantiations,
 		),
+		dropFromPrivate: percentageDrop(privateTypeAlias.instantiations, currentSource.instantiations),
 	});
 }
 
-console.log("DIY capability ServiceMap benchmark");
+console.log("DIY capability API benchmark");
 console.log("");
 console.log(
 	[
 		"size".padStart(5),
 		"old inst".padStart(12),
 		"remap inst".padStart(12),
+		"private inst".padStart(13),
 		"current inst".padStart(13),
-		"vs old".padStart(8),
-		"vs remap".padStart(9),
+		"vs private".padStart(10),
 		"current check".padStart(14),
 	].join("  "),
 );
@@ -226,22 +290,22 @@ for (const row of rows) {
 			String(row.size).padStart(5),
 			formatInteger(row.oldQuadratic.instantiations).padStart(12),
 			formatInteger(row.remappedConditional.instantiations).padStart(12),
+			formatInteger(row.privateTypeAlias.instantiations).padStart(13),
 			formatInteger(row.currentSource.instantiations).padStart(13),
-			`${row.dropFromOld.toFixed(1)}%`.padStart(8),
-			`${row.dropFromRemapped.toFixed(1)}%`.padStart(9),
+			`${row.dropFromPrivate.toFixed(1)}%`.padStart(10),
 			formatTime(row.currentSource.checkTime).padStart(14),
 		].join("  "),
 	);
 }
 
-const remapRegressions = rows.filter(
-	(row) => row.currentSource.instantiations >= row.remappedConditional.instantiations,
+const privateRegressions = rows.filter(
+	(row) => row.currentSource.instantiations >= row.privateTypeAlias.instantiations,
 );
 const largest = rows.at(-1);
 
-if (remapRegressions.length > 0) {
-	const sizes = remapRegressions.map((row) => row.size).join(", ");
-	throw new Error(`Current ServiceMap did not improve over remapped conditional at: ${sizes}.`);
+if (privateRegressions.length > 0) {
+	const sizes = privateRegressions.map((row) => row.size).join(", ");
+	throw new Error(`Current API did not improve over private type alias at: ${sizes}.`);
 }
 
 if (largest.dropFromRemapped < 50) {

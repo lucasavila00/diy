@@ -1,21 +1,19 @@
 declare const capabilityId: unique symbol;
 declare const serviceType: unique symbol;
 
-export type Capability<Id extends string, Service> = {
+export interface Capability<Id extends string, Service> {
 	readonly [capabilityId]: Id;
 	readonly [serviceType]: Service;
-};
+}
 
-type ServiceMap<Allowed extends Capability<string, unknown>> = {
+export type Capabilities<in Allowed extends Capability<string, unknown>> = {
 	readonly [Single in Allowed as Single[typeof capabilityId]]: Single[typeof serviceType];
 };
 
-type ServiceOverrides<Allowed extends Capability<string, unknown>> = Partial<ServiceMap<Allowed>>;
-
-export type Capabilities<in Allowed extends Capability<string, unknown>> = ServiceMap<Allowed>;
+type ServiceOverrides<Allowed extends Capability<string, unknown>> = Partial<Capabilities<Allowed>>;
 
 function create<Allowed extends Capability<string, unknown> = never>(
-	serviceMap: ServiceMap<Allowed>,
+	serviceMap: Capabilities<Allowed>,
 ): Capabilities<Allowed> {
 	return serviceMap;
 }
