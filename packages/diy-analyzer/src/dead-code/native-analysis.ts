@@ -71,15 +71,12 @@ function moduleGraph(program: CheckerAnalysisProgram): DiyModuleGraph {
 
 	const modules: DiyModuleGraphModule[] = [];
 	for (const [filePath, functions] of functionsByPath) {
-		const sourceFile = functions[0].sourceFile;
 		modules.push({
 			filePath,
 			functions: functions
 				.slice()
 				.sort(compareAnalyzedCapabilityFunctions)
 				.map((analyzedFunction) => graphFunction(analyzedFunction, required)),
-			imports: [],
-			reportable: sourceFile.reportable,
 		});
 	}
 	return {

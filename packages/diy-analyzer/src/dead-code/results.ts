@@ -5,7 +5,7 @@ import type {
 	DiyModuleGraphFunction,
 	DiyUnusedCapabilityFinding,
 } from "../model/types.ts";
-import { sorted, sortedDifference } from "./ast-utils.ts";
+import { sorted } from "./ast-utils.ts";
 import type { AnalyzedCapabilityFunction, UnsupportedAnalysisReason } from "./native-types.ts";
 
 export function computeRequiredCapabilityIds(
@@ -135,14 +135,9 @@ export function graphFunction(
 	/* c8 ignore next -- required is produced from the same analyzed function list. */
 	const functionRequired = required.get(analyzedFunction.id) ?? new Set<string>();
 	return {
-		column: analyzedFunction.column,
-		declared: sorted(analyzedFunction.declaredCapabilityIds),
 		direct: sorted(analyzedFunction.directCapabilityIds),
-		filePath: analyzedFunction.filePath,
-		line: analyzedFunction.line,
 		name: analyzedFunction.name,
 		transitive: sorted(functionRequired),
-		unused: sortedDifference(analyzedFunction.declaredCapabilityIds, functionRequired),
 	};
 }
 

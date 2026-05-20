@@ -77,12 +77,3 @@ export function locationForOffset(
 export function sorted(values: Iterable<string>): readonly string[] {
 	return Array.from(values).sort();
 }
-
-export function sortedDifference(
-	values: ReadonlySet<string>,
-	excluded: ReadonlySet<string>,
-): readonly string[] {
-	return Array.from(values)
-		.filter((value) => !excluded.has(value))
-		.sort();
-}
