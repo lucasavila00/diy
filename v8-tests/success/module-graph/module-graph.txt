@@ -12,7 +12,6 @@ src/config.ts
 
 src/main.ts
 +-- run
-|  +-- calls: readClock, readConfig
 |  +-- direct: env, fs
 |  `-- indirect: clock
 |

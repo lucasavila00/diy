@@ -35,51 +35,41 @@ src/main.ts
 |  `-- indirect: (none)
 |
 +-- forwardWholeBag
-|  +-- calls: needAlpha
 |  +-- direct: (none)
 |  `-- indirect: alpha
 |
 +-- forwardNamespace
-|  +-- calls: ToolHandlers.needAlpha
 |  +-- direct: (none)
 |  `-- indirect: alpha
 |
 +-- forwardFactoryResult
-|  +-- calls: makeAlphaRunner()
 |  +-- direct: (none)
 |  `-- indirect: alpha
 |
 +-- forwardFactoryReturnedBoundary
-|  +-- calls: wrappedAlpha
 |  +-- direct: (none)
 |  `-- indirect: alpha, delta
 |
 +-- aliasThenForward
-|  +-- calls: needAlpha
 |  +-- direct: (none)
 |  `-- indirect: alpha
 |
 +-- assignmentAliasThenForward
-|  +-- calls: needAlpha
 |  +-- direct: (none)
 |  `-- indirect: alpha
 |
 +-- mergeThenForward
-|  +-- calls: needAlphaBeta
 |  +-- direct: (none)
 |  `-- indirect: alpha
 |
 +-- extendThenForward
-|  +-- calls: needAlphaBeta
 |  +-- direct: (none)
 |  `-- indirect: alpha
 |
 +-- overrideThenForward
-|  +-- calls: needAlphaGamma
 |  +-- direct: (none)
 |  `-- indirect: alpha, gamma
 |
 `-- propagatedAliasThenForward
-   +-- calls: needAlphaBeta
    +-- direct: (none)
    `-- indirect: alpha

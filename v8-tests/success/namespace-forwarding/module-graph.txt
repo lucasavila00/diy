@@ -10,11 +10,9 @@ src/main.ts
 |  `-- indirect: (none)
 |
 +-- Helpers.Nested.useWrite
-|  +-- calls: Helpers.Nested.useAudit, Helpers.useRead
 |  +-- direct: write
 |  `-- indirect: audit, read
 |
 `-- run
-   +-- calls: Helpers.Nested.useWrite
    +-- direct: read
    `-- indirect: audit, write

@@ -131,8 +131,9 @@ Example output:
 Module graph
 
 packages/app/src/main.ts
-`-- run: clock, fs
-   `-- calls: readClock, readConfig
+`-- run
+   +-- direct: clock
+   `-- indirect: fs
 ```
 
 ## CLI Options

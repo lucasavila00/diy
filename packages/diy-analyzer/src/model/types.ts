@@ -61,7 +61,6 @@ export type DiyModuleGraphModule = {
 };
 
 export type DiyModuleGraphFunction = {
-	readonly calls: readonly DiyModuleGraphCall[];
 	readonly column: number;
 	readonly declared: readonly string[];
 	readonly direct: readonly string[];
@@ -70,16 +69,6 @@ export type DiyModuleGraphFunction = {
 	readonly name: string;
 	readonly transitive: readonly string[];
 	readonly unused: readonly string[];
-};
-
-export type DiyModuleGraphCall = {
-	readonly calls: readonly DiyModuleGraphCall[];
-	readonly calleeName: string;
-	readonly column?: number;
-	readonly filePath?: string;
-	readonly functionName?: string;
-	readonly line?: number;
-	readonly transitive: readonly string[];
 };
 
 export type AnalyzeOptions = {

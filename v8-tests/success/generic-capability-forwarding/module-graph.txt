@@ -2,13 +2,11 @@ Module graph
 
 src/app.ts
 `-- createAppToolServer
-   +-- calls: createGenericToolServer
    +-- direct: alpha, beta, gamma
    `-- indirect: (none)
 
 src/mixed.ts
 +-- readKnownAndForwardGeneric
-|  +-- calls: forwardOpaque
 |  +-- direct: alpha
 |  `-- indirect: (none)
 |

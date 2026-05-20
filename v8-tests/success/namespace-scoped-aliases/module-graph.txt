@@ -14,7 +14,6 @@ src/main.ts
 |  `-- indirect: (none)
 |
 +-- Service.withProvided
-|  +-- calls: Service.acceptBar
 |  +-- direct: foo
 |  `-- indirect: (none)
 |
@@ -23,7 +22,6 @@ src/main.ts
 |  `-- indirect: (none)
 |
 +-- Service.forwardCallback
-|  +-- calls: callback
 |  +-- direct: (none)
 |  `-- indirect: bar, foo
 |

@@ -18,6 +18,5 @@ src/main.ts
 |  `-- indirect: (none)
 |
 `-- run
-   +-- calls: methodContainer.run, Worker.execute
    +-- direct: (none)
    `-- indirect: logger, random

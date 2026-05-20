@@ -36,7 +36,6 @@ import type {
 	DiyAnalyzerUnsupported,
 	DiyAnalyzerViolation,
 	DiyModuleGraph,
-	DiyModuleGraphCall,
 	DiyModuleGraphFunction,
 	DiyModuleGraphModule,
 	DiyUnusedCapabilityFinding,
@@ -57,13 +56,13 @@ type ImportBinding = {
 };
 
 type NativeFact = {
-	readonly calls: NativeCall[];
 	readonly column: number;
 	readonly declared: ReadonlySet<string>;
 	readonly declaredOpaque: boolean;
 	readonly direct: Set<string>;
 	readonly filePath: string;
 	readonly id: string;
+	readonly forwardings: NativeForwarding[];
 	readonly line: number;
 	readonly moduleInfo: NativeSourceModule;
 	readonly name: string;
@@ -75,11 +74,9 @@ type NativeFact = {
 	readonly unsupportedReasons: NativeUnsupportedReason[];
 };
 
-type NativeCall = {
-	readonly calleeName: string;
+type NativeForwarding = {
 	readonly provided: ReadonlySet<string>;
 	readonly required: ReadonlySet<string>;
-	readonly targetId: string | null;
 };
 
 type NativeProvideCheck = {
@@ -175,7 +172,7 @@ export async function analyzeNativeModuleGraph(
 				functions: facts
 					.slice()
 					.sort(compareFacts)
-					.map((fact) => graphFunction(fact, program.facts, required)),
+					.map((fact) => graphFunction(fact, required)),
 				imports: [],
 				reportable: moduleInfo.reportable,
 			});
@@ -426,12 +423,11 @@ function collectNativeFacts(
 	modules: readonly NativeSourceModule[],
 ): readonly NativeFact[] {
 	const facts: NativeFact[] = [];
-	const factsByDeclaration = new Map<string, NativeFact>();
 	for (const moduleInfo of modules) {
-		collectFunctionFacts(project, moduleInfo, facts, factsByDeclaration);
+		collectFunctionFacts(project, moduleInfo, facts);
 	}
 	for (const fact of facts) {
-		scanFunctionBody(project, fact, facts, factsByDeclaration);
+		scanFunctionBody(project, fact);
 	}
 	return facts.sort(compareFacts);
 }
@@ -440,7 +436,6 @@ function collectFunctionFacts(
 	project: Project,
 	moduleInfo: NativeSourceModule,
 	facts: NativeFact[],
-	factsByDeclaration: Map<string, NativeFact>,
 ): void {
 	const namespaceStack: string[] = [];
 	const visit = (node: Node, ownerName: string | null): void => {
@@ -458,7 +453,6 @@ function collectFunctionFacts(
 			const fact = readNativeFact(project, moduleInfo, node, nextOwnerName, namespaceStack);
 			if (fact != null) {
 				facts.push(fact);
-				factsByDeclaration.set(nodeKey(node), fact);
 			}
 		}
 		node.forEachChild((child) => visit(child, nextOwnerName));
@@ -500,12 +494,12 @@ function readNativeFact(
 		});
 	}
 	return {
-		calls: [],
 		column: location.column,
 		declared,
 		declaredOpaque,
 		direct: new Set(),
 		filePath: moduleInfo.filePath,
+		forwardings: [],
 		id: nodeKey(node),
 		line: location.line,
 		moduleInfo,
@@ -519,12 +513,7 @@ function readNativeFact(
 	};
 }
 
-function scanFunctionBody(
-	project: Project,
-	fact: NativeFact,
-	facts: readonly NativeFact[],
-	factsByDeclaration: ReadonlyMap<string, NativeFact>,
-): void {
+function scanFunctionBody(project: Project, fact: NativeFact): void {
 	const visit = (node: Node): void => {
 		if (
 			node !== factNode(project, fact) &&
@@ -544,7 +533,7 @@ function scanFunctionBody(
 		} else if (node.kind === SyntaxKind.ElementAccessExpression) {
 			scanElementAccess(project, fact, node as ElementAccessExpression);
 		} else if (node.kind === SyntaxKind.CallExpression) {
-			scanCall(project, fact, facts, factsByDeclaration, node as CallExpression);
+			scanCall(project, fact, node as CallExpression);
 		}
 		node.forEachChild(visit);
 	};
@@ -645,13 +634,7 @@ function accessExpression(node: PropertyAccessExpression | ElementAccessExpressi
 	return node.expression;
 }
 
-function scanCall(
-	project: Project,
-	fact: NativeFact,
-	facts: readonly NativeFact[],
-	factsByDeclaration: ReadonlyMap<string, NativeFact>,
-	node: CallExpression,
-): void {
+function scanCall(project: Project, fact: NativeFact, node: CallExpression): void {
 	const extendInfo = readCapabilitiesExtend(project.checker, fact, node);
 	if (extendInfo != null) {
 		fact.provideChecks.push({
@@ -669,14 +652,6 @@ function scanCall(
 			continue;
 		}
 		const signature = resolveCallSignature(project.checker, node);
-		const targetFact = resolveCallTarget(
-			project,
-			fact,
-			facts,
-			factsByDeclaration,
-			signature,
-			node.expression,
-		);
 		const parameterType =
 			signature == null ? undefined : project.checker.getParameterType(signature, index);
 		const argumentType = expressionType(project.checker, argument);
@@ -693,11 +668,9 @@ function scanCall(
 			}
 			continue;
 		}
-		fact.calls.push({
-			calleeName: targetFact?.name ?? expressionLabel(fact.moduleInfo.sourceFile, node.expression),
+		fact.forwardings.push({
 			provided: forwarded.provided,
 			required: requiredFromCallType,
-			targetId: targetFact?.id ?? null,
 		});
 	}
 }
@@ -744,95 +717,6 @@ function scanPropagatedAssignment(checker: Checker, fact: NativeFact, node: Node
 		return;
 	}
 	addPropagatedSource(checker, fact, left, forwarded.provided);
-}
-
-function resolveCallTarget(
-	project: Project,
-	caller: NativeFact,
-	facts: readonly NativeFact[],
-	factsByDeclaration: ReadonlyMap<string, NativeFact>,
-	signature: Signature | undefined,
-	expression: Expression,
-): NativeFact | null {
-	const signatureTarget = signature?.declaration?.resolve(project);
-	const signatureFact =
-		signatureTarget == null
-			? null
-			: factForDeclaration(project, factsByDeclaration, signatureTarget);
-	if (signatureFact != null) {
-		return signatureFact;
-	}
-	const symbols: (TsgoSymbol | undefined)[] = [];
-	if (expression.kind === SyntaxKind.Identifier) {
-		symbols.push(project.checker.getResolvedSymbol(expression as Identifier));
-	}
-	if (expression.kind === SyntaxKind.PropertyAccessExpression) {
-		const access = expression as PropertyAccessExpression;
-		symbols.push(project.checker.getSymbolAtLocation(access.name));
-	}
-	symbols.push(project.checker.getSymbolAtLocation(expression));
-	for (const symbol of symbols) {
-		for (const declaration of symbol?.declarations ?? []) {
-			const target = declaration.resolve(project);
-			const fact = target == null ? null : factForDeclaration(project, factsByDeclaration, target);
-			if (fact != null) {
-				return fact;
-			}
-		}
-	}
-	const imported = importedTargetFact(caller.moduleInfo, facts, expression);
-	if (imported != null) {
-		return imported;
-	}
-	return null;
-}
-
-function importedTargetFact(
-	moduleInfo: NativeSourceModule,
-	facts: readonly NativeFact[],
-	expression: Expression,
-): NativeFact | null {
-	if (expression.kind !== SyntaxKind.Identifier) {
-		return null;
-	}
-	const localName = staticName(expression);
-	const imported = localName == null ? null : moduleInfo.imports.get(localName);
-	if (imported == null || imported.kind !== "named") {
-		return null;
-	}
-	const candidates = importCandidateSuffixes(moduleInfo.filePath, imported.source);
-	return (
-		facts.find(
-			(fact) =>
-				fact.name === imported.importedName &&
-				candidates.some((candidate) => fact.filePath.endsWith(candidate)),
-		) ?? null
-	);
-}
-
-function importCandidateSuffixes(containingFile: string, source: string): readonly string[] {
-	if (source.startsWith(".")) {
-		return importCandidates(containingFile, source).map((candidate) =>
-			relative("/", resolve(candidate)),
-		);
-	}
-	return [`${source}.ts`, join(source, "index.ts")];
-}
-
-function factForDeclaration(
-	project: Project,
-	factsByDeclaration: ReadonlyMap<string, NativeFact>,
-	node: Node,
-): NativeFact | null {
-	const direct = factsByDeclaration.get(nodeKey(node));
-	if (direct != null) {
-		return direct;
-	}
-	const initializer = (node as unknown as Record<string, Node | undefined>).initializer;
-	if (initializer != null && isFunctionLike(initializer)) {
-		return factsByDeclaration.get(nodeKey(initializer)) ?? null;
-	}
-	return null;
 }
 
 function isCapabilitiesHelperCall(moduleInfo: NativeSourceModule, node: CallExpression): boolean {
@@ -1099,9 +983,9 @@ function computeRequired(facts: readonly NativeFact[]): ReadonlyMap<string, Read
 			if (factRequired == null) {
 				continue;
 			}
-			for (const call of fact.calls) {
-				for (const id of call.required) {
-					if (call.provided.has(id) || factRequired.has(id)) {
+			for (const forwarding of fact.forwardings) {
+				for (const id of forwarding.required) {
+					if (forwarding.provided.has(id) || factRequired.has(id)) {
 						continue;
 					}
 					factRequired.add(id);
@@ -1199,25 +1083,10 @@ function collectProvideViolations(facts: readonly NativeFact[]): readonly DiyAna
 
 function graphFunction(
 	fact: NativeFact,
-	facts: readonly NativeFact[],
 	required: ReadonlyMap<string, ReadonlySet<string>>,
 ): DiyModuleGraphFunction {
-	const factsById = new Map(facts.map((item) => [item.id, item]));
 	const factRequired = required.get(fact.id) ?? new Set<string>();
 	return {
-		calls: fact.calls
-			.map((call) => {
-				const target = call.targetId == null ? null : factsById.get(call.targetId);
-				if (target == null) {
-					return {
-						calleeName: call.calleeName,
-						calls: [],
-						transitive: sorted(call.required),
-					};
-				}
-				return graphCall(target, call.required);
-			})
-			.sort((left, right) => left.calleeName.localeCompare(right.calleeName)),
 		column: fact.column,
 		declared: sorted(fact.declared),
 		direct: sorted(fact.direct),
@@ -1226,18 +1095,6 @@ function graphFunction(
 		name: fact.name,
 		transitive: sorted(factRequired),
 		unused: sortedDifference(fact.declared, factRequired),
-	};
-}
-
-function graphCall(fact: NativeFact, required: ReadonlySet<string>): DiyModuleGraphCall {
-	return {
-		calleeName: fact.name,
-		calls: [],
-		column: fact.column,
-		filePath: fact.filePath,
-		functionName: fact.name,
-		line: fact.line,
-		transitive: sorted(required),
 	};
 }
 
@@ -1475,10 +1332,6 @@ function staticStringExpression(checker: Checker, expression: Expression): strin
 		return value;
 	}
 	return null;
-}
-
-function expressionLabel(sourceFile: SourceFile, expression: Expression): string {
-	return sourceFile.text.slice(expression.pos, expression.end).trim().replace(/\s+/g, " ");
 }
 
 function functionName(

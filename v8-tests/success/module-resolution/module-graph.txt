@@ -2,7 +2,6 @@ Module graph
 
 src/main.ts
 `-- run
-   +-- calls: readAudit, readStore
    +-- direct: clock, external
    `-- indirect: audit, store
 

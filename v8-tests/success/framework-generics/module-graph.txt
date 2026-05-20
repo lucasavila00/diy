@@ -6,11 +6,9 @@ src/main.ts
 |  `-- indirect: (none)
 |
 +-- nestedCallbackMerge
-|  +-- calls: inner
 |  +-- direct: (none)
 |  `-- indirect: alpha
 |
 `-- inner
-   +-- calls: innerCallback, outerCallback
    +-- direct: (none)
    `-- indirect: alpha

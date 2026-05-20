@@ -14,16 +14,13 @@ src/main.ts
 |  `-- indirect: (none)
 |
 +-- fromTopLevelObject
-|  +-- calls: readRenamed
 |  +-- direct: audit
 |  `-- indirect: (none)
 |
 +-- fromExistingCapability
-|  +-- calls: readRenamed
 |  +-- direct: legacyClock
 |  `-- indirect: (none)
 |
 `-- fromPartialInlineProvide
-   +-- calls: readRenamedWithAudit
    +-- direct: legacyClock
    `-- indirect: audit
