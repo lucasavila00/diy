@@ -1,6 +1,6 @@
-import type { Capabilities } from "@beff/diy";
+import type { Capabilities, Capability } from "@beff/diy";
 
-import type { AlphaCapability, BetaCapability, GammaCapability } from "./caps.ts";
+import type { AlphaCapability, BetaCapability, DeltaCapability, GammaCapability } from "./caps.ts";
 
 export function needAlpha(capabilities: Capabilities<AlphaCapability>): void {
 	capabilities.alpha.read();
@@ -27,3 +27,16 @@ export namespace ToolHandlers {
 export function makeAlphaRunner(): (capabilities: Capabilities<AlphaCapability>) => void {
 	return needAlpha;
 }
+
+export function wrapHandler<InnerCapability extends Capability<string, unknown>>(
+	handler: (capabilities: Capabilities<InnerCapability>) => void,
+): (capabilities: Capabilities<DeltaCapability | InnerCapability>) => void {
+	return (capabilities) => {
+		capabilities.delta.trace();
+		handler(capabilities);
+	};
+}
+
+export const wrappedAlpha = wrapHandler((capabilities: Capabilities<AlphaCapability>): void => {
+	capabilities.alpha.read();
+});

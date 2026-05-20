@@ -13,7 +13,11 @@ src/handlers.ts
 |  +-- direct: alpha, gamma
 |  `-- indirect: (none)
 |
-`-- ToolHandlers.needAlpha
++-- ToolHandlers.needAlpha
+|  +-- direct: alpha
+|  `-- indirect: (none)
+|
+`-- wrappedAlpha
    +-- direct: alpha
    `-- indirect: (none)
 
@@ -44,6 +48,11 @@ src/main.ts
 |  +-- calls: makeAlphaRunner()
 |  +-- direct: (none)
 |  `-- indirect: alpha
+|
++-- forwardFactoryReturnedBoundary
+|  +-- calls: wrappedAlpha
+|  +-- direct: (none)
+|  `-- indirect: alpha, delta
 |
 +-- aliasThenForward
 |  +-- calls: needAlpha

@@ -1,0 +1,21 @@
+src/main.ts:16:8 unused capability
+  14 | });
+  15 |
+> 16 | export function forwardFactoryReturnedBoundary(
+     |        ^ Declares unused capability "beta".
+  17 | 	capabilities: Capabilities<AlphaCapability | BetaCapability>,
+  18 | ): void {
+  19 | 	wrappedAlpha(capabilities);
+  = help: remove "beta" from `Capabilities<...>`, or add a real `capabilities.beta` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:22:8 unused capability
+  20 | }
+  21 |
+> 22 | export function overDeclaredLeaf(
+     |        ^ Declares unused capability "beta".
+  23 | 	capabilities: Capabilities<AlphaCapability | BetaCapability>,
+  24 | ): void {
+  25 | 	capabilities.alpha.read();
+  = help: remove "beta" from `Capabilities<...>`, or add a real `capabilities.beta` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

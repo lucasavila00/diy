@@ -1,12 +1,13 @@
 import { Capabilities } from "@beff/diy";
 
-import type { AlphaCapability, BetaCapability, GammaCapability } from "./caps.ts";
+import type { AlphaCapability, BetaCapability, DeltaCapability, GammaCapability } from "./caps.ts";
 import {
 	makeAlphaRunner,
 	needAlpha,
 	needAlphaBeta,
 	needAlphaGamma,
 	ToolHandlers,
+	wrappedAlpha,
 } from "./handlers.ts";
 
 declare const alphaReplacement: { read(): string };
@@ -39,6 +40,12 @@ export function forwardNamespace(capabilities: Capabilities<AlphaCapability>): v
 
 export function forwardFactoryResult(capabilities: Capabilities<AlphaCapability>): void {
 	makeAlphaRunner()(capabilities);
+}
+
+export function forwardFactoryReturnedBoundary(
+	capabilities: Capabilities<AlphaCapability | DeltaCapability>,
+): void {
+	wrappedAlpha(capabilities);
 }
 
 export function aliasThenForward(capabilities: Capabilities<AlphaCapability>): void {

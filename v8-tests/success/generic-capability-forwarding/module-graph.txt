@@ -13,7 +13,6 @@ src/mixed.ts
 |  `-- indirect: (none)
 |
 +-- forwardOpaque
-|  +-- calls: acceptOpaque
 |  +-- direct: (none)
 |  `-- indirect: (none)
 |
@@ -23,12 +22,10 @@ src/mixed.ts
 
 src/transport.ts
 +-- createGenericToolServer
-|  +-- calls: startGenericTransport
 |  +-- direct: (none)
 |  `-- indirect: (none)
 |
 +-- startGenericTransport
-|  +-- calls: finishGenericTransport
 |  +-- direct: (none)
 |  `-- indirect: (none)
 |

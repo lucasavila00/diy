@@ -680,16 +680,23 @@ function scanCall(
 		const parameterType =
 			signature == null ? undefined : project.checker.getParameterType(signature, index);
 		const argumentType = expressionType(project.checker, argument);
-		const required =
-			targetFact?.declared ??
-			forwardedRequiredCapabilities(project.checker, fact, forwarded, parameterType, argumentType);
-		if (required == null) {
+		const requiredFromCallType = forwardedRequiredCapabilities(
+			project.checker,
+			fact,
+			forwarded,
+			parameterType,
+			argumentType,
+		);
+		if (requiredFromCallType == null) {
+			if (!fact.declaredOpaque && isUnresolvedForwardingParameter(parameterType)) {
+				fact.unsupportedReasons.push({ kind: "unresolved-forwarding" });
+			}
 			continue;
 		}
 		fact.calls.push({
 			calleeName: targetFact?.name ?? expressionLabel(fact.moduleInfo.sourceFile, node.expression),
 			provided: forwarded.provided,
-			required,
+			required: requiredFromCallType,
 			targetId: targetFact?.id ?? null,
 		});
 	}
@@ -821,15 +828,11 @@ function factForDeclaration(
 	if (direct != null) {
 		return direct;
 	}
-	return (
-		node.forEachChild(function find(child): NativeFact | null {
-			const fact = factsByDeclaration.get(nodeKey(child));
-			if (fact != null) {
-				return fact;
-			}
-			return child.forEachChild(find) ?? null;
-		}) ?? null
-	);
+	const initializer = (node as unknown as Record<string, Node | undefined>).initializer;
+	if (initializer != null && isFunctionLike(initializer)) {
+		return factsByDeclaration.get(nodeKey(initializer)) ?? null;
+	}
+	return null;
 }
 
 function isCapabilitiesHelperCall(moduleInfo: NativeSourceModule, node: CallExpression): boolean {
@@ -860,9 +863,33 @@ function resolveCallSignature(checker: Checker, node: CallExpression): Signature
 	}
 	const calleeType = checker.getTypeAtLocation(node.expression);
 	if (calleeType == null) {
+		return callSignatureFromCalleeSymbol(checker, node);
+	}
+	return (
+		checker.getSignaturesOfType(calleeType, SignatureKind.Call)[0] ??
+		callSignatureFromCalleeSymbol(checker, node)
+	);
+}
+
+function callSignatureFromCalleeSymbol(
+	checker: Checker,
+	node: CallExpression,
+): Signature | undefined {
+	const expression = unwrapExpression(node.expression);
+	const location =
+		expression.kind === SyntaxKind.PropertyAccessExpression
+			? (expression as PropertyAccessExpression).name
+			: expression;
+	const symbol =
+		location.kind === SyntaxKind.Identifier
+			? (checker.getResolvedSymbol(location as Identifier) ?? checker.getSymbolAtLocation(location))
+			: checker.getSymbolAtLocation(location);
+	const symbolType =
+		symbol == null ? undefined : checker.getTypeOfSymbolAtLocation(symbol, location);
+	if (symbolType == null) {
 		return undefined;
 	}
-	return checker.getSignaturesOfType(calleeType, SignatureKind.Call)[0];
+	return checker.getSignaturesOfType(symbolType, SignatureKind.Call)[0];
 }
 
 function readCapabilitiesExtend(
@@ -954,6 +981,10 @@ function forwardedRequiredCapabilities(
 		return fact.declared;
 	}
 	return null;
+}
+
+function isUnresolvedForwardingParameter(parameterType: Type | undefined): boolean {
+	return parameterType == null || (parameterType.flags & TypeFlags.Any) !== 0;
 }
 
 function providedCapabilityIds(
@@ -1056,7 +1087,6 @@ function expressionType(checker: Checker, expression: Expression): Type | undefi
 }
 
 function computeRequired(facts: readonly NativeFact[]): ReadonlyMap<string, ReadonlySet<string>> {
-	const factsById = new Map(facts.map((fact) => [fact.id, fact]));
 	const required = new Map<string, Set<string>>();
 	for (const fact of facts) {
 		required.set(fact.id, new Set(fact.direct));
@@ -1070,12 +1100,7 @@ function computeRequired(facts: readonly NativeFact[]): ReadonlyMap<string, Read
 				continue;
 			}
 			for (const call of fact.calls) {
-				const target = call.targetId == null ? null : factsById.get(call.targetId);
-				const calledRequired =
-					target == null || target.declaredOpaque
-						? call.required
-						: (required.get(target.id) ?? call.required);
-				for (const id of calledRequired) {
+				for (const id of call.required) {
 					if (call.provided.has(id) || factRequired.has(id)) {
 						continue;
 					}
@@ -1190,7 +1215,7 @@ function graphFunction(
 						transitive: sorted(call.required),
 					};
 				}
-				return graphCall(target, required.get(target.id) ?? call.required);
+				return graphCall(target, call.required);
 			})
 			.sort((left, right) => left.calleeName.localeCompare(right.calleeName)),
 		column: fact.column,
