@@ -10,12 +10,20 @@ import type { DiyAnalyzerViolation } from "../model/types.ts";
 import { collectAnalyzedCapabilityFunctions } from "./capability-functions.ts";
 import type { AnalyzedSourceFile, CheckerAnalysisProgram } from "./native-types.ts";
 import { collectAnalyzedSourceFiles, localDiyPaths } from "./source-files.ts";
+import { timeDeadCodePhase } from "./timing.ts";
 
 export async function buildCheckerAnalysisProgram(
 	config: DiySourceConfig,
 	cwd: string,
 ): Promise<CheckerAnalysisProgram> {
 	const coveredFiles = await expandSourceFiles(config, cwd);
+	return buildCheckerAnalysisProgramFromFiles(coveredFiles, cwd);
+}
+
+export async function buildCheckerAnalysisProgramFromFiles(
+	coveredFiles: readonly string[],
+	cwd: string,
+): Promise<CheckerAnalysisProgram> {
 	const coveredSet = new Set(coveredFiles);
 	const configInfo = resolveProjectConfig(cwd, coveredFiles);
 	const api = new API({
@@ -32,20 +40,29 @@ export async function buildCheckerAnalysisProgram(
 				}),
 	});
 	try {
-		const snapshot = api.updateSnapshot({ openProject: configInfo.configPath });
-		const project = snapshot.getProject(configInfo.configPath);
+		const snapshot = timeDeadCodePhase("tsgo project build", () =>
+			api.updateSnapshot({ openProject: configInfo.configPath }),
+		);
+		const project = timeDeadCodePhase("tsgo project lookup", () =>
+			snapshot.getProject(configInfo.configPath),
+		);
 		/* c8 ignore next -- openProject should always return the project it just opened. */
 		if (project == null) {
 			throw new Error(`Failed to open TypeScript project ${configInfo.configPath}.`);
 		}
-		const sourceFiles = collectAnalyzedSourceFiles(project, coveredSet, cwd);
+		const sourceFiles = timeDeadCodePhase("collect source files", () =>
+			collectAnalyzedSourceFiles(project, coveredSet, cwd),
+		);
 		return {
-			analyzedFunctions: collectAnalyzedCapabilityFunctions(project, sourceFiles),
+			analyzedFunctions: timeDeadCodePhase("capability analysis", () =>
+				collectAnalyzedCapabilityFunctions(project, sourceFiles),
+			),
 			api,
 			coveredFiles,
 			project,
-			suppressions: collectNativeSuppressions(
-				sourceFiles.filter((sourceFile) => sourceFile.reportable),
+			sourceFiles,
+			suppressions: timeDeadCodePhase("collect suppressions", () =>
+				collectNativeSuppressions(sourceFiles.filter((sourceFile) => sourceFile.reportable)),
 			),
 		};
 	} catch (error) {

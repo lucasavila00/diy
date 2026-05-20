@@ -3,6 +3,7 @@ import { Command, CommanderError } from "commander";
 import { formatDiyAnalysis } from "../backend/format.ts";
 import { formatDiyModuleGraph } from "../backend/module-graph-format.ts";
 import { analyzeDiyDeadCode } from "../dead-code/analyze.ts";
+import { flushDeadCodeTimings, timeDeadCodePhaseAsync } from "../dead-code/timing.ts";
 import { analyzeDiyModuleGraph } from "../graph/analyze.ts";
 import { analyzeDiyLint } from "../lint/analyze.ts";
 import { resolveDiyProject } from "./config.ts";
@@ -85,9 +86,19 @@ export async function executeDiyCli(
 
 		const analysis =
 			commandOptions.mode === "dead-code"
-				? await analyzeDiyDeadCode(project.config, analyzeOptions)
+				? await timeDeadCodePhaseAsync("dead-code mode total", () =>
+						analyzeDiyDeadCode(project.config, analyzeOptions),
+					)
 				: await analyzeDiyLint(project.config, analyzeOptions);
-		const output = formatDiyAnalysis(analysis, analyzeOptions);
+		const output =
+			commandOptions.mode === "dead-code"
+				? await timeDeadCodePhaseAsync("format analysis", async () =>
+						formatDiyAnalysis(analysis, analyzeOptions),
+					)
+				: formatDiyAnalysis(analysis, analyzeOptions);
+		if (commandOptions.mode === "dead-code") {
+			flushDeadCodeTimings();
+		}
 		if (output.length > 0) {
 			options.stderr(output);
 		}

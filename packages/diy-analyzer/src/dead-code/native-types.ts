@@ -79,6 +79,7 @@ export type CheckerAnalysisProgram = {
 	readonly analyzedFunctions: readonly AnalyzedCapabilityFunction[];
 	readonly coveredFiles: readonly string[];
 	readonly project: Project;
+	readonly sourceFiles: readonly AnalyzedSourceFile[];
 	readonly suppressions: {
 		readonly suppressions: readonly DiagnosticSuppression[];
 		readonly violations: readonly DiyAnalyzerViolation[];

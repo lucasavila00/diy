@@ -1,0 +1,271 @@
+import { SyntaxKind } from "@typescript/native-preview/unstable/ast";
+import type {
+	FunctionLikeDeclaration,
+	ImportDeclaration,
+	ImportSpecifier,
+	Node,
+	ParameterDeclaration,
+	TypeReferenceNode,
+} from "@typescript/native-preview/unstable/ast";
+import type { Diagnostic, Project } from "@typescript/native-preview/unstable/sync";
+
+import type {
+	DiyAnalyzerNote,
+	DiyAnalyzerUnsupported,
+	DiyAnalyzerViolation,
+} from "../model/types.ts";
+import { literalText, locationForOffset, staticName } from "./ast-utils.ts";
+import type { AnalyzedSourceFile } from "./native-types.ts";
+import { diyImportSources } from "./native-types.ts";
+
+type FunctionFrame = {
+	readonly name: string | null;
+};
+
+export function analyzeNativeDiySyntax(
+	sourceFiles: readonly AnalyzedSourceFile[],
+): readonly DiyAnalyzerViolation[] {
+	const violations: DiyAnalyzerViolation[] = [];
+	for (const sourceFile of sourceFiles) {
+		if (!sourceFile.reportable) {
+			continue;
+		}
+		violations.push(...analyzeSourceFileSyntax(sourceFile));
+	}
+	return violations;
+}
+
+export function collectNativeParseErrors(
+	project: Project,
+	sourceFiles: readonly AnalyzedSourceFile[],
+): readonly DiyAnalyzerUnsupported[] {
+	const unsupported: DiyAnalyzerUnsupported[] = [];
+	for (const sourceFile of sourceFiles) {
+		if (!sourceFile.reportable) {
+			continue;
+		}
+		for (const diagnostic of project.program.getSyntacticDiagnostics(sourceFile.filePath)) {
+			unsupported.push(parseError(sourceFile, diagnostic));
+		}
+	}
+	return unsupported;
+}
+
+function analyzeSourceFileSyntax(sourceFile: AnalyzedSourceFile): readonly DiyAnalyzerViolation[] {
+	const violations: DiyAnalyzerViolation[] = [];
+	const functionStack: FunctionFrame[] = [];
+
+	const currentFunctionName = (): string | undefined => {
+		const name = functionStack.at(-1)?.name;
+		return name == null ? undefined : name;
+	};
+	const report = (
+		node: Node,
+		name: string,
+		reason: string,
+		notes?: DiyAnalyzerViolation["notes"],
+	): void => {
+		const location = locationForNode(sourceFile, node);
+		const functionName = currentFunctionName();
+		violations.push({
+			column: location.column,
+			filePath: sourceFile.filePath,
+			line: location.line,
+			name,
+			/* c8 ignore next -- rule reports either include notes or omit them intentionally. */
+			...(notes == null ? {} : { notes }),
+			/* c8 ignore next -- module-level import/export reports do not have a function name. */
+			...(functionName == null ? {} : { functionName }),
+			reason,
+		});
+	};
+
+	const visit = (node: Node, parent: Node | null): void => {
+		const isFunction = isNativeFunctionLike(node);
+		if (isFunction) {
+			functionStack.push({
+				name: nativeFunctionName(node, parent),
+			});
+			checkCapabilitiesParameters(sourceFile, node, report);
+		}
+		if (node.kind === SyntaxKind.ImportDeclaration) {
+			checkNoRenamedDiyImport(node as ImportDeclaration, report);
+		}
+
+		node.forEachChild((child) => visit(child, node));
+		if (isFunction) {
+			functionStack.pop();
+		}
+	};
+	visit(sourceFile.sourceFile, null);
+	return violations;
+}
+
+function checkCapabilitiesParameters(
+	sourceFile: AnalyzedSourceFile,
+	node: FunctionLikeDeclaration,
+	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
+): void {
+	for (const [index, param] of node.parameters.entries()) {
+		const name = staticName(param.name);
+		const isCapabilitiesName = name === "capabilities" || name === "_capabilities";
+		const hasDiyCapabilitiesType = isDiyCapabilitiesType(sourceFile, param);
+		const hasNonDiyCapabilitiesAnnotation =
+			isCapabilitiesName && param.type != null && !hasDiyCapabilitiesType;
+
+		if (!isCapabilitiesName && !hasDiyCapabilitiesType) {
+			continue;
+		}
+		if (!isCapabilitiesName) {
+			report(
+				param,
+				"invalid capabilities parameter",
+				"Capabilities parameters must be named `capabilities` or `_capabilities`.",
+				[capabilitiesParameterHelp()],
+			);
+		}
+		if (hasNonDiyCapabilitiesAnnotation) {
+			report(
+				param,
+				"invalid capabilities parameter",
+				"`capabilities` parameters with a type annotation must use DIY `Capabilities<...>`.",
+				[capabilitiesParameterHelp()],
+			);
+		}
+		if (index !== 0) {
+			report(
+				param,
+				"invalid capabilities parameter",
+				"Capabilities parameters must be the first parameter.",
+				[capabilitiesParameterHelp()],
+			);
+		}
+	}
+}
+
+function checkNoRenamedDiyImport(
+	node: ImportDeclaration,
+	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
+): void {
+	const source = literalText(node.moduleSpecifier);
+	if (source == null || !diyImportSources.has(source)) {
+		return;
+	}
+
+	const reportRenamedDiyImport = (specifier: Node): void => {
+		report(
+			specifier,
+			"renamed diy import",
+			"Do not rename imports from @beff/diy; import exported names directly.",
+			[
+				{
+					kind: "help",
+					message: 'use `import type { Capabilities, Capability } from "@beff/diy"`',
+				},
+			],
+		);
+	};
+
+	const clause = node.importClause;
+	if (clause?.name != null) {
+		reportRenamedDiyImport(clause.name);
+	}
+	const namedBindings = clause?.namedBindings;
+	if (namedBindings == null) {
+		return;
+	}
+	if (namedBindings.kind === SyntaxKind.NamespaceImport) {
+		reportRenamedDiyImport(namedBindings);
+		return;
+	}
+	if (namedBindings.kind !== SyntaxKind.NamedImports) {
+		return;
+	}
+	for (const specifier of namedBindings.elements) {
+		if (isRenamedImportSpecifier(specifier)) {
+			reportRenamedDiyImport(specifier);
+		}
+	}
+}
+
+function isRenamedImportSpecifier(specifier: ImportSpecifier): boolean {
+	const importedName =
+		specifier.propertyName == null ? specifier.name.text : staticName(specifier.propertyName);
+	return importedName != null && importedName !== specifier.name.text;
+}
+
+function isDiyCapabilitiesType(
+	sourceFile: AnalyzedSourceFile,
+	param: ParameterDeclaration,
+): boolean {
+	const typeNode = param.type;
+	if (typeNode?.kind !== SyntaxKind.TypeReference) {
+		return false;
+	}
+	const typeName = staticName((typeNode as TypeReferenceNode).typeName);
+	if (typeName !== "Capabilities") {
+		return false;
+	}
+	const imported = sourceFile.imports.get("Capabilities");
+	return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
+}
+
+function isNativeFunctionLike(node: Node): node is FunctionLikeDeclaration {
+	return (
+		node.kind === SyntaxKind.FunctionDeclaration ||
+		node.kind === SyntaxKind.FunctionExpression ||
+		node.kind === SyntaxKind.ArrowFunction ||
+		node.kind === SyntaxKind.MethodDeclaration
+	);
+}
+
+function nativeFunctionName(node: FunctionLikeDeclaration, parent: Node | null): string | null {
+	const named = staticName((node as unknown as Record<string, unknown>)["name"]);
+	if (named != null) {
+		return named;
+	}
+	if (parent?.kind === SyntaxKind.VariableDeclaration) {
+		return staticName((parent as unknown as Record<string, unknown>)["name"]);
+	}
+	if (parent?.kind === SyntaxKind.PropertyAssignment) {
+		return staticName((parent as unknown as Record<string, unknown>)["name"]);
+	}
+	return null;
+}
+
+function locationForNode(
+	sourceFile: AnalyzedSourceFile,
+	node: Node,
+): { readonly column: number; readonly line: number } {
+	const text = sourceFile.sourceFile.text.slice(node.pos, node.end);
+	const offset = node.pos + Math.max(0, text.search(/\S/));
+	return locationForOffset(sourceFile.lineStarts, offset);
+}
+
+function parseError(
+	sourceFile: AnalyzedSourceFile,
+	diagnostic: Diagnostic,
+): DiyAnalyzerUnsupported {
+	const location = locationForOffset(sourceFile.lineStarts, diagnostic.pos);
+	return {
+		column: location.column,
+		filePath: sourceFile.filePath,
+		line: location.line,
+		reason: diagnosticMessage(diagnostic),
+	};
+}
+
+function diagnosticMessage(diagnostic: Diagnostic): string {
+	if (diagnostic.messageChain == null || diagnostic.messageChain.length === 0) {
+		return diagnostic.text;
+	}
+	return [diagnostic.text, ...diagnostic.messageChain.map(diagnosticMessage)].join(" ");
+}
+
+function capabilitiesParameterHelp(): DiyAnalyzerNote {
+	return {
+		kind: "help",
+		message:
+			"write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`",
+	};
+}

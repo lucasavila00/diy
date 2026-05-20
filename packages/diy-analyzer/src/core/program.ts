@@ -11,6 +11,12 @@ type DiyProgram = {
 
 export async function buildDiyProgram(config: DiySourceConfig, cwd: string): Promise<DiyProgram> {
 	const coveredFiles = await expandSourceFiles(config, cwd);
+	return buildDiyProgramFromFiles(coveredFiles);
+}
+
+export async function buildDiyProgramFromFiles(
+	coveredFiles: readonly string[],
+): Promise<DiyProgram> {
 	const coveredSet = new Set(coveredFiles);
 	const loader = new ModuleLoader(coveredSet);
 	for (const filePath of coveredFiles) {

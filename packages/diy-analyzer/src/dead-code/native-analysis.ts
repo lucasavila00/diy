@@ -7,7 +7,12 @@ import type {
 	DiyUnusedCapabilityFinding,
 } from "../model/types.ts";
 import { compareAnalyzedCapabilityFunctions } from "./capability-functions.ts";
-import { buildCheckerAnalysisProgram, closeCheckerAnalysisProgram } from "./checker-program.ts";
+import {
+	buildCheckerAnalysisProgram,
+	buildCheckerAnalysisProgramFromFiles,
+	closeCheckerAnalysisProgram,
+} from "./checker-program.ts";
+import { analyzeNativeDiySyntax, collectNativeParseErrors } from "./native-syntax-rules.ts";
 import type { AnalyzedCapabilityFunction, CheckerAnalysisProgram } from "./native-types.ts";
 import {
 	collectProviderViolations,
@@ -16,6 +21,7 @@ import {
 	computeRequiredCapabilityIds,
 	graphFunction,
 } from "./results.ts";
+import { timeDeadCodePhase } from "./timing.ts";
 
 export async function analyzeNativeDeadCode(
 	config: DiySourceConfig,
@@ -28,14 +34,48 @@ export async function analyzeNativeDeadCode(
 	readonly violations: readonly DiyAnalyzerViolation[];
 }> {
 	const program = await buildCheckerAnalysisProgram(config, cwd);
+	return analyzeNativeDeadCodeProgram(program);
+}
+
+export async function analyzeNativeDeadCodeFromFiles(
+	coveredFiles: readonly string[],
+	cwd: string,
+): Promise<{
+	readonly coveredFiles: readonly string[];
+	readonly findings: readonly DiyUnusedCapabilityFinding[];
+	readonly suppressions: CheckerAnalysisProgram["suppressions"];
+	readonly unsupported: readonly DiyAnalyzerUnsupported[];
+	readonly violations: readonly DiyAnalyzerViolation[];
+}> {
+	const program = await buildCheckerAnalysisProgramFromFiles(coveredFiles, cwd);
+	return analyzeNativeDeadCodeProgram(program);
+}
+
+function analyzeNativeDeadCodeProgram(program: CheckerAnalysisProgram): {
+	readonly coveredFiles: readonly string[];
+	readonly findings: readonly DiyUnusedCapabilityFinding[];
+	readonly suppressions: CheckerAnalysisProgram["suppressions"];
+	readonly unsupported: readonly DiyAnalyzerUnsupported[];
+	readonly violations: readonly DiyAnalyzerViolation[];
+} {
 	try {
-		const required = computeRequiredCapabilityIds(program.analyzedFunctions);
+		const required = timeDeadCodePhase("compute required capabilities", () =>
+			computeRequiredCapabilityIds(program.analyzedFunctions),
+		);
 		return {
 			coveredFiles: program.coveredFiles,
-			findings: collectUnusedFindings(program.analyzedFunctions, required),
+			findings: timeDeadCodePhase("collect unused findings", () =>
+				collectUnusedFindings(program.analyzedFunctions, required),
+			),
 			suppressions: program.suppressions,
-			unsupported: collectUnsupported(program.analyzedFunctions),
-			violations: collectProviderViolations(program.analyzedFunctions),
+			unsupported: timeDeadCodePhase("collect unsupported analysis", () => [
+				...collectNativeParseErrors(program.project, program.sourceFiles),
+				...collectUnsupported(program.analyzedFunctions),
+			]),
+			violations: timeDeadCodePhase("collect violations", () => [
+				...analyzeNativeDiySyntax(program.sourceFiles),
+				...collectProviderViolations(program.analyzedFunctions),
+			]),
 		};
 	} finally {
 		closeCheckerAnalysisProgram(program);
