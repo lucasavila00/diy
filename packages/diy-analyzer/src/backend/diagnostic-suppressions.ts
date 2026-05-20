@@ -1,9 +1,15 @@
-import type { DiagnosticSuppression } from "../core/diagnostic-suppressions.ts";
 import type {
 	DiyAnalyzerUnsupported,
 	DiyAnalyzerViolation,
 	DiyUnusedCapabilityFinding,
 } from "../model/types.ts";
+
+export type DiagnosticSuppression = {
+	readonly column: number;
+	readonly filePath: string;
+	readonly line: number;
+	readonly targetLine: number;
+};
 
 type SuppressibleDiagnostic = {
 	readonly filePath: string;

@@ -3,12 +3,16 @@ import { dirname, join, resolve } from "node:path";
 
 import { API } from "@typescript/native-preview/unstable/sync";
 
-import type { DiagnosticSuppression } from "../core/diagnostic-suppressions.ts";
+import type { DiagnosticSuppression } from "../backend/diagnostic-suppressions.ts";
 import { expandSourceFiles } from "../core/source-files.ts";
 import type { DiySourceConfig } from "../core/source-files.ts";
 import type { DiyAnalyzerViolation } from "../model/types.ts";
 import { collectAnalyzedCapabilityFunctions } from "./capability-functions.ts";
-import type { AnalyzedSourceFile, CheckerAnalysisProgram } from "./native-types.ts";
+import type {
+	AnalyzedSourceFile,
+	CheckerAnalysisProgram,
+	NativeSyntaxProgram,
+} from "./native-types.ts";
 import { collectAnalyzedSourceFiles, localDiyPaths } from "./source-files.ts";
 import { timeDeadCodePhase } from "./timing.ts";
 
@@ -24,6 +28,27 @@ export async function buildCheckerAnalysisProgramFromFiles(
 	coveredFiles: readonly string[],
 	cwd: string,
 ): Promise<CheckerAnalysisProgram> {
+	const program = await buildNativeSyntaxProgramFromFiles(coveredFiles, cwd);
+	return {
+		...program,
+		analyzedFunctions: timeDeadCodePhase("capability analysis", () =>
+			collectAnalyzedCapabilityFunctions(program.project, program.sourceFiles),
+		),
+	};
+}
+
+export async function buildNativeSyntaxProgram(
+	config: DiySourceConfig,
+	cwd: string,
+): Promise<NativeSyntaxProgram> {
+	const coveredFiles = await expandSourceFiles(config, cwd);
+	return buildNativeSyntaxProgramFromFiles(coveredFiles, cwd);
+}
+
+export async function buildNativeSyntaxProgramFromFiles(
+	coveredFiles: readonly string[],
+	cwd: string,
+): Promise<NativeSyntaxProgram> {
 	const coveredSet = new Set(coveredFiles);
 	const configInfo = resolveProjectConfig(cwd, coveredFiles);
 	const api = new API({
@@ -54,9 +79,6 @@ export async function buildCheckerAnalysisProgramFromFiles(
 			collectAnalyzedSourceFiles(project, coveredSet, cwd),
 		);
 		return {
-			analyzedFunctions: timeDeadCodePhase("capability analysis", () =>
-				collectAnalyzedCapabilityFunctions(project, sourceFiles),
-			),
 			api,
 			coveredFiles,
 			project,
@@ -73,9 +95,11 @@ export async function buildCheckerAnalysisProgramFromFiles(
 	}
 }
 
-export function closeCheckerAnalysisProgram(program: CheckerAnalysisProgram): void {
+export function closeNativeSyntaxProgram(program: NativeSyntaxProgram): void {
 	program.api.close();
 }
+
+export const closeCheckerAnalysisProgram = closeNativeSyntaxProgram;
 
 function resolveProjectConfig(
 	cwd: string,

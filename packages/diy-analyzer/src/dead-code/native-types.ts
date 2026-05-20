@@ -1,7 +1,7 @@
 import type { SourceFile } from "@typescript/native-preview/unstable/ast";
 import type { API, Project, Symbol as TsgoSymbol } from "@typescript/native-preview/unstable/sync";
 
-import type { DiagnosticSuppression } from "../core/diagnostic-suppressions.ts";
+import type { DiagnosticSuppression } from "../backend/diagnostic-suppressions.ts";
 import type { DiyAnalyzerViolation } from "../model/types.ts";
 
 export type AnalyzedSourceFile = {
@@ -74,9 +74,8 @@ export type UnsupportedAnalysisReason =
 			readonly kind: "unresolved-forwarding";
 	  };
 
-export type CheckerAnalysisProgram = {
+export type NativeSyntaxProgram = {
 	readonly api: API;
-	readonly analyzedFunctions: readonly AnalyzedCapabilityFunction[];
 	readonly coveredFiles: readonly string[];
 	readonly project: Project;
 	readonly sourceFiles: readonly AnalyzedSourceFile[];
@@ -84,6 +83,10 @@ export type CheckerAnalysisProgram = {
 		readonly suppressions: readonly DiagnosticSuppression[];
 		readonly violations: readonly DiyAnalyzerViolation[];
 	};
+};
+
+export type CheckerAnalysisProgram = NativeSyntaxProgram & {
+	readonly analyzedFunctions: readonly AnalyzedCapabilityFunction[];
 };
 
 export const diyImportSources = new Set(["@beff/diy", "@beff/diy/capabilities"]);

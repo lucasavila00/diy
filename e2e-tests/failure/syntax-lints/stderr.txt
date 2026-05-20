@@ -1,0 +1,50 @@
+src/main.ts:1:29 renamed diy import
+> 1 | import type { Capabilities, Capabilities as RenamedCapabilities, Capability } from "@beff/diy";
+    |                             ^ Do not rename imports from @beff/diy; import exported names directly.
+  2 |
+  3 | type ReadCapability = Capability<"reader", unknown>;
+  4 |
+  = help: use `import type { Capabilities, Capability } from "@beff/diy"`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:5:34 invalid capabilities parameter
+  3 | type ReadCapability = Capability<"reader", unknown>;
+  4 |
+> 5 | export function renamedParameter(caps: Capabilities<ReadCapability>): void {
+    |                                  ^ Capabilities parameters must be named `capabilities` or `_capabilities`.
+  6 | 	void caps;
+  7 | }
+  8 |
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:11:2 invalid capabilities parameter
+   9 | export function misplacedParameter(
+  10 | 	value: string,
+> 11 | 	capabilities: Capabilities<ReadCapability>,
+     | 	^ Capabilities parameters must be the first parameter.
+  12 | ): void {
+  13 | 	void value;
+  14 | 	void capabilities;
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:17:1 invalid diagnostic suppression
+  15 | }
+  16 |
+> 17 | // diy-ignore-next-line
+     | ^ `diy-ignore-next-line` requires a non-empty reason after `--`.
+  18 | export function invalidSuppression(capabilities: RenamedCapabilities<ReadCapability>): void {
+  19 | 	void capabilities;
+  20 | }
+
+src/main.ts:18:36 invalid capabilities parameter
+  16 |
+  17 | // diy-ignore-next-line
+> 18 | export function invalidSuppression(capabilities: RenamedCapabilities<ReadCapability>): void {
+     |                                    ^ `capabilities` parameters with a type annotation must use DIY `Capabilities<...>`.
+  19 | 	void capabilities;
+  20 | }
+  21 |
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
