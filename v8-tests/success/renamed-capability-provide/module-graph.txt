@@ -1,17 +1,29 @@
 Module graph
 
 src/main.ts
-+-- readRenamed: appClock
++-- readRenamed
+|  +-- direct: appClock
+|  `-- indirect: (none)
 |
-+-- readRenamedWithAudit: appClock, audit
++-- readRenamedWithAudit
+|  +-- direct: appClock, audit
+|  `-- indirect: (none)
 |
-+-- fromStaticProvider: audit
++-- fromStaticProvider
+|  +-- direct: audit
+|  `-- indirect: (none)
 |
-+-- fromTopLevelObject: appClock, audit
-|  `-- calls: readRenamed
++-- fromTopLevelObject
+|  +-- calls: readRenamed
+|  +-- direct: audit
+|  `-- indirect: (none)
 |
-+-- fromExistingCapability: appClock, legacyClock
-|  `-- calls: readRenamed
++-- fromExistingCapability
+|  +-- calls: readRenamed
+|  +-- direct: legacyClock
+|  `-- indirect: (none)
 |
-`-- fromPartialInlineProvide: appClock, audit, legacyClock
-   `-- calls: readRenamedWithAudit
+`-- fromPartialInlineProvide
+   +-- calls: readRenamedWithAudit
+   +-- direct: legacyClock
+   `-- indirect: audit

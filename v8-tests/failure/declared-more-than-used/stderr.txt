@@ -1,43 +1,54 @@
-src/main.ts:7:8 unused capability
-   5 | type HyphenCapability = Capability<"reader-id", unknown>;
-   6 |
->  7 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
+src/main.ts:8:8 unused capability
+   6 | type HyphenCapability = Capability<"reader-id", unknown>;
+   7 |
+>  8 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
      |        ^ Declares unused capability "writer".
-   8 | 	capabilities.reader;
-   9 | }
-  10 |
+   9 | 	capabilities.reader;
+  10 | }
+  11 |
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:11:8 unused capability
-   9 | }
-  10 |
-> 11 | export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
+src/main.ts:12:8 unused capability
+  10 | }
+  11 |
+> 12 | export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
      |        ^ Declares unused capability "reader".
-  12 | 	capabilities.writer;
-  13 | }
-  14 |
+  13 | 	capabilities.writer;
+  14 | }
+  15 |
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:15:8 unused capability
-  13 | }
-  14 |
-> 15 | export function hyphenated(capabilities: Capabilities<ReadCapability | HyphenCapability>): void {
+src/main.ts:16:8 unused capability
+  14 | }
+  15 |
+> 16 | export function hyphenated(capabilities: Capabilities<ReadCapability | HyphenCapability>): void {
      |        ^ Declares unused capability "reader-id".
-  16 | 	capabilities.reader;
-  17 | }
-  18 |
+  17 | 	capabilities.reader;
+  18 | }
+  19 |
   = help: remove "reader-id" from `Capabilities<...>`, or add a real `capabilities["reader-id"]` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:20:6 unused capability
-  18 |
-  19 | const migration = {
-> 20 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
+src/main.ts:20:8 unused capability
+  18 | }
+  19 |
+> 20 | export function grouped(
+     |        ^ Declares unused capabilities: "extra", "writer".
+  21 | 	capabilities: Capabilities<ExtraCapability | ReadCapability | WriteCapability>,
+  22 | ): void {
+  23 | 	capabilities.reader;
+  = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:27:6 unused capability
+  25 |
+  26 | const migration = {
+> 27 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
      | 	    ^ Declares unused capability "writer".
-  21 | 		capabilities.reader;
-  22 | 	},
-  23 | };
+  28 | 		capabilities.reader;
+  29 | 	},
+  30 | };
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

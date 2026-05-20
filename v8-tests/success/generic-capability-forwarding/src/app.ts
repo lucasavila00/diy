@@ -9,6 +9,9 @@ declare const syncTool: ToolDef<"sync", AppToolCapability>;
 export const appTools = [queryTool, syncTool] as const;
 
 export function createAppToolServer(capabilities: Capabilities<AppToolCapability>): ToolServer {
+	capabilities.alpha;
+	capabilities.beta;
+	capabilities.gamma;
 	return createGenericToolServer(capabilities, {
 		serverInfo: {
 			name: "generic-tools",

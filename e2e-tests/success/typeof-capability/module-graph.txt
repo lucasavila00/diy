@@ -1,6 +1,10 @@
 Module graph
 
 src/main.ts
-+-- loadLocal: local
++-- loadLocal
+|  +-- direct: local
+|  `-- indirect: (none)
 |
-`-- loadExternal: external
+`-- loadExternal
+   +-- direct: external
+   `-- indirect: (none)

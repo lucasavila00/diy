@@ -1,10 +1,16 @@
 Module graph
 
 src/main.ts
-`-- run: audit, clock, external, store
-   `-- calls: loadAudit, readStore
+`-- run
+   +-- calls: readAudit, readStore
+   +-- direct: clock, external
+   `-- indirect: audit, store
 
 src/store.ts
-+-- readAudit: audit
++-- readAudit
+|  +-- direct: audit
+|  `-- indirect: (none)
 |
-`-- readStore: store
+`-- readStore
+   +-- direct: store
+   `-- indirect: (none)

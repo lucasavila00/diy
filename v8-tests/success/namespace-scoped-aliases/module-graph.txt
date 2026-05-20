@@ -1,24 +1,44 @@
 Module graph
 
 src/main.ts
-+-- Service.helperA: bar, foo
++-- Service.helperA
+|  +-- direct: bar, foo
+|  `-- indirect: (none)
 |
-+-- Service.helperB: bar, foo
++-- Service.helperB
+|  +-- direct: bar, foo
+|  `-- indirect: (none)
 |
-+-- Service.acceptBar: bar
++-- Service.acceptBar
+|  +-- direct: bar
+|  `-- indirect: (none)
 |
-+-- Service.withProvided: bar, foo
-|  `-- calls: Service.acceptBar
++-- Service.withProvided
+|  +-- calls: Service.acceptBar
+|  +-- direct: foo
+|  `-- indirect: (none)
 |
-+-- Service.chainedAlias: bar, foo
++-- Service.chainedAlias
+|  +-- direct: bar, foo
+|  `-- indirect: (none)
 |
-+-- Service.forwardCallback: bar, foo
-|  `-- calls: callback
++-- Service.forwardCallback
+|  +-- calls: callback
+|  +-- direct: (none)
+|  `-- indirect: bar, foo
 |
-+-- Outer.Inner.helper: bar
++-- Outer.Inner.helper
+|  +-- direct: bar
+|  `-- indirect: (none)
 |
-+-- SiblingA.helper: foo
++-- SiblingA.helper
+|  +-- direct: foo
+|  `-- indirect: (none)
 |
-+-- SiblingB.helper: bar
++-- SiblingB.helper
+|  +-- direct: bar
+|  `-- indirect: (none)
 |
-`-- ModuleFallback.helper: foo
+`-- ModuleFallback.helper
+   +-- direct: foo
+   `-- indirect: (none)

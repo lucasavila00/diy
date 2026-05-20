@@ -1,11 +1,20 @@
 Module graph
 
 src/main.ts
-+-- Helpers.useRead: read
++-- Helpers.useRead
+|  +-- direct: read
+|  `-- indirect: (none)
 |
-+-- Helpers.Nested.useAudit: audit
++-- Helpers.Nested.useAudit
+|  +-- direct: audit
+|  `-- indirect: (none)
 |
-+-- Helpers.Nested.useWrite: audit, read, write
-|  `-- calls: Helpers.Nested.useAudit, Helpers.useRead
++-- Helpers.Nested.useWrite
+|  +-- calls: Helpers.Nested.useAudit, Helpers.useRead
+|  +-- direct: write
+|  `-- indirect: audit, read
 |
-`-- run: read
+`-- run
+   +-- calls: Helpers.Nested.useWrite
+   +-- direct: read
+   `-- indirect: audit, write

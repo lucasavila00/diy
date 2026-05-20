@@ -1,0 +1,76 @@
+Module graph
+
+src/handlers.ts
++-- needAlpha
+|  +-- direct: alpha
+|  `-- indirect: (none)
+|
++-- needAlphaBeta
+|  +-- direct: alpha, beta
+|  `-- indirect: (none)
+|
++-- needAlphaGamma
+|  +-- direct: alpha, gamma
+|  `-- indirect: (none)
+|
+`-- ToolHandlers.needAlpha
+   +-- direct: alpha
+   `-- indirect: (none)
+
+src/main.ts
++-- directProperty
+|  +-- direct: alpha
+|  `-- indirect: (none)
+|
++-- directBracket
+|  +-- direct: alpha
+|  `-- indirect: (none)
+|
++-- readAfterAwait
+|  +-- direct: alpha
+|  `-- indirect: (none)
+|
++-- forwardWholeBag
+|  +-- calls: needAlpha
+|  +-- direct: (none)
+|  `-- indirect: alpha
+|
++-- forwardNamespace
+|  +-- calls: ToolHandlers.needAlpha
+|  +-- direct: (none)
+|  `-- indirect: alpha
+|
++-- forwardFactoryResult
+|  +-- calls: makeAlphaRunner()
+|  +-- direct: (none)
+|  `-- indirect: alpha
+|
++-- aliasThenForward
+|  +-- calls: needAlpha
+|  +-- direct: (none)
+|  `-- indirect: alpha
+|
++-- assignmentAliasThenForward
+|  +-- calls: needAlpha
+|  +-- direct: (none)
+|  `-- indirect: alpha
+|
++-- mergeThenForward
+|  +-- calls: needAlphaBeta
+|  +-- direct: (none)
+|  `-- indirect: alpha
+|
++-- extendThenForward
+|  +-- calls: needAlphaBeta
+|  +-- direct: (none)
+|  `-- indirect: alpha
+|
++-- overrideThenForward
+|  +-- calls: needAlphaGamma
+|  +-- direct: (none)
+|  `-- indirect: alpha, gamma
+|
+`-- propagatedAliasThenForward
+   +-- calls: needAlphaBeta
+   +-- direct: (none)
+   `-- indirect: alpha

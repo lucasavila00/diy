@@ -26,7 +26,7 @@ function fixtureDirs(parentDir: string): readonly string[] {
 
 async function runAnalyzerFixture(
 	caseDir: string,
-	commandOptions: { readonly mode: "graph" | "lint"; readonly project: string },
+	commandOptions: { readonly mode: "dead-code" | "graph" | "lint"; readonly project: string },
 ): Promise<CapturedRun> {
 	let stderr = "";
 	let stdout = "";
@@ -96,6 +96,16 @@ describe("DIY success e2e", () => {
 	for (const caseDir of caseDirs) {
 		it(`${basename(caseDir)} passes`, async () => {
 			const result = await runAnalyzerFixture(caseDir, { mode: "lint", project: "diy.json" });
+			expect(result.exitCode).toBe(0);
+			expect(result.stderr).toBe("");
+			expect(result.stdout).toMatch(/^DIY analyzer passed: \d+ files analyzed\.\n$/);
+		});
+
+		it(`${basename(caseDir)} passes dead-code analysis`, async () => {
+			const result = await runAnalyzerFixture(caseDir, {
+				mode: "dead-code",
+				project: "diy.json",
+			});
 			expect(result.exitCode).toBe(0);
 			expect(result.stderr).toBe("");
 			expect(result.stdout).toMatch(/^DIY analyzer passed: \d+ files analyzed\.\n$/);

@@ -1,13 +1,23 @@
 Module graph
 
 src/main.ts
-+-- migration.up: date, mongo
++-- migration.up
+|  +-- direct: date, mongo
+|  `-- indirect: (none)
 |
-+-- methodContainer.run: logger
++-- methodContainer.run
+|  +-- direct: logger
+|  `-- indirect: (none)
 |
-+-- Worker.execute: random
++-- Worker.execute
+|  +-- direct: random
+|  `-- indirect: (none)
 |
-+-- callbacks: date
++-- callbacks
+|  +-- direct: date
+|  `-- indirect: (none)
 |
-`-- run: logger, random
-   `-- calls: methodContainer.run, Worker.execute
+`-- run
+   +-- calls: methodContainer.run, Worker.execute
+   +-- direct: (none)
+   `-- indirect: logger, random

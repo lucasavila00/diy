@@ -1,8 +1,12 @@
 Module graph
 
 lib/one.ts
-`-- run: read, write
-   `-- calls: src/one.ts:run
+`-- run
+   +-- calls: src/one.ts:run
+   +-- direct: write
+   `-- indirect: read
 
 src/one.ts
-`-- run: read
+`-- run
+   +-- direct: read
+   `-- indirect: (none)

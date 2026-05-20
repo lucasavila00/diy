@@ -176,9 +176,14 @@ By default, DIY runs a small syntax lint pass:
 Run `diy-cli --dead-code -p diy.json` to check capability reachability:
 
 - Declared capabilities that are not used directly or transitively are reported as unused.
+- Direct reads like `capabilities.alpha`, `capabilities["alpha"]`, and `capabilities.alpha.method()` count as usage.
 - Redundant `Capabilities.extend(...)` providers are reported.
 - Dynamic or unresolvable capability reads are reported as unsupported analysis.
+- Generic or open-ended declarations such as `Capabilities<Capability<string, unknown>>` are unsupported analysis; use `// diy-ignore-next-line -- reason` for intentional framework escape hatches.
 - Forwarded capabilities must target analyzable effectful functions.
+- Whole-bag forwarding to a callee with a resolved `Capabilities<...>` parameter counts as transitive usage.
+- Treat `Capabilities<never>` as an empty declaration.
+- `Capabilities.merge(capabilities, ...)`, `Capabilities.extend(capabilities, ...)`, and `Capabilities.override(capabilities, ...)` propagate the original bag when their result is forwarded, read, or returned.
 
 ## Advanced Features
 

@@ -1,0 +1,21 @@
+src/main.ts:7:8 unsupported analysis
+   5 | declare function use(value: unknown): void;
+   6 |
+>  7 | export function openBag(capabilities: Capabilities<Capability<string, unknown>>): void {
+     |        ^ open-ended capability bag cannot be checked for unused capabilities
+   8 | 	use(capabilities);
+   9 | }
+  10 |
+  = help: use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:11:8 unsupported analysis
+   9 | }
+  10 |
+> 11 | export function aliasBag(capabilities: Capabilities<AnyCapability>): void {
+     |        ^ open-ended capability bag cannot be checked for unused capabilities
+  12 | 	use(capabilities);
+  13 | }
+  14 |
+  = help: use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

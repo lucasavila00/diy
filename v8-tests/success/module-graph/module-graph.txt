@@ -1,13 +1,21 @@
 Module graph
 
 src/clock.ts
-`-- readClock: clock
+`-- readClock
+   +-- direct: clock
+   `-- indirect: (none)
 
 src/config.ts
-`-- readConfig: fs
+`-- readConfig
+   +-- direct: fs
+   `-- indirect: (none)
 
 src/main.ts
-+-- run: clock, env, fs
-|  `-- calls: readClock, readConfig
++-- run
+|  +-- calls: readClock, readConfig
+|  +-- direct: env, fs
+|  `-- indirect: clock
 |
-`-- nestedOnly: secret
+`-- nestedOnly
+   +-- direct: secret
+   `-- indirect: (none)

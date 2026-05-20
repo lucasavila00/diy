@@ -69,6 +69,7 @@ type NativeFact = {
 	readonly name: string;
 	readonly paramName: string;
 	readonly paramSymbol: TsgoSymbol;
+	readonly propagatedSources: Map<string | number, ReadonlySet<string>>;
 	readonly provideChecks: NativeProvideCheck[];
 	readonly reportable: boolean;
 	readonly unsupportedReasons: NativeUnsupportedReason[];
@@ -87,6 +88,11 @@ type NativeProvideCheck = {
 	readonly line: number;
 };
 
+type ForwardedExpression = {
+	readonly provided: ReadonlySet<string>;
+	readonly usesDeclared: boolean;
+};
+
 type NativeUnsupportedReason =
 	| {
 			readonly column?: number;
@@ -95,6 +101,9 @@ type NativeUnsupportedReason =
 	  }
 	| {
 			readonly kind: "generic-direct-read";
+	  }
+	| {
+			readonly kind: "open-capability-bag";
 	  }
 	| {
 			readonly kind: "unresolved-declaration";
@@ -422,7 +431,7 @@ function collectNativeFacts(
 		collectFunctionFacts(project, moduleInfo, facts, factsByDeclaration);
 	}
 	for (const fact of facts) {
-		scanFunctionBody(project, fact, factsByDeclaration);
+		scanFunctionBody(project, fact, facts, factsByDeclaration);
 	}
 	return facts.sort(compareFacts);
 }
@@ -484,7 +493,11 @@ function readNativeFact(
 	const name = namespaceStack.length === 0 ? localName : `${namespaceStack.join(".")}.${localName}`;
 	const unsupportedReasons: NativeUnsupportedReason[] = [];
 	if (declared.size === 0 && !declaredOpaque && !isNeverCapabilitiesType(firstParam.type)) {
-		unsupportedReasons.push({ kind: "unresolved-declaration" });
+		unsupportedReasons.push({
+			kind: isOpenCapabilityBagType(project.checker, firstParam.type)
+				? "open-capability-bag"
+				: "unresolved-declaration",
+		});
 	}
 	return {
 		calls: [],
@@ -499,6 +512,7 @@ function readNativeFact(
 		name,
 		paramName: staticName(firstParam.name) ?? "",
 		paramSymbol,
+		propagatedSources: new Map(),
 		provideChecks: [],
 		reportable: moduleInfo.reportable,
 		unsupportedReasons,
@@ -508,6 +522,7 @@ function readNativeFact(
 function scanFunctionBody(
 	project: Project,
 	fact: NativeFact,
+	facts: readonly NativeFact[],
 	factsByDeclaration: ReadonlyMap<string, NativeFact>,
 ): void {
 	const visit = (node: Node): void => {
@@ -518,12 +533,18 @@ function scanFunctionBody(
 		) {
 			return;
 		}
-		if (node.kind === SyntaxKind.PropertyAccessExpression) {
+		if (node.kind === SyntaxKind.ReturnStatement) {
+			scanForwardedReturn(project.checker, fact, node);
+		} else if (node.kind === SyntaxKind.VariableDeclaration) {
+			scanPropagatedVariable(project.checker, fact, node);
+		} else if (node.kind === SyntaxKind.BinaryExpression) {
+			scanPropagatedAssignment(project.checker, fact, node);
+		} else if (node.kind === SyntaxKind.PropertyAccessExpression) {
 			scanPropertyAccess(project, fact, node as PropertyAccessExpression);
 		} else if (node.kind === SyntaxKind.ElementAccessExpression) {
 			scanElementAccess(project, fact, node as ElementAccessExpression);
 		} else if (node.kind === SyntaxKind.CallExpression) {
-			scanCall(project, fact, factsByDeclaration, node as CallExpression);
+			scanCall(project, fact, facts, factsByDeclaration, node as CallExpression);
 		}
 		node.forEachChild(visit);
 	};
@@ -552,15 +573,11 @@ function scanPropertyAccess(
 	fact: NativeFact,
 	node: PropertyAccessExpression,
 ): void {
-	if (!sameSymbol(project.checker.getSymbolAtLocation(node.expression), fact.paramSymbol)) {
+	const access = capabilityAccess(project.checker, fact, node);
+	if (access == null) {
 		return;
 	}
-	const id = staticName(node.name);
-	if (
-		id == null ||
-		node.name.kind === SyntaxKind.PrivateIdentifier ||
-		node.questionDotToken != null
-	) {
+	if (access.id == null) {
 		const location = locationForNode(fact.moduleInfo, node);
 		fact.unsupportedReasons.push({
 			column: location.column,
@@ -569,7 +586,7 @@ function scanPropertyAccess(
 		});
 		return;
 	}
-	fact.direct.add(id);
+	fact.direct.add(access.id);
 }
 
 function scanElementAccess(
@@ -577,11 +594,11 @@ function scanElementAccess(
 	fact: NativeFact,
 	node: ElementAccessExpression,
 ): void {
-	if (!sameSymbol(project.checker.getSymbolAtLocation(node.expression), fact.paramSymbol)) {
+	const access = capabilityAccess(project.checker, fact, node);
+	if (access == null) {
 		return;
 	}
-	const id = staticStringExpression(project.checker, node.argumentExpression);
-	if (id == null || node.questionDotToken != null) {
+	if (access.id == null) {
 		const location = locationForNode(fact.moduleInfo, node);
 		fact.unsupportedReasons.push({
 			column: location.column,
@@ -590,12 +607,48 @@ function scanElementAccess(
 		});
 		return;
 	}
-	fact.direct.add(id);
+	fact.direct.add(access.id);
+}
+
+function capabilityAccess(
+	checker: Checker,
+	fact: NativeFact,
+	node: PropertyAccessExpression | ElementAccessExpression,
+): { readonly id: string | null } | null {
+	let firstAccess: PropertyAccessExpression | ElementAccessExpression = node;
+	let current = unwrapExpression(accessExpression(node));
+	while (
+		current.kind === SyntaxKind.PropertyAccessExpression ||
+		current.kind === SyntaxKind.ElementAccessExpression
+	) {
+		firstAccess = current as PropertyAccessExpression | ElementAccessExpression;
+		current = unwrapExpression(accessExpression(firstAccess));
+	}
+	if (capabilitiesSourceExpression(checker, fact, current) == null) {
+		return null;
+	}
+	if (firstAccess.kind === SyntaxKind.PropertyAccessExpression) {
+		const access = firstAccess as PropertyAccessExpression;
+		if (access.name.kind === SyntaxKind.PrivateIdentifier || access.questionDotToken != null) {
+			return { id: null };
+		}
+		return { id: staticName(access.name) };
+	}
+	const access = firstAccess as ElementAccessExpression;
+	if (access.questionDotToken != null) {
+		return { id: null };
+	}
+	return { id: staticStringExpression(checker, access.argumentExpression) };
+}
+
+function accessExpression(node: PropertyAccessExpression | ElementAccessExpression): Expression {
+	return node.expression;
 }
 
 function scanCall(
 	project: Project,
 	fact: NativeFact,
+	facts: readonly NativeFact[],
 	factsByDeclaration: ReadonlyMap<string, NativeFact>,
 	node: CallExpression,
 ): void {
@@ -611,27 +664,28 @@ function scanCall(
 		return;
 	}
 	for (const [index, argument] of node.arguments.entries()) {
-		const forwarded = forwardedArgument(project.checker, fact, argument);
+		const forwarded = forwardedExpression(project.checker, fact, argument);
 		if (forwarded == null) {
 			continue;
 		}
 		const signature = resolveCallSignature(project.checker, node);
-		if (signature == null) {
+		const targetFact = resolveCallTarget(
+			project,
+			fact,
+			facts,
+			factsByDeclaration,
+			signature,
+			node.expression,
+		);
+		const parameterType =
+			signature == null ? undefined : project.checker.getParameterType(signature, index);
+		const argumentType = expressionType(project.checker, argument);
+		const required =
+			targetFact?.declared ??
+			forwardedRequiredCapabilities(project.checker, fact, forwarded, parameterType, argumentType);
+		if (required == null) {
 			continue;
 		}
-		const parameterType = project.checker.getParameterType(signature, index);
-		const argumentType = project.checker.getTypeAtLocation(unwrapExpression(argument));
-		const capabilitiesType =
-			parameterType != null && isCapabilitiesType(project.checker, parameterType)
-				? parameterType
-				: argumentType != null && isCapabilitiesType(project.checker, argumentType)
-					? argumentType
-					: null;
-		if (capabilitiesType == null) {
-			continue;
-		}
-		const targetFact = resolveCallTarget(project, factsByDeclaration, signature, node.expression);
-		const required = capabilityIds(project.checker, capabilitiesType);
 		fact.calls.push({
 			calleeName: targetFact?.name ?? expressionLabel(fact.moduleInfo.sourceFile, node.expression),
 			provided: forwarded.provided,
@@ -641,19 +695,67 @@ function scanCall(
 	}
 }
 
+function scanForwardedReturn(checker: Checker, fact: NativeFact, node: Node): void {
+	const expression = (node as unknown as Record<string, Node | undefined>).expression;
+	if (expression == null || !isExpression(expression)) {
+		return;
+	}
+	const forwarded = forwardedExpression(checker, fact, expression);
+	if (forwarded?.usesDeclared === true) {
+		addDeclaredRequired(fact);
+	}
+}
+
+function scanPropagatedVariable(checker: Checker, fact: NativeFact, node: Node): void {
+	const record = node as unknown as Record<string, Node | undefined>;
+	const initializer = record.initializer;
+	if (initializer == null || !isExpression(initializer)) {
+		return;
+	}
+	const forwarded = forwardedExpression(checker, fact, initializer);
+	if (forwarded == null) {
+		return;
+	}
+	const name = record.name;
+	if (name != null) {
+		addPropagatedSource(checker, fact, name, forwarded.provided);
+	}
+}
+
+function scanPropagatedAssignment(checker: Checker, fact: NativeFact, node: Node): void {
+	const record = node as unknown as Record<string, Node | undefined>;
+	if (record.operatorToken?.kind !== SyntaxKind.EqualsToken) {
+		return;
+	}
+	const left = record.left;
+	const right = record.right;
+	if (left == null || right == null || !isExpression(right)) {
+		return;
+	}
+	const forwarded = forwardedExpression(checker, fact, right);
+	if (forwarded == null) {
+		return;
+	}
+	addPropagatedSource(checker, fact, left, forwarded.provided);
+}
+
 function resolveCallTarget(
 	project: Project,
+	caller: NativeFact,
+	facts: readonly NativeFact[],
 	factsByDeclaration: ReadonlyMap<string, NativeFact>,
-	signature: Signature,
+	signature: Signature | undefined,
 	expression: Expression,
 ): NativeFact | null {
-	const signatureTarget = signature.declaration?.resolve(project);
+	const signatureTarget = signature?.declaration?.resolve(project);
 	const signatureFact =
-		signatureTarget == null ? null : factsByDeclaration.get(nodeKey(signatureTarget));
+		signatureTarget == null
+			? null
+			: factForDeclaration(project, factsByDeclaration, signatureTarget);
 	if (signatureFact != null) {
 		return signatureFact;
 	}
-	const symbols: (TsgoSymbol | undefined)[] = [project.checker.getSymbolAtLocation(expression)];
+	const symbols: (TsgoSymbol | undefined)[] = [];
 	if (expression.kind === SyntaxKind.Identifier) {
 		symbols.push(project.checker.getResolvedSymbol(expression as Identifier));
 	}
@@ -661,16 +763,73 @@ function resolveCallTarget(
 		const access = expression as PropertyAccessExpression;
 		symbols.push(project.checker.getSymbolAtLocation(access.name));
 	}
+	symbols.push(project.checker.getSymbolAtLocation(expression));
 	for (const symbol of symbols) {
 		for (const declaration of symbol?.declarations ?? []) {
 			const target = declaration.resolve(project);
-			const fact = target == null ? null : factsByDeclaration.get(nodeKey(target));
+			const fact = target == null ? null : factForDeclaration(project, factsByDeclaration, target);
 			if (fact != null) {
 				return fact;
 			}
 		}
 	}
+	const imported = importedTargetFact(caller.moduleInfo, facts, expression);
+	if (imported != null) {
+		return imported;
+	}
 	return null;
+}
+
+function importedTargetFact(
+	moduleInfo: NativeSourceModule,
+	facts: readonly NativeFact[],
+	expression: Expression,
+): NativeFact | null {
+	if (expression.kind !== SyntaxKind.Identifier) {
+		return null;
+	}
+	const localName = staticName(expression);
+	const imported = localName == null ? null : moduleInfo.imports.get(localName);
+	if (imported == null || imported.kind !== "named") {
+		return null;
+	}
+	const candidates = importCandidateSuffixes(moduleInfo.filePath, imported.source);
+	return (
+		facts.find(
+			(fact) =>
+				fact.name === imported.importedName &&
+				candidates.some((candidate) => fact.filePath.endsWith(candidate)),
+		) ?? null
+	);
+}
+
+function importCandidateSuffixes(containingFile: string, source: string): readonly string[] {
+	if (source.startsWith(".")) {
+		return importCandidates(containingFile, source).map((candidate) =>
+			relative("/", resolve(candidate)),
+		);
+	}
+	return [`${source}.ts`, join(source, "index.ts")];
+}
+
+function factForDeclaration(
+	project: Project,
+	factsByDeclaration: ReadonlyMap<string, NativeFact>,
+	node: Node,
+): NativeFact | null {
+	const direct = factsByDeclaration.get(nodeKey(node));
+	if (direct != null) {
+		return direct;
+	}
+	return (
+		node.forEachChild(function find(child): NativeFact | null {
+			const fact = factsByDeclaration.get(nodeKey(child));
+			if (fact != null) {
+				return fact;
+			}
+			return child.forEachChild(find) ?? null;
+		}) ?? null
+	);
 }
 
 function isCapabilitiesHelperCall(moduleInfo: NativeSourceModule, node: CallExpression): boolean {
@@ -685,6 +844,14 @@ function resolveCallSignature(checker: Checker, node: CallExpression): Signature
 	try {
 		const resolved = checker.getResolvedSignature(node);
 		if (resolved != null) {
+			const firstParameter = checker.getParameterType(resolved, 0);
+			if (
+				node.arguments.length > 0 &&
+				firstParameter != null &&
+				(firstParameter.flags & TypeFlags.Any) !== 0
+			) {
+				throw new Error("Resolved signature has an `any` parameter.");
+			}
 			return resolved;
 		}
 	} catch {
@@ -715,28 +882,21 @@ function readCapabilitiesExtend(
 		return null;
 	}
 	const firstArgument = node.arguments[0];
-	if (
-		firstArgument == null ||
-		!sameSymbol(expressionSymbol(checker, firstArgument), fact.paramSymbol)
-	) {
+	if (firstArgument == null || capabilitiesSourceExpression(checker, fact, firstArgument) == null) {
 		return null;
 	}
-	const secondArgument = node.arguments[1];
-	if (secondArgument == null || secondArgument.kind !== SyntaxKind.CallExpression) {
-		return { extra: new Set() };
-	}
-	const type = checker.getTypeAtLocation(secondArgument);
-	return { extra: type == null ? new Set() : capabilityIds(checker, type) };
+	return { extra: providedCapabilityIds(checker, argumentsAfterFirst(node)) };
 }
 
-function forwardedArgument(
+function forwardedExpression(
 	checker: Checker,
 	fact: NativeFact,
 	argument: Expression,
-): { readonly provided: ReadonlySet<string> } | null {
+): ForwardedExpression | null {
 	const expression = unwrapExpression(argument);
-	if (sameSymbol(expressionSymbol(checker, expression), fact.paramSymbol)) {
-		return { provided: new Set() };
+	const source = capabilitiesSourceExpression(checker, fact, expression);
+	if (source != null) {
+		return source;
 	}
 	if (expression.kind !== SyntaxKind.CallExpression) {
 		return null;
@@ -747,18 +907,152 @@ function forwardedArgument(
 		return null;
 	}
 	const propertyAccess = callee as PropertyAccessExpression;
-	if (staticName(propertyAccess.name) !== "extend") {
-		return null;
-	}
-	const firstArgument = call.arguments[0];
+	const helperName = staticName(propertyAccess.name);
 	if (
-		firstArgument == null ||
-		!sameSymbol(expressionSymbol(checker, firstArgument), fact.paramSymbol)
+		!isPropagationHelperName(helperName) ||
+		!isImportedCapabilitiesValue(fact.moduleInfo, propertyAccess.expression)
 	) {
 		return null;
 	}
-	const type = checker.getTypeAtLocation(call.arguments[1] ?? call);
-	return { provided: type == null ? new Set() : capabilityIds(checker, type) };
+	const firstArgument = call.arguments[0];
+	const firstSource =
+		firstArgument == null ? null : capabilitiesSourceExpression(checker, fact, firstArgument);
+	if (firstSource == null) {
+		return null;
+	}
+	const provided = new Set(firstSource.provided);
+	if (helperName === "extend" || helperName === "merge") {
+		for (const id of providedCapabilityIds(checker, argumentsAfterFirst(call))) {
+			provided.add(id);
+		}
+	}
+	return { provided, usesDeclared: true };
+}
+
+function forwardedRequiredCapabilities(
+	checker: Checker,
+	fact: NativeFact,
+	forwarded: ForwardedExpression,
+	parameterType: Type | undefined,
+	argumentType: Type | undefined,
+): ReadonlySet<string> | null {
+	const parameterIds =
+		parameterType != null && isCapabilitiesType(checker, parameterType)
+			? capabilityIds(checker, parameterType)
+			: null;
+	if (parameterIds != null && parameterIds.size > 0) {
+		return parameterIds;
+	}
+	const argumentIds =
+		argumentType != null && isCapabilitiesType(checker, argumentType)
+			? capabilityIds(checker, argumentType)
+			: null;
+	if (parameterIds != null && argumentIds != null && argumentIds.size > 0) {
+		return argumentIds;
+	}
+	if (parameterIds != null && forwarded.usesDeclared) {
+		return fact.declared;
+	}
+	return null;
+}
+
+function providedCapabilityIds(
+	checker: Checker,
+	expressions: readonly Expression[],
+): ReadonlySet<string> {
+	const provided = new Set<string>();
+	for (const expression of expressions) {
+		for (const id of objectLiteralCapabilityIds(expression)) {
+			provided.add(id);
+		}
+		const type = expressionType(checker, expression);
+		if (type == null) {
+			continue;
+		}
+		for (const id of capabilityIds(checker, type)) {
+			provided.add(id);
+		}
+	}
+	return provided;
+}
+
+function objectLiteralCapabilityIds(expression: Expression): ReadonlySet<string> {
+	const ids = new Set<string>();
+	const unwrapped = unwrapExpression(expression);
+	let objectLiteral = unwrapped.kind === SyntaxKind.ObjectLiteralExpression ? unwrapped : null;
+	if (unwrapped.kind === SyntaxKind.CallExpression) {
+		const call = unwrapped as CallExpression;
+		objectLiteral = call.arguments[0] ?? null;
+	}
+	if (objectLiteral == null || objectLiteral.kind !== SyntaxKind.ObjectLiteralExpression) {
+		return ids;
+	}
+	const properties = (objectLiteral as unknown as Record<string, readonly Node[] | undefined>)
+		.properties;
+	for (const property of properties ?? []) {
+		const name = staticName((property as unknown as Record<string, unknown>).name);
+		if (name != null) {
+			ids.add(name);
+		}
+	}
+	return ids;
+}
+
+function argumentsAfterFirst(call: CallExpression): readonly Expression[] {
+	const args: Expression[] = [];
+	for (const [index, argument] of call.arguments.entries()) {
+		if (index > 0) {
+			args.push(argument);
+		}
+	}
+	return args;
+}
+
+function isPropagationHelperName(name: string | null): boolean {
+	return name === "extend" || name === "merge" || name === "override";
+}
+
+function addDeclaredRequired(fact: NativeFact): void {
+	for (const id of fact.declared) {
+		fact.direct.add(id);
+	}
+}
+
+function addPropagatedSource(
+	checker: Checker,
+	fact: NativeFact,
+	node: Node,
+	provided: ReadonlySet<string>,
+): void {
+	const id = symbolId(checker.getSymbolAtLocation(node));
+	if (id != null) {
+		fact.propagatedSources.set(id, new Set(provided));
+	}
+}
+
+function capabilitiesSourceExpression(
+	checker: Checker,
+	fact: NativeFact,
+	expression: Expression,
+): ForwardedExpression | null {
+	const symbol = expressionSymbol(checker, expression);
+	if (sameSymbol(symbol, fact.paramSymbol)) {
+		return { provided: new Set(), usesDeclared: false };
+	}
+	const id = symbolId(symbol);
+	const provided = id == null ? undefined : fact.propagatedSources.get(id);
+	return provided == null ? null : { provided, usesDeclared: false };
+}
+
+function expressionType(checker: Checker, expression: Expression): Type | undefined {
+	const unwrapped = unwrapExpression(expression);
+	if (unwrapped.kind === SyntaxKind.CallExpression) {
+		const signature = resolveCallSignature(checker, unwrapped as CallExpression);
+		if (signature != null) {
+			return checker.getReturnTypeOfSignature(signature);
+		}
+	}
+	return checker.getTypeAtLocation(unwrapped);
 }
 
 function computeRequired(facts: readonly NativeFact[]): ReadonlyMap<string, ReadonlySet<string>> {
@@ -951,6 +1245,21 @@ function makeUnsupported(
 				],
 				reason: "generic capabilities parameter reads services directly",
 			};
+		case "open-capability-bag":
+			return {
+				column: fact.column,
+				filePath: fact.filePath,
+				functionName: fact.name,
+				line: fact.line,
+				notes: [
+					{
+						kind: "help",
+						message:
+							"use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag",
+					},
+				],
+				reason: "open-ended capability bag cannot be checked for unused capabilities",
+			};
 		case "unresolved-declaration":
 			return {
 				column: fact.column,
@@ -1026,6 +1335,30 @@ function isOpaqueCapabilitiesType(checker: Checker, typeNode: TypeNode): boolean
 	return type != null && (type.flags & TypeFlags.TypeParameter) !== 0;
 }
 
+function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): boolean {
+	if (typeNode.kind !== SyntaxKind.TypeReference) {
+		return false;
+	}
+	const typeArguments = (typeNode as unknown as Record<string, readonly TypeNode[] | undefined>)
+		.typeArguments;
+	const firstTypeArgument = typeArguments?.[0];
+	if (firstTypeArgument == null) {
+		return false;
+	}
+	const type = checker.getTypeFromTypeNode(firstTypeArgument);
+	if (type == null) {
+		return false;
+	}
+	return checker.getPropertiesOfType(type).some((property) => {
+		const propertyType = checker.getTypeOfSymbolAtLocation(property, firstTypeArgument);
+		return (
+			property.name.includes("capabilityId") &&
+			propertyType != null &&
+			checker.typeToString(propertyType) === "string"
+		);
+	});
+}
+
 function hasOwnCapabilitiesBinding(
 	project: Project,
 	moduleInfo: NativeSourceModule,
@@ -1084,11 +1417,21 @@ function entityNameParts(node: Node): readonly string[] {
 }
 
 function expressionSymbol(checker: Checker, expression: Expression): TsgoSymbol | undefined {
-	return checker.getSymbolAtLocation(unwrapExpression(expression));
+	const unwrapped = unwrapExpression(expression);
+	if (unwrapped.kind === SyntaxKind.Identifier) {
+		return (
+			checker.getResolvedSymbol(unwrapped as Identifier) ?? checker.getSymbolAtLocation(unwrapped)
+		);
+	}
+	return checker.getSymbolAtLocation(unwrapped);
 }
 
 function sameSymbol(left: TsgoSymbol | undefined, right: TsgoSymbol): boolean {
 	return left?.id === right.id;
+}
+
+function symbolId(symbol: TsgoSymbol | undefined): string | number | undefined {
+	return typeof symbol?.id === "number" || typeof symbol?.id === "string" ? symbol.id : undefined;
 }
 
 function unwrapExpression(expression: Expression): Expression {

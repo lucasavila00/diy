@@ -23,8 +23,9 @@ src/main.ts:22:9 unsupported analysis
   20 | 	use(outputCodec);
   21 | 	use(methodName);
 > 22 | 	return async (
-     | 	       ^ capabilities declaration could not be resolved
+     | 	       ^ open-ended capability bag cannot be checked for unused capabilities
   23 | 		// diy-ignore-next-line -- framework-level wrapper; capabilities are passed through unchanged.
   24 | 		capabilities: Capabilities<Capability<string, unknown>>,
   25 | 		arg: unknown,
+  = help: use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

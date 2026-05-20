@@ -1,7 +1,11 @@
 Module graph
 
 src/main.ts
-+-- typedButIntentionallyUnused: (none)
++-- typedButIntentionallyUnused
+|  +-- direct: (none)
+|  `-- indirect: (none)
 |
-`-- nestedCallback: alpha
-   `-- calls: callback
+`-- nestedCallback
+   +-- calls: callback
+   +-- direct: (none)
+   `-- indirect: alpha

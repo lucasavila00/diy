@@ -1,21 +1,23 @@
-src/main.ts:6:8 unused capability
-  4 | type WriteCapability = Capability<"write", unknown>;
-  5 |
-> 6 | export function load(
-    |        ^ Declares unused capabilities: "read", "write".
-  7 | 	capabilities: Capabilities<ReadCapability | WriteCapability>,
-  8 | ): Capabilities<ReadCapability | WriteCapability> {
-  9 | 	return Capabilities.extend(capabilities, Capabilities.create<WriteCapability>({ write: {} }));
-  = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:12:8 unused capability
+src/main.ts:9:9 redundant capability provider
+   7 | 	capabilities: Capabilities<ReadCapability | WriteCapability>,
+   8 | ): Capabilities<ReadCapability | WriteCapability> {
+>  9 | 	return Capabilities.extend(capabilities, Capabilities.create<WriteCapability>({ write: {} }));
+     | 	       ^ Capabilities.extend adds capabilities already present on capabilities: write
   10 | }
   11 |
-> 12 | export function loadBoth(
-     |        ^ Declares unused capabilities: "read", "write".
+  12 | export function loadBoth(
+  = note: `write` is already allowed by this function's `capabilities` parameter
+  = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:15:9 redundant capability provider
   13 | 	capabilities: Capabilities<ReadCapability | WriteCapability>,
   14 | ): Capabilities<ReadCapability | WriteCapability> {
-  15 | 	return Capabilities.extend(
-  = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
+> 15 | 	return Capabilities.extend(
+     | 	       ^ Capabilities.extend adds capabilities already present on capabilities: read, write
+  16 | 		capabilities,
+  17 | 		Capabilities.create<ReadCapability | WriteCapability>({ read: {}, write: {} }),
+  18 | 	);
+  = note: `read`, `write` are already allowed by this function's `capabilities` parameter
+  = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

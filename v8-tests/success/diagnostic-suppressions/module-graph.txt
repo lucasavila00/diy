@@ -1,4 +1,6 @@
 Module graph
 
 src/main.ts
-`-- start: fs
+`-- start
+   +-- direct: fs
+   `-- indirect: (none)

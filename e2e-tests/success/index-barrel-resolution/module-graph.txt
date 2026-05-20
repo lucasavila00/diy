@@ -1,13 +1,21 @@
 Module graph
 
 packages/app/src/bare.ts
-`-- loadBare: foo
+`-- loadBare
+   +-- direct: foo
+   `-- indirect: (none)
 
 packages/core/src/capabilities/local.ts
-`-- loadLocal: foo
+`-- loadLocal
+   +-- direct: foo
+   `-- indirect: (none)
 
 packages/core/src/capabilities/nested/parent.ts
-`-- loadParent: foo
+`-- loadParent
+   +-- direct: foo
+   `-- indirect: (none)
 
 packages/core/src/feature/relative.ts
-`-- loadRelative: foo
+`-- loadRelative
+   +-- direct: foo
+   `-- indirect: (none)

@@ -1,23 +1,37 @@
 Module graph
 
 src/app.ts
-`-- createAppToolServer: alpha, beta, gamma
-   `-- calls: createGenericToolServer
+`-- createAppToolServer
+   +-- calls: createGenericToolServer
+   +-- direct: alpha, beta, gamma
+   `-- indirect: (none)
 
 src/mixed.ts
-+-- readKnownAndForwardGeneric: alpha
-|  `-- calls: forwardOpaque
++-- readKnownAndForwardGeneric
+|  +-- calls: forwardOpaque
+|  +-- direct: alpha
+|  `-- indirect: (none)
 |
-+-- forwardOpaque: (none)
-|  `-- calls: acceptOpaque
++-- forwardOpaque
+|  +-- calls: acceptOpaque
+|  +-- direct: (none)
+|  `-- indirect: (none)
 |
-`-- acceptOpaque: (none)
+`-- acceptOpaque
+   +-- direct: (none)
+   `-- indirect: (none)
 
 src/transport.ts
-+-- createGenericToolServer: (none)
-|  `-- calls: startGenericTransport
++-- createGenericToolServer
+|  +-- calls: startGenericTransport
+|  +-- direct: (none)
+|  `-- indirect: (none)
 |
-+-- startGenericTransport: (none)
-|  `-- calls: finishGenericTransport
++-- startGenericTransport
+|  +-- calls: finishGenericTransport
+|  +-- direct: (none)
+|  `-- indirect: (none)
 |
-`-- finishGenericTransport: (none)
+`-- finishGenericTransport
+   +-- direct: (none)
+   `-- indirect: (none)

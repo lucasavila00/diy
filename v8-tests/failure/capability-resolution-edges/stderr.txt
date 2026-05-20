@@ -1,3 +1,14 @@
+src/main.ts:43:8 unused capability
+  41 | }
+  42 |
+> 43 | export function qualified(capabilities: Capabilities<Namespaced.ReadCapability>): void {
+     |        ^ Declares unused capability "namespacedReader".
+  44 | 	use(capabilities);
+  45 | }
+  46 |
+  = help: remove "namespacedReader" from `Capabilities<...>`, or add a real `capabilities.namespacedReader` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:76:8 unused capability
   74 | }
   75 |
@@ -29,6 +40,29 @@ src/main.ts:25:37 invalid capabilities parameter
   27 | }
   28 |
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:77:6 redundant capability provider
+  75 |
+  76 | export function missingProvideType(capabilities: Capabilities<ReadCapability>): void {
+> 77 | 	use(Capabilities.extend(capabilities, Capabilities.create({ read: replacement })));
+     | 	    ^ Capabilities.extend adds capabilities already present on capabilities: read
+  78 | }
+  79 |
+  80 | export function untypedExtend(capabilities: Capabilities<ReadCapability>): void {
+  = note: `read` is already allowed by this function's `capabilities` parameter
+  = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:81:6 redundant capability provider
+  79 |
+  80 | export function untypedExtend(capabilities: Capabilities<ReadCapability>): void {
+> 81 | 	use(Capabilities.extend(capabilities, { read: replacement }));
+     | 	    ^ Capabilities.extend adds capabilities already present on capabilities: read
+  82 | }
+  83 |
+  = note: `read` is already allowed by this function's `capabilities` parameter
+  = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:29:8 unsupported analysis
@@ -85,10 +119,11 @@ src/main.ts:65:8 unsupported analysis
   63 | }
   64 |
 > 65 | export function nonStringCapability(capabilities: Capabilities<AnyCapability>): void {
-     |        ^ capabilities declaration could not be resolved
+     |        ^ open-ended capability bag cannot be checked for unused capabilities
   66 | 	use(capabilities);
   67 | }
   68 |
+  = help: use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:69:8 unsupported analysis

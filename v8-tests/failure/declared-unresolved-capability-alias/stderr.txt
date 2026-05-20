@@ -2,8 +2,9 @@ src/main.ts:7:8 unsupported analysis
    5 | type AnyClockCapability = Capability<string, Clock>;
    6 |
 >  7 | export function load(capabilities: Capabilities<AnyClockCapability>): Date {
-     |        ^ capabilities declaration could not be resolved
+     |        ^ open-ended capability bag cannot be checked for unused capabilities
    8 | 	capabilities.appClock;
    9 | 	return new Date(0);
   10 | }
+  = help: use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

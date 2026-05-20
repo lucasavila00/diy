@@ -2,7 +2,8 @@ src/main.ts:7:25 unsupported analysis
   5 | 	type DynamicCapability = Capability<string, unknown>;
   6 |
 > 7 | 	export const helper = (_capabilities: Capabilities<DynamicCapability>): void => {};
-    | 	                       ^ capabilities declaration could not be resolved
+    | 	                       ^ open-ended capability bag cannot be checked for unused capabilities
   8 | }
   9 |
+  = help: use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

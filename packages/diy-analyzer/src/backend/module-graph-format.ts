@@ -52,12 +52,19 @@ function formatFunction(
 ): string {
 	const prefix = lastFunction ? "`--" : "+--";
 	const childPrefix = lastFunction ? "   " : "|  ";
-	const lines = [`${prefix} ${functionInfo.name}: ${formatList(functionInfo.transitive)}`];
+	const lines = [`${prefix} ${functionInfo.name}`];
 	const calls = functionInfo.calls.map((call) => formatCall(labels, call));
 	if (calls.length > 0) {
-		lines.push(`${childPrefix}\`-- calls: ${calls.join(", ")}`);
+		lines.push(`${childPrefix}+-- calls: ${calls.join(", ")}`);
 	}
+	lines.push(`${childPrefix}+-- direct: ${formatList(functionInfo.direct)}`);
+	lines.push(`${childPrefix}\`-- indirect: ${formatList(indirectCapabilities(functionInfo))}`);
 	return lines.join("\n");
+}
+
+function indirectCapabilities(functionInfo: DiyModuleGraphFunction): readonly string[] {
+	const direct = new Set(functionInfo.direct);
+	return functionInfo.transitive.filter((capabilityId) => !direct.has(capabilityId));
 }
 
 function formatCall(labels: ReadonlyMap<string, string>, call: DiyModuleGraphCall): string {
