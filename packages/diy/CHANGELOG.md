@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.19
+
+### Patch Changes
+
+- handle never type
+
 ## 0.0.18
 
 ### Patch Changes

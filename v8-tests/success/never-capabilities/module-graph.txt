@@ -1,0 +1,4 @@
+Module graph
+
+src/client-widget-history.model.ts
+`-- getWidgetHistoryItem: (none)

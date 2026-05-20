@@ -74,6 +74,9 @@ function resolveCapabilityIdsInner(
 		}
 		return resolution;
 	}
+	if (node.type === "TSNeverKeyword") {
+		return makeResolution();
+	}
 	if (node.type !== "TSTypeReference") {
 		return makeResolution(
 			[],
