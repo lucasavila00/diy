@@ -1,4 +1,3 @@
-/* c8 ignore start -- tsgo/native-preview behavior is covered through CLI fixtures; line coverage on checker fallback branches is not stable enough to be useful. */
 import {
 	SyntaxKind,
 	isExpression,
@@ -43,6 +42,7 @@ function isPublicId(name: string): boolean {
 }
 
 export function isNeverCapabilitiesType(typeNode: TypeNode): boolean {
+	/* c8 ignore next -- callers only pass DIY Capabilities type references. */
 	if (typeNode.kind !== SyntaxKind.TypeReference) {
 		return false;
 	}
@@ -52,6 +52,7 @@ export function isNeverCapabilitiesType(typeNode: TypeNode): boolean {
 }
 
 export function isOpaqueCapabilitiesType(checker: Checker, typeNode: TypeNode): boolean {
+	/* c8 ignore next -- callers only pass DIY Capabilities type references. */
 	if (typeNode.kind !== SyntaxKind.TypeReference) {
 		return false;
 	}
@@ -66,6 +67,7 @@ export function isOpaqueCapabilitiesType(checker: Checker, typeNode: TypeNode): 
 }
 
 export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): boolean {
+	/* c8 ignore next -- callers only pass DIY Capabilities type references. */
 	if (typeNode.kind !== SyntaxKind.TypeReference) {
 		return false;
 	}
@@ -76,6 +78,7 @@ export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): b
 		return false;
 	}
 	const type = checker.getTypeFromTypeNode(firstTypeArgument);
+	/* c8 ignore next -- tsgo resolves type arguments for parsed Capabilities declarations. */
 	if (type == null) {
 		return false;
 	}
@@ -94,17 +97,20 @@ export function isDiyCapabilitiesType(sourceFile: AnalyzedSourceFile, typeNode: 
 		return false;
 	}
 	const typeName = (typeNode as unknown as Record<string, Node | undefined>).typeName;
+	/* c8 ignore next -- TypeReference nodes always have a typeName. */
 	if (typeName == null) {
 		return false;
 	}
 	const parts = entityNameParts(typeName);
 	if (parts.length === 1) {
 		const local = parts[0];
+		/* c8 ignore next -- entityNameParts returns concrete string segments. */
 		const imported = local == null ? null : sourceFile.imports.get(local);
 		return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
 	}
 	if (parts.length === 2 && parts[1] === "Capabilities") {
 		const root = parts[0];
+		/* c8 ignore next -- entityNameParts returns concrete string segments. */
 		const imported = root == null ? null : sourceFile.imports.get(root);
 		return imported?.kind === "namespace" && diyImportSources.has(imported.source);
 	}
@@ -124,10 +130,12 @@ function entityNameParts(node: Node): readonly string[] {
 	if (node.kind === SyntaxKind.Identifier) {
 		return [(node as Identifier).text];
 	}
+	/* c8 ignore next -- TypeReference.typeName is always an Identifier or QualifiedName. */
 	if (node.kind !== SyntaxKind.QualifiedName) {
 		return [];
 	}
 	const record = node as unknown as Record<string, Node | undefined>;
+	/* c8 ignore next -- QualifiedName nodes always have left and right children. */
 	if (record.left == null || record.right == null) {
 		return [];
 	}
@@ -137,6 +145,7 @@ function entityNameParts(node: Node): readonly string[] {
 export function expressionSymbol(checker: Checker, expression: Expression): TsgoSymbol | undefined {
 	const unwrapped = unwrapExpression(expression);
 	if (unwrapped.kind === SyntaxKind.Identifier) {
+		/* c8 ignore next -- resolved symbols are available for identifiers in analyzed source. */
 		return (
 			checker.getResolvedSymbol(unwrapped as Identifier) ?? checker.getSymbolAtLocation(unwrapped)
 		);
@@ -154,6 +163,7 @@ export function symbolId(symbol: TsgoSymbol | undefined): string | number | unde
 
 export function unwrapExpression(expression: Expression): Expression {
 	const unwrapped = skipOuterExpressions(expression);
+	/* c8 ignore next -- skipOuterExpressions preserves expressions for analyzer inputs. */
 	return isExpression(unwrapped) ? unwrapped : expression;
 }
 
@@ -192,6 +202,7 @@ export function resolveCallSignature(
 		// callee type's call signatures, which is enough for capability forwarding.
 	}
 	const calleeType = checker.getTypeAtLocation(node.expression);
+	/* c8 ignore next -- parsed call expressions have a callee type in tsgo projects. */
 	if (calleeType == null) {
 		return callSignatureFromCalleeSymbol(checker, node);
 	}
@@ -206,16 +217,20 @@ function callSignatureFromCalleeSymbol(
 	node: CallExpression,
 ): Signature | undefined {
 	const expression = unwrapExpression(node.expression);
+	/* c8 ignore next -- fallback currently receives property-access callees. */
 	const location =
 		expression.kind === SyntaxKind.PropertyAccessExpression
 			? (expression as PropertyAccessExpression).name
 			: expression;
+	/* c8 ignore next -- fallback locations are identifiers after property-access handling. */
 	const symbol =
 		location.kind === SyntaxKind.Identifier
 			? (checker.getResolvedSymbol(location as Identifier) ?? checker.getSymbolAtLocation(location))
 			: checker.getSymbolAtLocation(location);
+	/* c8 ignore next -- fallback is only used after a symbol is available. */
 	const symbolType =
 		symbol == null ? undefined : checker.getTypeOfSymbolAtLocation(symbol, location);
+	/* c8 ignore next -- fallback symbol lookup is only used for resolved callees. */
 	if (symbolType == null) {
 		return undefined;
 	}
@@ -226,6 +241,7 @@ export function expressionType(checker: Checker, expression: Expression): Type |
 	const unwrapped = unwrapExpression(expression);
 	if (unwrapped.kind === SyntaxKind.CallExpression) {
 		const signature = resolveCallSignature(checker, unwrapped as CallExpression);
+		/* c8 ignore next -- call expressions used for capability values have signatures. */
 		if (signature != null) {
 			return checker.getReturnTypeOfSignature(signature);
 		}
@@ -236,5 +252,3 @@ export function expressionType(checker: Checker, expression: Expression): Type |
 export function isUnresolvedForwardingParameter(parameterType: Type | undefined): boolean {
 	return parameterType == null || (parameterType.flags & TypeFlags.Any) !== 0;
 }
-
-/* c8 ignore stop */

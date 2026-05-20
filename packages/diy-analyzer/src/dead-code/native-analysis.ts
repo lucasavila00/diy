@@ -1,4 +1,3 @@
-/* c8 ignore start -- tsgo/native-preview behavior is covered through CLI fixtures; line coverage on checker fallback branches is not stable enough to be useful. */
 import type { DiySourceConfig } from "../core/source-files.ts";
 import type {
 	DiyAnalyzerUnsupported,
@@ -57,19 +56,22 @@ export async function analyzeNativeModuleGraph(
 
 function moduleGraph(program: CheckerAnalysisProgram): DiyModuleGraph {
 	const required = computeRequiredCapabilityIds(program.analyzedFunctions);
-	const functionsByPath = new Map<string, AnalyzedCapabilityFunction[]>();
+	const functionsByPath = new Map<
+		string,
+		[AnalyzedCapabilityFunction, ...AnalyzedCapabilityFunction[]]
+	>();
 	for (const analyzedFunction of program.analyzedFunctions) {
-		const functions = functionsByPath.get(analyzedFunction.filePath) ?? [];
-		functions.push(analyzedFunction);
-		functionsByPath.set(analyzedFunction.filePath, functions);
+		const functions = functionsByPath.get(analyzedFunction.filePath);
+		if (functions == null) {
+			functionsByPath.set(analyzedFunction.filePath, [analyzedFunction]);
+		} else {
+			functions.push(analyzedFunction);
+		}
 	}
 
 	const modules: DiyModuleGraphModule[] = [];
 	for (const [filePath, functions] of functionsByPath) {
-		const sourceFile = functions[0]?.sourceFile;
-		if (sourceFile == null) {
-			continue;
-		}
+		const sourceFile = functions[0].sourceFile;
 		modules.push({
 			filePath,
 			functions: functions
@@ -84,5 +86,3 @@ function moduleGraph(program: CheckerAnalysisProgram): DiyModuleGraph {
 		modules: modules.sort((left, right) => left.filePath.localeCompare(right.filePath)),
 	};
 }
-
-/* c8 ignore stop */

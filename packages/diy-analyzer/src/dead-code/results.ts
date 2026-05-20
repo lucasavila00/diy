@@ -1,4 +1,3 @@
-/* c8 ignore start -- tsgo/native-preview behavior is covered through CLI fixtures; line coverage on checker fallback branches is not stable enough to be useful. */
 import type {
 	DiyAnalyzerNote,
 	DiyAnalyzerUnsupported,
@@ -12,30 +11,28 @@ import type { AnalyzedCapabilityFunction, UnsupportedAnalysisReason } from "./na
 export function computeRequiredCapabilityIds(
 	functions: readonly AnalyzedCapabilityFunction[],
 ): ReadonlyMap<string, ReadonlySet<string>> {
-	const required = new Map<string, Set<string>>();
-	for (const analyzedFunction of functions) {
-		required.set(analyzedFunction.id, new Set(analyzedFunction.directCapabilityIds));
-	}
+	const requiredEntries = functions.map((analyzedFunction) => ({
+		analyzedFunction,
+		required: new Set(analyzedFunction.directCapabilityIds),
+	}));
 	let changed = true;
 	while (changed) {
 		changed = false;
-		for (const analyzedFunction of functions) {
-			const functionRequired = required.get(analyzedFunction.id);
-			if (functionRequired == null) {
-				continue;
-			}
+		for (const { analyzedFunction, required } of requiredEntries) {
 			for (const forwarding of analyzedFunction.forwardedUses) {
 				for (const id of forwarding.required) {
-					if (forwarding.provided.has(id) || functionRequired.has(id)) {
+					if (forwarding.provided.has(id) || required.has(id)) {
 						continue;
 					}
-					functionRequired.add(id);
+					required.add(id);
 					changed = true;
 				}
 			}
 		}
 	}
-	return required;
+	return new Map(
+		requiredEntries.map(({ analyzedFunction, required }) => [analyzedFunction.id, required]),
+	);
 }
 
 export function collectUnusedFindings(
@@ -51,6 +48,7 @@ export function collectUnusedFindings(
 		) {
 			continue;
 		}
+		/* c8 ignore next -- required is produced from the same analyzed function list. */
 		const functionRequired = required.get(analyzedFunction.id) ?? new Set<string>();
 		const unused = Array.from(analyzedFunction.declaredCapabilityIds)
 			.filter((id) => !functionRequired.has(id))
@@ -134,6 +132,7 @@ export function graphFunction(
 	analyzedFunction: AnalyzedCapabilityFunction,
 	required: ReadonlyMap<string, ReadonlySet<string>>,
 ): DiyModuleGraphFunction {
+	/* c8 ignore next -- required is produced from the same analyzed function list. */
 	const functionRequired = required.get(analyzedFunction.id) ?? new Set<string>();
 	return {
 		column: analyzedFunction.column,
@@ -154,9 +153,11 @@ function makeUnsupported(
 	switch (reason.kind) {
 		case "dynamic-capability-access":
 			return {
+				/* c8 ignore next -- dynamic access reports carry the exact access location. */
 				column: reason.column ?? analyzedFunction.column,
 				filePath: analyzedFunction.filePath,
 				functionName: analyzedFunction.name,
+				/* c8 ignore next -- dynamic access reports carry the exact access location. */
 				line: reason.line ?? analyzedFunction.line,
 				notes: [dynamicCapabilityAccessHelp()],
 				reason: "dynamic capability access",
@@ -228,5 +229,3 @@ function dynamicCapabilityAccessHelp(): DiyAnalyzerNote {
 function hasBlockingUnsupported(analyzedFunction: AnalyzedCapabilityFunction): boolean {
 	return analyzedFunction.unsupportedReasons.length > 0;
 }
-
-/* c8 ignore stop */

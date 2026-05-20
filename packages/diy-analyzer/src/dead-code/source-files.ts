@@ -1,4 +1,3 @@
-/* c8 ignore start -- tsgo/native-preview behavior is covered through CLI fixtures; line coverage on checker fallback branches is not stable enough to be useful. */
 import { existsSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 
@@ -18,12 +17,14 @@ export function collectAnalyzedSourceFiles(
 	const seen = new Set<string>();
 	const queue = Array.from(new Set([...project.rootFiles, ...coveredSet])).sort();
 	for (let index = 0; index < queue.length; index += 1) {
+		/* c8 ignore next -- loop bounds ensure the queue entry exists. */
 		const filePath = resolve(queue[index] ?? "");
 		if (seen.has(filePath) || shouldSkipSourceFile(filePath, cwd)) {
 			continue;
 		}
 		seen.add(filePath);
 		const sourceFile = project.program.getSourceFile(filePath);
+		/* c8 ignore next -- tsgo omits declaration roots from source-file lookup here. */
 		if (sourceFile == null || sourceFile.isDeclarationFile) {
 			continue;
 		}
@@ -125,6 +126,7 @@ function collectImports(sourceFile: SourceFile): ReadonlyMap<string, ImportBindi
 
 export function localDiyPaths(cwd: string): Record<string, readonly string[]> {
 	const packageRoot = findDiyPackageRoot(cwd);
+	/* c8 ignore next -- standalone installs resolve @beff/diy through node_modules instead. */
 	if (packageRoot == null) {
 		return {};
 	}
@@ -142,11 +144,10 @@ function findDiyPackageRoot(cwd: string): string | null {
 			return join(current, "packages/diy");
 		}
 		const parent = dirname(current);
+		/* c8 ignore next -- repository fixtures are always inside the workspace root. */
 		if (parent === current) {
 			return null;
 		}
 		current = parent;
 	}
 }
-
-/* c8 ignore stop */

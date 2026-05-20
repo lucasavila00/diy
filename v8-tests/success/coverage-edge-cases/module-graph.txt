@@ -1,0 +1,67 @@
+Module graph
+
+src/internal.ts
++-- internalUnsupported
+|  +-- direct: (none)
+|  `-- indirect: (none)
+|
++-- internalProvider
+|  +-- direct: (none)
+|  `-- indirect: (none)
+|
++-- namespaceTyped
+|  +-- direct: edge
+|  `-- indirect: (none)
+|
++-- optionalElementAccess
+|  +-- direct: (none)
+|  `-- indirect: (none)
+|
+`-- computedProvider
+   +-- direct: (none)
+   `-- indirect: (none)
+
+src/main.ts
++-- needEdge
+|  +-- direct: edge
+|  `-- indirect: (none)
+|
++-- needEmpty
+|  +-- direct: (none)
+|  `-- indirect: (none)
+|
++-- <anonymous>@25:1
+|  +-- direct: edge
+|  `-- indirect: (none)
+|
++-- extendFromTypedValue
+|  +-- direct: (none)
+|  `-- indirect: edge
+|
++-- mergeEmpty
+|  +-- direct: (none)
+|  `-- indirect: (none)
+|
++-- passProvidedToEmpty
+|  +-- direct: (none)
+|  `-- indirect: edge
+|
++-- passDirectToEmpty
+|  +-- direct: (none)
+|  `-- indirect: edge
+|
++-- helperWithCreatedOnly
+|  +-- direct: edge
+|  `-- indirect: (none)
+|
++-- returnOnly
+|  +-- direct: edge
+|  `-- indirect: (none)
+|
++-- assignmentWithUntrackedValue
+|  +-- direct: edge
+|  `-- indirect: (none)
+|
+`-- useImportedInternal
+   +-- direct: edge
+   `-- indirect: (none)

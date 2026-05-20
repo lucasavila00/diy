@@ -1,4 +1,3 @@
-/* c8 ignore start -- tsgo/native-preview behavior is covered through CLI fixtures; line coverage on checker fallback branches is not stable enough to be useful. */
 import { SyntaxKind } from "@typescript/native-preview/unstable/ast";
 import type { FunctionLikeDeclaration, Node } from "@typescript/native-preview/unstable/ast";
 
@@ -7,6 +6,7 @@ export function literalText(node: Node): string | null {
 		node.kind === SyntaxKind.StringLiteral ||
 		node.kind === SyntaxKind.NoSubstitutionTemplateLiteral
 	) {
+		/* c8 ignore next -- tsgo literal nodes expose text for these literal kinds. */
 		return (node as unknown as Record<string, string | undefined>).text ?? null;
 	}
 	return null;
@@ -19,9 +19,6 @@ export function staticName(node: unknown): string | null {
 	const value = node as Record<string, unknown>;
 	if (typeof value.text === "string") {
 		return value.text;
-	}
-	if (typeof value.escapedText === "string") {
-		return value.escapedText;
 	}
 	if (typeof value.name === "object") {
 		return staticName(value.name);
@@ -61,6 +58,7 @@ export function locationForOffset(
 	let high = starts.length - 1;
 	while (low <= high) {
 		const middle = Math.floor((low + high) / 2);
+		/* c8 ignore next -- middle is always within the starts array bounds. */
 		const start = starts[middle] ?? 0;
 		if (start <= offset) {
 			low = middle + 1;
@@ -70,6 +68,7 @@ export function locationForOffset(
 	}
 	const lineIndex = Math.max(0, high);
 	return {
+		/* c8 ignore next -- lineIndex is derived from a non-empty starts array. */
 		column: offset - (starts[lineIndex] ?? 0) + 1,
 		line: lineIndex + 1,
 	};
@@ -87,5 +86,3 @@ export function sortedDifference(
 		.filter((value) => !excluded.has(value))
 		.sort();
 }
-
-/* c8 ignore stop */

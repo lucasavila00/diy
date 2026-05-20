@@ -1,4 +1,3 @@
-/* c8 ignore start -- tsgo/native-preview behavior is covered through CLI fixtures; line coverage on checker fallback branches is not stable enough to be useful. */
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
@@ -25,6 +24,7 @@ export async function buildCheckerAnalysisProgram(
 			? {}
 			: {
 					fs: {
+						/* c8 ignore next -- tsgo may ask for synthetic config existence before reading it. */
 						fileExists: (fileName) => (fileName === configInfo.configPath ? true : undefined),
 						readFile: (fileName) =>
 							fileName === configInfo.configPath ? configInfo.configContent : undefined,
@@ -34,6 +34,7 @@ export async function buildCheckerAnalysisProgram(
 	try {
 		const snapshot = api.updateSnapshot({ openProject: configInfo.configPath });
 		const project = snapshot.getProject(configInfo.configPath);
+		/* c8 ignore next -- openProject should always return the project it just opened. */
 		if (project == null) {
 			throw new Error(`Failed to open TypeScript project ${configInfo.configPath}.`);
 		}
@@ -48,7 +49,9 @@ export async function buildCheckerAnalysisProgram(
 			),
 		};
 	} catch (error) {
+		/* c8 ignore next -- tsgo project-open failures are surfaced before analysis starts. */
 		api.close();
+		/* c8 ignore next -- tsgo project-open failures are surfaced before analysis starts. */
 		throw error;
 	}
 }
@@ -119,7 +122,9 @@ function collectNativeSuppressions(modules: readonly AnalyzedSourceFile[]): {
 				continue;
 			}
 			const line = index + 1;
+			/* c8 ignore next -- directivePattern always captures indentation. */
 			const column = (match[1]?.length ?? 0) + 1;
+			/* c8 ignore next -- directivePattern always captures the directive suffix. */
 			const suffix = match[2]?.trimStart() ?? "";
 			if (!suffix.startsWith("--") || suffix.slice(2).trim().length === 0) {
 				violations.push({
@@ -141,5 +146,3 @@ function collectNativeSuppressions(modules: readonly AnalyzedSourceFile[]): {
 	}
 	return { suppressions, violations };
 }
-
-/* c8 ignore stop */

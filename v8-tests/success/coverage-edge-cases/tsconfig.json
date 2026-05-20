@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"noEmit": true,
+		"paths": {
+			"@beff/diy": ["../../../packages/diy/src/index.ts"],
+			"@beff/diy/capabilities": ["../../../packages/diy/src/capabilities.ts"]
+		},
+		"target": "ES2022"
+	},
+	"files": ["src/main.ts", "src/globals.d.ts"]
+}

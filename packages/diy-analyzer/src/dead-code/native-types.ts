@@ -1,4 +1,3 @@
-/* c8 ignore start -- tsgo/native-preview behavior is covered through CLI fixtures; line coverage on checker fallback branches is not stable enough to be useful. */
 import type { SourceFile } from "@typescript/native-preview/unstable/ast";
 import type { API, Project, Symbol as TsgoSymbol } from "@typescript/native-preview/unstable/sync";
 
@@ -87,5 +86,3 @@ export type CheckerAnalysisProgram = {
 };
 
 export const diyImportSources = new Set(["@beff/diy", "@beff/diy/capabilities"]);
-
-/* c8 ignore stop */

@@ -1,4 +1,3 @@
-/* c8 ignore start -- tsgo/native-preview behavior is covered through CLI fixtures; line coverage on checker fallback branches is not stable enough to be useful. */
 import { SyntaxKind, isExpression } from "@typescript/native-preview/unstable/ast";
 import type {
 	CallExpression,
@@ -59,6 +58,7 @@ export function scanFunctionBody(
 		node.forEachChild(visit);
 	};
 	const node = functionNode(project, analyzedFunction);
+	/* c8 ignore next -- analyzed functions are collected from the same source tree. */
 	if (node != null) {
 		visit(node);
 	}
@@ -180,6 +180,7 @@ function scanCall(
 			continue;
 		}
 		const signature = resolveCallSignature(project.checker, node);
+		/* c8 ignore next -- forwarded calls without signatures are reported below as unresolved. */
 		const parameterType =
 			signature == null ? undefined : project.checker.getParameterType(signature, index);
 		const argumentType = expressionType(project.checker, argument);
@@ -236,6 +237,7 @@ function scanPropagatedVariable(
 		return;
 	}
 	const name = record.name;
+	/* c8 ignore next -- variable declarations always expose a binding name. */
 	if (name != null) {
 		addPropagatedSource(checker, analyzedFunction, name, forwarded.provided);
 	}
@@ -252,6 +254,7 @@ function scanPropagatedAssignment(
 	}
 	const left = record.left;
 	const right = record.right;
+	/* c8 ignore next -- tsgo binary expressions always expose expression operands. */
 	if (left == null || right == null || !isExpression(right)) {
 		return;
 	}
@@ -323,6 +326,7 @@ function forwardedExpression(
 		return null;
 	}
 	const firstArgument = call.arguments[0];
+	/* c8 ignore next -- propagation helper calls used as forwarded values pass a source argument. */
 	const firstSource =
 		firstArgument == null
 			? null
@@ -376,6 +380,7 @@ function providedCapabilityIds(
 			provided.add(id);
 		}
 		const type = expressionType(checker, expression);
+		/* c8 ignore next -- expressions passed to capability helpers have checker types. */
 		if (type == null) {
 			continue;
 		}
@@ -392,6 +397,7 @@ function objectLiteralCapabilityIds(expression: Expression): ReadonlySet<string>
 	let objectLiteral = unwrapped.kind === SyntaxKind.ObjectLiteralExpression ? unwrapped : null;
 	if (unwrapped.kind === SyntaxKind.CallExpression) {
 		const call = unwrapped as CallExpression;
+		/* c8 ignore next -- capability factory calls in fixtures pass their provider object. */
 		objectLiteral = call.arguments[0] ?? null;
 	}
 	if (objectLiteral == null || objectLiteral.kind !== SyntaxKind.ObjectLiteralExpression) {
@@ -399,6 +405,7 @@ function objectLiteralCapabilityIds(expression: Expression): ReadonlySet<string>
 	}
 	const properties = (objectLiteral as unknown as Record<string, readonly Node[] | undefined>)
 		.properties;
+	/* c8 ignore next -- object literal expressions expose a properties array. */
 	for (const property of properties ?? []) {
 		const name = staticName((property as unknown as Record<string, unknown>).name);
 		if (name != null) {
@@ -474,10 +481,9 @@ export function locationForNode(
 ): { readonly column: number; readonly line: number } {
 	const text = sourceFile.sourceFile.text;
 	let offset = node.pos;
+	/* c8 ignore next -- offset remains within node bounds while trimming leading whitespace. */
 	while (offset < node.end && /\s/.test(text[offset] ?? "")) {
 		offset += 1;
 	}
 	return locationForOffset(sourceFile.lineStarts, offset);
 }
-
-/* c8 ignore stop */

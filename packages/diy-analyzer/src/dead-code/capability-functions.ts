@@ -1,4 +1,3 @@
-/* c8 ignore start -- tsgo/native-preview behavior is covered through CLI fixtures; line coverage on checker fallback branches is not stable enough to be useful. */
 import { SyntaxKind } from "@typescript/native-preview/unstable/ast";
 import type { FunctionLikeDeclaration, Node } from "@typescript/native-preview/unstable/ast";
 import type { Project } from "@typescript/native-preview/unstable/sync";
@@ -41,6 +40,7 @@ function collectFunctionsFromSourceFile(
 	const visit = (node: Node, ownerName: string | null): void => {
 		if (node.kind === SyntaxKind.ModuleDeclaration) {
 			const name = staticName((node as unknown as Record<string, unknown>)["name"]);
+			/* c8 ignore next -- parsed namespace declarations have a static name. */
 			if (name != null) {
 				namespaceStack.push(name);
 				node.forEachChild((child) => visit(child, ownerName));
@@ -81,10 +81,12 @@ function readAnalyzedCapabilityFunction(
 		return null;
 	}
 	const parameterSymbol = project.checker.getSymbolAtLocation(firstParam.name);
+	/* c8 ignore next -- tsgo provides symbols for declared parameters. */
 	if (parameterSymbol == null) {
 		return null;
 	}
 	const declaredType = project.checker.getTypeFromTypeNode(firstParam.type);
+	/* c8 ignore next -- tsgo resolves parsed Capabilities annotations to a type. */
 	const declaredCapabilityIds =
 		declaredType == null ? new Set<string>() : capabilityIds(project.checker, declaredType);
 	const isGenericDeclaration = isOpaqueCapabilitiesType(project.checker, firstParam.type);
@@ -114,6 +116,7 @@ function readAnalyzedCapabilityFunction(
 		isReportable: sourceFile.reportable,
 		line: location.line,
 		name,
+		/* c8 ignore next -- parsed parameter names have a static name. */
 		parameterName: staticName(firstParam.name) ?? "",
 		parameterSymbol,
 		propagatedCapabilitySources: new Map(),
@@ -129,6 +132,7 @@ function functionName(
 	ownerName: string | null,
 ): string {
 	const named = staticName((node as unknown as Record<string, unknown>).name);
+	/* c8 ignore next -- owner-name handling is shared across methods, arrows, and function expressions. */
 	if (
 		ownerName != null &&
 		(node.kind === SyntaxKind.MethodDeclaration ||
@@ -140,6 +144,7 @@ function functionName(
 	if (named != null) {
 		return named;
 	}
+	/* c8 ignore next -- anonymous function expressions with owner names return above. */
 	if (ownerName != null) {
 		return ownerName;
 	}
@@ -149,9 +154,11 @@ function functionName(
 
 function childOwnerName(node: Node, ownerName: string | null): string | null {
 	if (node.kind === SyntaxKind.VariableDeclaration) {
+		/* c8 ignore next -- variable declarations without static names keep the current owner. */
 		return staticName((node as unknown as Record<string, unknown>).name) ?? ownerName;
 	}
 	if (node.kind === SyntaxKind.ClassDeclaration || node.kind === SyntaxKind.ClassExpression) {
+		/* c8 ignore next -- anonymous classes keep the current owner name. */
 		return staticName((node as unknown as Record<string, unknown>).name) ?? ownerName;
 	}
 	if (node.kind === SyntaxKind.PropertyAssignment || node.kind === SyntaxKind.MethodDeclaration) {
@@ -167,6 +174,7 @@ function functionLocation(
 ): { readonly column: number; readonly line: number } {
 	const text = sourceFile.sourceFile.text.slice(node.pos, node.end);
 	const keywordIndex = text.search(/\b(function|async)\b|[A-Za-z_$][\w$]*\s*:/);
+	/* c8 ignore next -- supported function-like syntax has a keyword or owner label. */
 	const offset = keywordIndex < 0 ? node.pos : node.pos + keywordIndex;
 	return locationForOffset(sourceFile.lineStarts, offset);
 }
@@ -175,6 +183,7 @@ export function compareAnalyzedCapabilityFunctions(
 	left: AnalyzedCapabilityFunction,
 	right: AnalyzedCapabilityFunction,
 ): number {
+	/* c8 ignore next -- later operands are deterministic tie-break plumbing. */
 	return (
 		left.filePath.localeCompare(right.filePath) ||
 		left.line - right.line ||
@@ -182,5 +191,3 @@ export function compareAnalyzedCapabilityFunctions(
 		left.name.localeCompare(right.name)
 	);
 }
-
-/* c8 ignore stop */

@@ -1,0 +1,17 @@
+src/main.ts:6:2 invalid diagnostic suppression
+  4 |
+  5 | export function start(capabilities: Capabilities<FsCapability>): void {
+> 6 | 	// diy-ignore-next-line
+    | 	^ `diy-ignore-next-line` requires a non-empty reason after `--`.
+  7 | 	capabilities.fs;
+  8 | }
+  9 |
+
+src/main.ts:11:2 invalid diagnostic suppression
+   9 |
+  10 | export function stop(capabilities: Capabilities<FsCapability>): void {
+> 11 | 	// diy-ignore-next-line --
+     | 	^ `diy-ignore-next-line` requires a non-empty reason after `--`.
+  12 | 	capabilities.fs;
+  13 | }
+  14 |
