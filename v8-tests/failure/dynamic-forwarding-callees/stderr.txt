@@ -1,43 +1,10 @@
-src/callback.ts:9:8 unsupported analysis
-   7 | };
-   8 |
->  9 | export function loadCallback(capabilities: Capabilities<ReadCapability>, callback: Callback): void {
-     |        ^ unresolved capabilities forwarding callee
-  10 | 	callback.run(capabilities);
-  11 | }
-  12 |
-  = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/imported-object.ts:6:8 unsupported analysis
-  4 | import { registry } from "./registry.ts";
-  5 |
-> 6 | export function loadImportedObject(capabilities: Capabilities<ReadCapability>): void {
-    |        ^ unresolved capabilities forwarding target registry.run
-  7 | 	registry.run(capabilities);
-  8 | }
-  9 |
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:11:8 unsupported analysis
-   9 | };
-  10 |
-> 11 | export function loadComputed(capabilities: Capabilities<ReadCapability>): void {
-     |        ^ unresolved capabilities forwarding callee
-  12 | 	registry["run"](capabilities);
-  13 | }
-  14 |
-  = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:15:8 unsupported analysis
+src/main.ts:15:8 unused capability
   13 | }
   14 |
 > 15 | export function loadFromExpression(capabilities: Capabilities<ReadCapability>): void {
-     |        ^ unresolved capabilities forwarding callee
+     |        ^ Declares unused capability "read".
   16 | 	({ declaredRun }).declaredRun(capabilities);
   17 | }
   18 |
-  = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

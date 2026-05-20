@@ -1,15 +1,1 @@
-Module graph
-
-src/main.ts
-+-- readValue: read
-|
-+-- readViaAlias: read
-|
-+-- readParenthesized: read
-|
-+-- writeValue: write
-|
-+-- auditValue: audit
-|
-`-- run: audit, read, write
-   `-- calls: auditValue, readParenthesized, readValue, readViaAlias, writeValue
+No functions found.

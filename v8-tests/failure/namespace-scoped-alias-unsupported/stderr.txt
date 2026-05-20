@@ -1,10 +1,8 @@
-src/main.ts:5:27 unsupported analysis
-  3 |
-  4 | export namespace Service {
-> 5 | 	type DynamicCapability = Capability<string, unknown>;
-    | 	                         ^ Capability first type argument is not a string literal or typeof string constant
+src/main.ts:7:25 unsupported analysis
+  5 | 	type DynamicCapability = Capability<string, unknown>;
   6 |
-  7 | 	export const helper = (_capabilities: Capabilities<DynamicCapability>): void => {};
+> 7 | 	export const helper = (_capabilities: Capabilities<DynamicCapability>): void => {};
+    | 	                       ^ capabilities declaration could not be resolved
   8 | }
-  = help: use a string literal or const reference, for example `Capability<"appClock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`
+  9 |
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

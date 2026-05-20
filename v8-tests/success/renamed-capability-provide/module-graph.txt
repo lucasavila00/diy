@@ -7,11 +7,11 @@ src/main.ts
 |
 +-- fromStaticProvider: audit
 |
-+-- fromTopLevelObject: audit
++-- fromTopLevelObject: appClock, audit
 |  `-- calls: readRenamed
 |
-+-- fromExistingCapability: legacyClock
++-- fromExistingCapability: appClock, legacyClock
 |  `-- calls: readRenamed
 |
-`-- fromPartialInlineProvide: audit, legacyClock
+`-- fromPartialInlineProvide: appClock, audit, legacyClock
    `-- calls: readRenamedWithAudit

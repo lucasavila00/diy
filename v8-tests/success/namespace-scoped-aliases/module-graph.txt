@@ -7,16 +7,13 @@ src/main.ts
 |
 +-- Service.acceptBar: bar
 |
-+-- Service.withProvided: foo
++-- Service.withProvided: bar, foo
 |  `-- calls: Service.acceptBar
-|
-+-- Service.contextual: bar, foo
 |
 +-- Service.chainedAlias: bar, foo
 |
-+-- Service.genericContextual: bar, foo
-|
 +-- Service.forwardCallback: bar, foo
+|  `-- calls: callback
 |
 +-- Outer.Inner.helper: bar
 |

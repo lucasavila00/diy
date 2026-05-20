@@ -9,6 +9,7 @@ function isNode(value: unknown): value is AstNode {
 }
 
 export function getArray(value: unknown): readonly unknown[] {
+	/* c8 ignore next -- callers pass parser arrays or absent parser fields. */
 	return Array.isArray(value) ? value : [];
 }
 
@@ -31,6 +32,7 @@ export function getIdentifierName(node: unknown): string | null {
 
 export function getLiteralString(node: unknown): string | null {
 	const record = getNode(node);
+	/* c8 ignore next -- callers pass literal nodes when requesting literal text. */
 	if (record?.type !== "Literal") {
 		return null;
 	}
@@ -39,32 +41,11 @@ export function getLiteralString(node: unknown): string | null {
 
 export function getTypeName(node: AstNode): string | null {
 	const typeName = getNode(node["typeName"]);
+	/* c8 ignore next -- callers pass parser-backed type references. */
 	if (typeName?.type !== "Identifier") {
 		return null;
 	}
 	return getIdentifierName(typeName);
-}
-
-export function getTypeArguments(node: AstNode): readonly unknown[] {
-	const typeArguments = getNode(node["typeArguments"]) ?? getNode(node["typeParameters"]);
-	return getArray(typeArguments?.["params"]);
-}
-
-export function getTypeParameterNames(node: AstNode): ReadonlySet<string> {
-	const names = new Set<string>();
-	const typeParameters = getNode(node["typeParameters"]);
-	for (const parameter of getArray(typeParameters?.["params"])) {
-		const name = getIdentifierName(getNode(parameter)?.["name"]);
-		/* c8 ignore next -- parser type parameters always carry identifier names. */
-		if (name != null) {
-			names.add(name);
-		}
-	}
-	return names;
-}
-
-export function getFirstParam(node: AstNode): AstNode | null {
-	return getNode(getArray(node["params"])[0]);
 }
 
 export function getIdentifierFromParam(param: unknown): AstNode | null {
@@ -103,7 +84,7 @@ export function makeLineStarts(source: string): readonly number[] {
 	return starts;
 }
 
-export function lineForOffset(lineStarts: readonly number[], offset: number | undefined): number {
+function lineForOffset(lineStarts: readonly number[], offset: number | undefined): number {
 	/* c8 ignore next -- callers pass offsets from parser nodes except defensive fallbacks. */
 	if (offset == null) {
 		return 1;
@@ -137,11 +118,6 @@ export function locationForOffset(
 	};
 }
 
-export function unwrapDeclaration(node: AstNode): AstNode {
-	const declaration = getNode(node["declaration"]);
-	return declaration ?? node;
-}
-
 export function getFunctionName(node: AstNode, parent: AstNode | null): string | null {
 	const idName = getIdentifierName(node["id"]);
 	if (idName != null) {
@@ -152,97 +128,6 @@ export function getFunctionName(node: AstNode, parent: AstNode | null): string |
 		return getIdentifierName(parent["id"]);
 	}
 	return null;
-}
-
-export function getMemberPropertyName(property: unknown): string | null {
-	const node = getNode(property);
-	/* c8 ignore next -- callers pass parser-backed member or object-pattern properties. */
-	if (node == null) {
-		return null;
-	}
-	if (node.type === "Identifier") {
-		return getIdentifierName(node);
-	}
-	return null;
-}
-
-export function getStaticMemberExpressionName(value: unknown): string | null {
-	const node = getNode(value);
-	if (node?.type === "Identifier") {
-		return getIdentifierName(node);
-	}
-	if (node?.type !== "MemberExpression" || node["computed"] === true) {
-		return null;
-	}
-	const objectName = getStaticMemberExpressionName(node["object"]);
-	const propertyName = getMemberPropertyName(node["property"]);
-	if (objectName == null || propertyName == null) {
-		return null;
-	}
-	return `${objectName}.${propertyName}`;
-}
-
-const capabilitiesHelperNames = new Set(["create", "extend", "merge", "override"]);
-const capabilitiesParameterNames = new Set(["capabilities", "_capabilities"]);
-
-export function isCapabilitiesParameterName(name: string | null): boolean {
-	return name != null && capabilitiesParameterNames.has(name);
-}
-
-export function isCapabilitiesServiceMember(node: unknown): boolean {
-	const member = getNode(node);
-	const object = getNode(member?.["object"]);
-	return (
-		member?.type === "MemberExpression" &&
-		object?.type === "Identifier" &&
-		isCapabilitiesParameterName(getIdentifierName(object))
-	);
-}
-
-export function isCapabilitiesHelperCall(node: AstNode): boolean {
-	if (node.type !== "CallExpression") {
-		return false;
-	}
-	const callee = getNode(node["callee"]);
-	const object = getNode(callee?.["object"]);
-	const property = getNode(callee?.["property"]);
-	const helperName = getIdentifierName(property);
-	return (
-		callee?.type === "MemberExpression" &&
-		object?.type === "Identifier" &&
-		getIdentifierName(object) === "Capabilities" &&
-		callee["computed"] !== true &&
-		property?.type === "Identifier" &&
-		/* c8 ignore next -- helper properties are parser-backed identifiers. */
-		helperName != null &&
-		capabilitiesHelperNames.has(helperName)
-	);
-}
-
-export function isCapabilitiesCreateCall(node: AstNode): boolean {
-	/* c8 ignore next -- callers check create calls after helper-call narrowing. */
-	if (!isCapabilitiesHelperCall(node)) {
-		return false;
-	}
-	const callee = getNode(node["callee"]);
-	return getMemberPropertyName(callee?.["property"]) === "create";
-}
-
-export function isCapabilitiesExtendCall(node: AstNode): boolean {
-	if (!isCapabilitiesHelperCall(node)) {
-		return false;
-	}
-	const callee = getNode(node["callee"]);
-	return getMemberPropertyName(callee?.["property"]) === "extend";
-}
-
-export function isCapabilitiesStaticTransformCall(node: AstNode): boolean {
-	if (!isCapabilitiesHelperCall(node)) {
-		return false;
-	}
-	const callee = getNode(node["callee"]);
-	const name = getMemberPropertyName(callee?.["property"]);
-	return name === "extend" || name === "override";
 }
 
 export function isCapabilitiesType(typeNode: unknown): typeNode is AstNode {

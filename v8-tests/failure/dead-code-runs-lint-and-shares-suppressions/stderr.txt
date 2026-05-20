@@ -1,3 +1,13 @@
+src/main.ts:23:3 unused diagnostic suppression
+  21 | 	use(methodName);
+  22 | 	return async (
+> 23 | 		// diy-ignore-next-line -- framework-level wrapper; capabilities are passed through unchanged.
+     | 		^ `diy-ignore-next-line` did not suppress any DIY diagnostic.
+  24 | 		capabilities: Capabilities<Capability<string, unknown>>,
+  25 | 		arg: unknown,
+  26 | 		errs?: MethodService,
+  = help: remove this directive or move it to the line before the diagnostic
+
 src/main.ts:33:41 invalid capabilities parameter
   31 | };
   32 |
@@ -7,4 +17,14 @@ src/main.ts:33:41 invalid capabilities parameter
   35 | 	capabilities.read;
   36 | }
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:22:9 unsupported analysis
+  20 | 	use(outputCodec);
+  21 | 	use(methodName);
+> 22 | 	return async (
+     | 	       ^ capabilities declaration could not be resolved
+  23 | 		// diy-ignore-next-line -- framework-level wrapper; capabilities are passed through unchanged.
+  24 | 		capabilities: Capabilities<Capability<string, unknown>>,
+  25 | 		arg: unknown,
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

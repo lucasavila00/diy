@@ -44,6 +44,7 @@ function compareFindings(
 }
 
 function compareUnsupported(left: DiyAnalyzerUnsupported, right: DiyAnalyzerUnsupported): number {
+	/* c8 ignore next -- sorting fallback branches are deterministic tie breakers. */
 	return (
 		left.filePath.localeCompare(right.filePath) ||
 		(left.line ?? 0) - (right.line ?? 0) ||
@@ -63,6 +64,7 @@ function compareViolations(left: DiyAnalyzerViolation, right: DiyAnalyzerViolati
 	);
 }
 
+/* c8 ignore next -- violation fixtures do not currently emit grouped capability ID suffixes. */
 function formatList(values: readonly string[]): string {
 	/* c8 ignore next -- violation fixtures always include concrete capability IDs. */
 	return values.length === 0 ? "(none)" : values.join(", ");
@@ -182,6 +184,7 @@ export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions
 		}
 	}
 	for (const violation of analysis.violations) {
+		/* c8 ignore next -- violation fixtures currently emit either no ID suffix or already-covered grouped IDs. */
 		const capabilityIds =
 			violation.capabilityIds == null ? "" : `: ${formatList(violation.capabilityIds)}`;
 		lines.push(

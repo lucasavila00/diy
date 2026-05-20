@@ -4,3 +4,4 @@ src/main.ts
 +-- typedButIntentionallyUnused: (none)
 |
 `-- nestedCallback: alpha
+   `-- calls: callback
