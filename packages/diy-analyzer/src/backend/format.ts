@@ -77,6 +77,10 @@ function formatCapabilityRead(id: string): string {
 	return `capabilities["${id}"]`;
 }
 
+function formatQuotedList(values: readonly string[]): string {
+	return values.map((value) => `"${value}"`).join(", ");
+}
+
 function formatNotes(notes: readonly DiyAnalyzerNote[] | undefined): string {
 	if (notes == null || notes.length === 0) {
 		return "";
@@ -102,18 +106,36 @@ function notesWithSuppressionHelp(
 }
 
 function unusedCapabilityNotes(
-	id: string,
+	ids: readonly string[],
 	extraNotes: readonly DiyAnalyzerNote[] | undefined,
 ): readonly DiyAnalyzerNote[] {
+	if (ids.length === 1) {
+		const id = ids.join("");
+		return [
+			{
+				kind: "help",
+				message:
+					`remove "${id}" from \`Capabilities<...>\`, or add a real ` +
+					`\`${formatCapabilityRead(id)}\` read if it is required`,
+			},
+			...(extraNotes ?? []),
+		];
+	}
 	return [
 		{
 			kind: "help",
 			message:
-				`remove "${id}" from \`Capabilities<...>\`, or add a real ` +
-				`\`${formatCapabilityRead(id)}\` read if it is required`,
+				"remove these IDs from `Capabilities<...>`, or add real capability reads if they are required",
 		},
 		...(extraNotes ?? []),
 	];
+}
+
+function unusedCapabilityMessage(ids: readonly string[]): string {
+	if (ids.length === 1) {
+		return `Declares unused capability "${ids.join("")}".`;
+	}
+	return `Declares unused capabilities: ${formatQuotedList(ids)}.`;
 }
 
 type DiagnosticLocation = {
@@ -171,17 +193,18 @@ export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions
 	const cwd = resolve(options.cwd ?? process.cwd());
 	const lines: string[] = [];
 	for (const finding of analysis.findings) {
-		for (const id of finding.unused) {
-			lines.push(
-				formatDiagnostic(
-					cwd,
-					finding,
+		lines.push(
+			formatDiagnostic(
+				cwd,
+				finding,
+				"unused capability",
+				unusedCapabilityMessage(finding.unused),
+				notesWithSuppressionHelp(
 					"unused capability",
-					`Declares unused capability "${id}".`,
-					notesWithSuppressionHelp("unused capability", unusedCapabilityNotes(id, finding.notes)),
+					unusedCapabilityNotes(finding.unused, finding.notes),
 				),
-			);
-		}
+			),
+		);
 	}
 	for (const violation of analysis.violations) {
 		/* c8 ignore next -- violation fixtures currently emit either no ID suffix or already-covered grouped IDs. */
