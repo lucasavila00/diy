@@ -2,7 +2,7 @@ Module graph
 
 src/main.ts
 `-- run: audit, clock, external, store
-   `-- calls: readAudit, readStore
+   `-- calls: loadAudit, readStore
 
 src/store.ts
 +-- readAudit: audit

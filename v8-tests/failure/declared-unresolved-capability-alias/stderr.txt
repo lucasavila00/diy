@@ -1,10 +1,9 @@
-src/main.ts:5:27 unsupported analysis
-  3 | type Clock = { now(): Date };
-  4 |
-> 5 | type AnyClockCapability = Capability<string, Clock>;
-    |                           ^ Capability first type argument is not a string literal or typeof string constant
-  6 |
-  7 | export function load(capabilities: Capabilities<AnyClockCapability>): Date {
-  8 | 	capabilities.appClock;
-  = help: use a string literal or const reference, for example `Capability<"appClock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`
+src/main.ts:7:8 unsupported analysis
+   5 | type AnyClockCapability = Capability<string, Clock>;
+   6 |
+>  7 | export function load(capabilities: Capabilities<AnyClockCapability>): Date {
+     |        ^ capabilities declaration could not be resolved
+   8 | 	capabilities.appClock;
+   9 | 	return new Date(0);
+  10 | }
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

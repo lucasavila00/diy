@@ -7,7 +7,7 @@ src/main.ts
 |
 +-- Worker.execute: random
 |
-+-- <anonymous>@28:2: date
++-- callbacks: date
 |
 `-- run: logger, random
    `-- calls: methodContainer.run, Worker.execute

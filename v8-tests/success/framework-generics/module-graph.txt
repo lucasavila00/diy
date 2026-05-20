@@ -1,13 +1,10 @@
 Module graph
 
 src/main.ts
-+-- readProcedure: alpha
-|
-+-- procedure: (none)
-|
 +-- intentionallyUnused: (none)
 |
 +-- nestedCallbackMerge: alpha
 |  `-- calls: inner
 |
 `-- inner: alpha
+   `-- calls: innerCallback, outerCallback

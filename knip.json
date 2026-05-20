@@ -27,7 +27,7 @@
 		},
 		"packages/diy-cli": {
 			"entry": ["bin/index.js!"],
-			"ignoreDependencies": ["oxc-parser"],
+			"ignoreDependencies": ["@typescript/native-preview", "oxc-parser"],
 			"project": ["bin/**/*.js!"]
 		}
 	}

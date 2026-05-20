@@ -14,6 +14,7 @@
 	},
 	"dependencies": {
 		"@babel/code-frame": "^7.29.0",
+		"@typescript/native-preview": "7.0.0-dev.20260519.1",
 		"commander": "^11.1.0",
 		"oxc-parser": "^0.129.0",
 		"tinyglobby": "^0.2.16"

@@ -1,6 +1,6 @@
 {
 	"name": "@beff/diy-cli",
-	"version": "0.0.19",
+	"version": "0.0.20",
 	"bin": {
 		"diy-cli": "./bin/index.js"
 	},
@@ -9,6 +9,7 @@
 		"dist-cli"
 	],
 	"dependencies": {
+		"@typescript/native-preview": "7.0.0-dev.20260519.1",
 		"oxc-parser": "^0.129.0"
 	}
 }

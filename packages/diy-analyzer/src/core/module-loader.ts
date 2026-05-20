@@ -19,10 +19,8 @@ import {
 	getNode,
 	locationForOffset,
 	makeLineStarts,
-	unwrapDeclaration,
 } from "./ast.ts";
-import { collectStringConstantBindings } from "./string-constants.ts";
-import type { AstNode, ImportedBinding, ModuleInfo, TypeAliasParameter } from "./types.ts";
+import type { ImportedBinding, ModuleInfo } from "./types.ts";
 
 export class ModuleLoader {
 	private readonly modules = new Map<string, ModuleInfo>();
@@ -64,30 +62,16 @@ export class ModuleLoader {
 			};
 		});
 		const moduleInfo: ModuleInfo = {
-			aliases: new Map(),
-			aliasTypeParameters: new Map(),
 			body,
-			constantExports: new Map(),
-			constants: new Map(),
 			filePath: resolvedPath,
 			imports: new Map(),
 			lineStarts,
-			namespaceAliases: new Map(),
-			namespaceAliasTypeParameters: new Map(),
 			parseErrors,
 			reportable: this.sourceFiles.has(resolvedPath),
 			source,
 		};
 		this.modules.set(resolvedPath, moduleInfo);
 		collectImports(body, moduleInfo.imports);
-		collectAliases(
-			body,
-			moduleInfo.aliases,
-			moduleInfo.aliasTypeParameters,
-			moduleInfo.namespaceAliases,
-			moduleInfo.namespaceAliasTypeParameters,
-		);
-		collectStringConstantBindings(body, moduleInfo.constants, moduleInfo.constantExports);
 		return moduleInfo;
 	}
 
@@ -116,10 +100,6 @@ export class ModuleLoader {
 
 	allModules(): readonly ModuleInfo[] {
 		return Array.from(this.modules.values());
-	}
-
-	getModule(filePath: string): ModuleInfo | undefined {
-		return this.modules.get(resolve(filePath));
 	}
 
 	isSourceFile(filePath: string): boolean {
@@ -202,123 +182,6 @@ function collectImports(body: readonly unknown[], imports: Map<string, ImportedB
 	}
 }
 
-function collectAliases(
-	body: readonly unknown[],
-	aliases: Map<string, unknown>,
-	aliasTypeParameters: Map<string, readonly TypeAliasParameter[]>,
-	namespaceAliases: Map<string, Map<string, unknown>>,
-	namespaceAliasTypeParameters: Map<string, Map<string, readonly TypeAliasParameter[]>>,
-): void {
-	collectAliasStatements(
-		body,
-		aliases,
-		aliasTypeParameters,
-		namespaceAliases,
-		namespaceAliasTypeParameters,
-		null,
-	);
-}
-
-function collectAliasStatements(
-	body: readonly unknown[],
-	aliases: Map<string, unknown>,
-	aliasTypeParameters: Map<string, readonly TypeAliasParameter[]>,
-	namespaceAliases: Map<string, Map<string, unknown>>,
-	namespaceAliasTypeParameters: Map<string, Map<string, readonly TypeAliasParameter[]>>,
-	namespaceName: string | null,
-): void {
-	for (const statement of body) {
-		const node = getNode(statement);
-		/* c8 ignore next -- parser program bodies contain AST nodes. */
-		if (node == null) {
-			continue;
-		}
-		const declaration = unwrapDeclaration(node);
-		if (declaration.type === "TSTypeAliasDeclaration") {
-			collectAliasDeclaration(
-				declaration,
-				aliases,
-				aliasTypeParameters,
-				namespaceAliases,
-				namespaceAliasTypeParameters,
-				namespaceName,
-			);
-			continue;
-		}
-		if (declaration.type === "TSModuleDeclaration") {
-			const localNamespaceName = getIdentifierName(declaration["id"]);
-			const namespaceBody = getNode(declaration["body"]);
-			if (localNamespaceName == null || namespaceBody?.type !== "TSModuleBlock") {
-				continue;
-			}
-			const childNamespaceName =
-				namespaceName == null ? localNamespaceName : `${namespaceName}.${localNamespaceName}`;
-			collectAliasStatements(
-				getArray(namespaceBody["body"]),
-				aliases,
-				aliasTypeParameters,
-				namespaceAliases,
-				namespaceAliasTypeParameters,
-				childNamespaceName,
-			);
-		}
-	}
-}
-
-function collectAliasDeclaration(
-	declaration: AstNode,
-	aliases: Map<string, unknown>,
-	aliasTypeParameters: Map<string, readonly TypeAliasParameter[]>,
-	namespaceAliases: Map<string, Map<string, unknown>>,
-	namespaceAliasTypeParameters: Map<string, Map<string, readonly TypeAliasParameter[]>>,
-	namespaceName: string | null,
-): void {
-	const name = getIdentifierName(declaration["id"]);
-	/* c8 ignore next -- parser type aliases have identifier names. */
-	if (name == null) {
-		return;
-	}
-	if (namespaceName == null) {
-		aliases.set(name, declaration["typeAnnotation"]);
-		aliasTypeParameters.set(name, collectAliasTypeParameters(declaration));
-		return;
-	}
-	const namespaceAliasMap = getOrInsertMap(namespaceAliases, namespaceName);
-	const namespaceAliasTypeParametersMap = getOrInsertMap(
-		namespaceAliasTypeParameters,
-		namespaceName,
-	);
-	namespaceAliasMap.set(name, declaration["typeAnnotation"]);
-	namespaceAliasTypeParametersMap.set(name, collectAliasTypeParameters(declaration));
-}
-
-function getOrInsertMap<T>(map: Map<string, Map<string, T>>, key: string): Map<string, T> {
-	const existing = map.get(key);
-	if (existing != null) {
-		return existing;
-	}
-	const next = new Map<string, T>();
-	map.set(key, next);
-	return next;
-}
-
-function collectAliasTypeParameters(declaration: AstNode): readonly TypeAliasParameter[] {
-	const typeParameters = getNode(declaration["typeParameters"]);
-	return getArray(typeParameters?.["params"]).flatMap((paramValue) => {
-		const param = getNode(paramValue);
-		const name = getIdentifierName(param?.["name"]);
-		/* c8 ignore next -- parser type parameters have identifier names. */
-		if (name == null) {
-			return [];
-		}
-		return [
-			{
-				constraint: param?.["constraint"] ?? null,
-				name,
-			},
-		];
-	});
-}
 function isAnalyzableTypeScriptFile(filePath: string): boolean {
 	return (filePath.endsWith(".ts") && !filePath.endsWith(".d.ts")) || filePath.endsWith(".tsx");
 }

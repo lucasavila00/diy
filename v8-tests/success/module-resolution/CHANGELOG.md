@@ -1,5 +1,13 @@
 # @private/diy-e2e-module-resolution
 
+## 0.0.20
+
+### Patch Changes
+
+- Updated dependencies
+  - @beff/diy-cli@0.0.20
+  - @beff/diy@0.0.20
+
 ## 0.0.19
 
 ### Patch Changes

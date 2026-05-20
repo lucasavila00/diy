@@ -1,3 +1,25 @@
+src/main.ts:76:8 unused capability
+  74 | }
+  75 |
+> 76 | export function missingProvideType(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ Declares unused capability "read".
+  77 | 	use(Capabilities.extend(capabilities, Capabilities.create({ read: replacement })));
+  78 | }
+  79 |
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:80:8 unused capability
+  78 | }
+  79 |
+> 80 | export function untypedExtend(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ Declares unused capability "read".
+  81 | 	use(Capabilities.extend(capabilities, { read: replacement }));
+  82 | }
+  83 |
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:25:37 invalid capabilities parameter
   23 | }
   24 |
@@ -9,106 +31,41 @@ src/main.ts:25:37 invalid capabilities parameter
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:10:22 unsupported analysis
-   8 |
-   9 | type ReadCapability = Capability<"read", unknown>;
-> 10 | type AnyCapability = Capability<string, unknown>;
-     |                      ^ Capability first type argument is not a string literal or typeof string constant
-  11 | // @ts-expect-error intentionally invalid for analyzer coverage
-  12 | type MissingTypeNode = Capabilities;
-  13 |
-  = help: use a string literal or const reference, for example `Capability<"appClock", Clock>` or `Capability<typeof CLOCK_ID, Clock>`
+src/main.ts:29:8 unsupported analysis
+  27 | }
+  28 |
+> 29 | export function directMissingTypeArgument(
+     |        ^ capabilities declaration could not be resolved
+  30 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  31 | 	capabilities: Capabilities,
+  32 | ): void {
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:36:8 unsupported analysis
   34 | }
   35 |
 > 36 | export function rawType(
-     |        ^ unresolved capabilities forwarding target use
+     |        ^ capabilities declaration could not be resolved
   37 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   38 | 	capabilities: Capabilities<string>,
   39 | ): void {
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:38:29 unsupported analysis
-  36 | export function rawType(
-  37 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 38 | 	capabilities: Capabilities<string>,
-     | 	                           ^ unsupported capability type TSStringKeyword
-  39 | ): void {
-  40 | 	use(capabilities);
-  41 | }
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:43:8 unsupported analysis
-  41 | }
-  42 |
-> 43 | export function qualified(capabilities: Capabilities<Namespaced.ReadCapability>): void {
-     |        ^ unresolved capabilities forwarding target use
-  44 | 	use(capabilities);
-  45 | }
-  46 |
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:43:54 unsupported analysis
-  41 | }
-  42 |
-> 43 | export function qualified(capabilities: Capabilities<Namespaced.ReadCapability>): void {
-     |                                                      ^ unsupported qualified type reference
-  44 | 	use(capabilities);
-  45 | }
-  46 |
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:47:8 unsupported analysis
   45 | }
   46 |
 > 47 | export function unresolvedLocal(
-     |        ^ unresolved capabilities forwarding target use
+     |        ^ capabilities declaration could not be resolved
   48 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   49 | 	capabilities: Capabilities<MissingLocal | string>,
   50 | ): void {
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:49:29 unsupported analysis
-  47 | export function unresolvedLocal(
-  48 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 49 | 	capabilities: Capabilities<MissingLocal | string>,
-     | 	                           ^ unresolved capability alias MissingLocal
-  50 | ): void {
-  51 | 	use(capabilities);
-  52 | }
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:49:44 unsupported analysis
-  47 | export function unresolvedLocal(
-  48 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 49 | 	capabilities: Capabilities<MissingLocal | string>,
-     | 	                                          ^ unsupported capability type TSStringKeyword
-  50 | ): void {
-  51 | 	use(capabilities);
-  52 | }
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:54:8 unsupported analysis
   52 | }
   53 |
 > 54 | export function unresolvedImport(capabilities: Capabilities<MissingImport>): void {
-     |        ^ unresolved capabilities forwarding target use
-  55 | 	use(capabilities);
-  56 | }
-  57 |
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:54:61 unsupported analysis
-  52 | }
-  53 |
-> 54 | export function unresolvedImport(capabilities: Capabilities<MissingImport>): void {
-     |                                                             ^ unresolved import ./missing.ts
+     |        ^ capabilities declaration could not be resolved
   55 | 	use(capabilities);
   56 | }
   57 |
@@ -118,73 +75,28 @@ src/main.ts:58:8 unsupported analysis
   56 | }
   57 |
 > 58 | export function unresolvedImportedAlias(
-     |        ^ unresolved capabilities forwarding target use
+     |        ^ capabilities declaration could not be resolved
   59 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   60 | 	capabilities: Capabilities<NotAlias>,
   61 | ): void {
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:60:29 unsupported analysis
-  58 | export function unresolvedImportedAlias(
-  59 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 60 | 	capabilities: Capabilities<NotAlias>,
-     | 	                           ^ unresolved imported capability alias NotAlias
-  61 | ): void {
-  62 | 	use(capabilities);
-  63 | }
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:65:8 unsupported analysis
   63 | }
   64 |
 > 65 | export function nonStringCapability(capabilities: Capabilities<AnyCapability>): void {
-     |        ^ unresolved capabilities forwarding target use
+     |        ^ capabilities declaration could not be resolved
   66 | 	use(capabilities);
   67 | }
   68 |
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:69:8 unsupported analysis
   67 | }
   68 |
 > 69 | export function unresolvedDefaultImport(
-     |        ^ unresolved capabilities forwarding target use
+     |        ^ capabilities declaration could not be resolved
   70 | 	// @ts-expect-error intentionally invalid for analyzer coverage
   71 | 	capabilities: Capabilities<DefaultThing>,
   72 | ): void {
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:71:29 unsupported analysis
-  69 | export function unresolvedDefaultImport(
-  70 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 71 | 	capabilities: Capabilities<DefaultThing>,
-     | 	                           ^ unresolved imported capability alias DefaultThing
-  72 | ): void {
-  73 | 	use(capabilities);
-  74 | }
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:76:8 unsupported analysis
-  74 | }
-  75 |
-> 76 | export function missingProvideType(capabilities: Capabilities<ReadCapability>): void {
-     |        ^ unresolved capabilities forwarding target use
-  77 | 	use(Capabilities.extend(capabilities, Capabilities.create({ read: replacement })));
-  78 | }
-  79 |
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:80:8 unsupported analysis
-  78 | }
-  79 |
-> 80 | export function untypedExtend(capabilities: Capabilities<ReadCapability>): void {
-     |        ^ unresolved capabilities forwarding target use
-  81 | 	use(Capabilities.extend(capabilities, { read: replacement }));
-  82 | }
-  83 |
-  = help: make the callee a local or imported function with `capabilities: Capabilities<...>` as its first parameter
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

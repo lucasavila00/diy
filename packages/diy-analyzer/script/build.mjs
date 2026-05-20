@@ -18,7 +18,7 @@ await build({
 	bundle: true,
 	conditions: ["require", "node"],
 	entryPoints: [join(packageRoot, "src/app/cli.ts")],
-	external: ["oxc-parser"],
+	external: ["@typescript/native-preview", "@typescript/native-preview/*", "oxc-parser"],
 	format: "cjs",
 	mainFields: ["main", "module"],
 	outfile: outputPath,
