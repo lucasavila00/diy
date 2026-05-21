@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.24
+
+### Patch Changes
+
+- Better rules
+
 ## 0.0.23
 
 ### Patch Changes
