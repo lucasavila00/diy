@@ -17,12 +17,16 @@ and CLI verify the result.
 ## Almost Algebraic Effects
 
 Compared with algebraic effects, DIY chooses explicit capability passing over
-implicit effect handling. In TypeScript, that implicitness is also a cost. DIY's
-explicit parameter is boring, but it is inspectable, typeable, analyzable, easy
-to test, and requires no special runtime or compiler support.
+implicit effect handling. Hidden magic can feel nicer at the call site, but it
+is harder to see, type-check, analyze, and test in plain TypeScript. DIY's
+explicit parameter is boring, but boring is useful: no special runtime or
+compiler support.
 
-- DIY plus `Promise` is the pragmatic JavaScript answer.
-- Algebraic effects are the more general programming-language answer.
+- DIY plus `Promise` gives JavaScript most of the useful shape of algebraic
+  effects: code asks for capabilities, and callers decide what those
+  capabilities do.
+- Algebraic effects make that wiring part of the language. DIY keeps it as
+  plain TypeScript arguments.
 - Multi-shot continuations are powerful, but not the main missing feature for
   everyday JavaScript.
 - The main thing algebraic effects would improve over DIY is ergonomic implicit
