@@ -2,17 +2,15 @@
 
 DIY organizes TypeScript dependencies with plain capability types:
 
-- Readable function signatures.
-- TypeScript and CLI checks for standardized, correct capability usage.
-- Dead-capability diagnostics for unneeded dependency declarations.
-- No runtime DI framework, reflection, metadata scanning, or graph solving.
+- Functions say what they need.
+- Callers pass those capabilities in.
+- The checker and CLI catch bad wiring and unused dependencies.
+- No container, decorators, reflection, or runtime graph magic.
 
-DIY keeps dependency wiring in raw TypeScript source instead of hiding it behind a
-runtime DI abstraction. The tradeoff is maintaining explicit capability
-annotations, but the TypeScript checker and DIY CLI enforce the pattern, catch
-incorrect wiring, and report dead dependency declarations. That makes the source
-practical for coding agents to update quickly and precisely while the checker
-and CLI verify the result.
+DIY keeps wiring visible in source: effectful functions ask for the capabilities
+they need, and callers pass them in. The TypeScript checker and DIY CLI make that
+boring pattern enforceable, catching incorrect wiring and dead dependency
+declarations without a runtime DI container.
 
 ## Almost Algebraic Effects
 
