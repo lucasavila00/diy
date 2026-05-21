@@ -337,38 +337,79 @@ export function runDynamic(capabilities: Capabilities<ReaderCapability>): void {
 }
 ```
 
+### Capability helpers and unused parameters
+
 `Capabilities.extend(...)`, `Capabilities.merge(...)`, and
-`Capabilities.override(...)` create derived bags. Forwarding a derived bag requires
-only the IDs demanded by the callee and not provided locally by the helper call.
-Returning a derived bag does not count as using the current function's declared
-capabilities. `extend` is for adding new IDs; adding an ID already declared by the
-current function is reported as a redundant provider:
+`Capabilities.override(...)` can create a new capability bag from an existing
+one. The analyzer looks through those helper calls when the new bag is passed to
+another function.
+
+The important rule is that locally created or replaced services do not make the
+original parameter service count as used.
+
+Use `extend` when this function creates a service before calling another
+function. The new service does not need to appear in this function's parameter
+type:
 
 ```ts
 declare const writer: { write(value: string): void };
 
-// Allowed: `writer` is added before forwarding to a function that needs it.
-export function addWriter(capabilities: Capabilities<ReaderCapability>): void {
-	const extended = Capabilities.extend(capabilities, { writer });
+// Allowed: `writer` is created here, then passed to `needWriter`.
+export function addWriter(_capabilities: Capabilities<never>): void {
+	const extended = Capabilities.extend(_capabilities, { writer });
 	needWriter(extended);
 }
 
-// Not allowed: this function already accepts `writer`.
+// Not allowed: this function already receives `writer`, so extending with
+// another `writer` provider is redundant.
 export function redundantProvider(
 	capabilities: Capabilities<ReaderCapability | WriterCapability>,
 ): void {
-	Capabilities.extend(capabilities, { writer });
+	const extended = Capabilities.extend(capabilities, { writer });
+	needReader(extended);
+}
+```
+
+Use `override` when this function replaces a service. If the function only
+passes the replacement onward, the original service from the parameter was not
+used:
+
+```ts
+declare const writer: { write(value: string): void };
+
+// Not allowed: the original `writer` is never used; it is replaced before
+// anything reads it.
+export function replaceWriter(
+	capabilities: Capabilities<ReaderCapability | WriterCapability>,
+): void {
+	const replaced = Capabilities.override(capabilities, { writer });
+	needWriter(replaced);
 }
 
-// Allowed when the original `writer` is also genuinely required here.
-export function replaceWriter(
+// Allowed: this function reads the original `writer` before replacing it.
+export function auditAndReplaceWriter(
 	capabilities: Capabilities<ReaderCapability | WriterCapability>,
 ): void {
 	capabilities.writer.write("audit");
 	const replaced = Capabilities.override(capabilities, { writer });
-	needReader(replaced);
+	needWriter(replaced);
 }
 ```
+
+Returning a capability bag also does not use the services inside it:
+
+```ts
+// Not allowed: `reader` is never read or passed to a function that needs it.
+export function onlyReturn(
+	capabilities: Capabilities<ReaderCapability>,
+): Capabilities<ReaderCapability> {
+	return Capabilities.merge(capabilities);
+}
+```
+
+If a function only returns `Capabilities.merge(...)`, `Capabilities.extend(...)`,
+or `Capabilities.override(...)`, do not declare services that the function itself
+does not read or pass to a function that needs them.
 
 Open-ended bags cannot be checked for unused IDs. Use a concrete union for normal
 effectful functions, or `Capabilities<never>` for functions that require no
