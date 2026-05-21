@@ -165,30 +165,228 @@ Options:
 
 ## Lint Rules
 
-By default, DIY runs a small syntax lint pass:
+By default, DIY runs a syntax lint pass. These rules keep capability-bearing
+functions easy for people, TypeScript, and the analyzer to read.
 
-- Capability parameters must be named `capabilities` or `_capabilities`.
-- Capability parameters must be the first function parameter.
-- If `capabilities` or `_capabilities` has a type annotation, it must be DIY `Capabilities<...>`.
-- Imports from `@beff/diy` and `@beff/diy/capabilities` must use the exported names directly, without default, namespace, or aliased named imports.
+Capability parameters must be the first parameter, and they must be named
+`capabilities` or `_capabilities`:
+
+```ts
+import type { Capabilities, Capability } from "@beff/diy";
+
+type ReaderCapability = Capability<"reader", { read(): string }>;
+
+// Allowed.
+export function load(capabilities: Capabilities<ReaderCapability>, id: string): string {
+	return capabilities.reader.read() + id;
+}
+
+// Allowed when the function intentionally requires no services.
+export function loadStatic(_capabilities: Capabilities<never>): string {
+	return "static";
+}
+
+// Not allowed: the capability parameter is second.
+export function misplaced(id: string, capabilities: Capabilities<ReaderCapability>): string {
+	return id + capabilities.reader.read();
+}
+
+// Not allowed: DIY capability parameters must use the conventional name.
+export function renamed(deps: Capabilities<ReaderCapability>): string {
+	return deps.reader.read();
+}
+```
+
+If a parameter named `capabilities` or `_capabilities` has a type annotation, it
+must be DIY `Capabilities<...>`. This prevents unrelated values from looking like
+DIY capability bags:
+
+```ts
+// Not allowed.
+export function parse(capabilities: unknown): void {
+	void capabilities;
+}
+```
+
+Imports from `@beff/diy` and `@beff/diy/capabilities` must use the exported names
+directly:
+
+```ts
+// Allowed.
+import { Capabilities, type Capability } from "@beff/diy/capabilities";
+import type { Capabilities as ExternalCapabilities } from "some-other-package";
+
+// Not allowed for DIY imports.
+import * as Diy from "@beff/diy";
+import { Capabilities as CapabilityBag } from "@beff/diy";
+import DiyDefault from "@beff/diy";
+```
 
 ## Dead-Code Analysis
 
-Run `diy-cli --dead-code -p diy.json` to check capability reachability:
+Run `diy-cli --dead-code -p diy.json` to check capability reachability. Dead-code
+mode also runs the default lint rules.
 
-- Declared capabilities that are not used directly or transitively are reported as unused.
-- A declared `capabilities: Capabilities<AlphaCapability | BetaCapability>` parameter defines the IDs that must be exhausted for that function.
-- Direct reads like `capabilities.alpha`, `capabilities["alpha"]`, and `capabilities.alpha.method()` count as usage.
-- Redundant `Capabilities.extend(...)` providers are reported.
-- Dynamic or unresolvable capability reads are reported as unsupported analysis.
-- Open-ended declarations such as `Capabilities<Capability<string, unknown>>` are unsupported analysis; use `// diy-ignore-next-line -- reason` for intentional framework escape hatches.
-- Generic type-parameter declarations without concrete IDs are not checked for unused IDs; direct reads from them are unsupported analysis.
-- Forwarded capabilities must target analyzable effectful functions.
-- Whole-bag forwarding to a callee counts as transitive usage for the IDs required by the callee's checker-inferred parameter type at that call site.
-- The callee body's actual usage does not replace the callee's declared call boundary; over-declared leaves are reported on those leaves.
-- Nested callback declarations inside factory initializers do not replace the checker-inferred call-site boundary for the exported function value.
-- Treat `Capabilities<never>` as an empty declaration.
-- `Capabilities.merge(capabilities, ...)`, `Capabilities.extend(capabilities, ...)`, and `Capabilities.override(capabilities, ...)` propagate the original bag when their result is forwarded, read, or returned.
+A function's declared `Capabilities<...>` union is the complete list of
+capability IDs that function is allowed to require. Every declared ID must be
+used directly or through an analyzed forwarded call. If a function intentionally
+does not use services, name the parameter `_capabilities` and declare
+`Capabilities<never>`.
+
+```ts
+import { Capabilities, type Capability } from "@beff/diy";
+
+type ReaderCapability = Capability<"reader", { read(): string }>;
+type WriterCapability = Capability<"writer", { write(value: string): void }>;
+
+// Allowed: `reader` is declared and read directly.
+export function load(capabilities: Capabilities<ReaderCapability>): string {
+	return capabilities.reader.read();
+}
+
+// Allowed: bracket access with a static key is also a direct read.
+export function loadByKey(capabilities: Capabilities<ReaderCapability>): string {
+	return capabilities["reader"].read();
+}
+
+const readerKey = "reader" as const;
+
+// Allowed: const string keys are static enough to analyze.
+export function loadByConstKey(capabilities: Capabilities<ReaderCapability>): string {
+	return capabilities[readerKey].read();
+}
+
+// Not allowed: `writer` is declared but never required.
+export function overDeclared(
+	capabilities: Capabilities<ReaderCapability | WriterCapability>,
+): string {
+	return capabilities.reader.read();
+}
+```
+
+Direct reads must be statically resolvable. Dynamic capability IDs are reported as
+unsupported analysis instead of being guessed:
+
+```ts
+// Not allowed: the analyzer cannot prove which capability ID is read.
+export function dynamicRead(capabilities: Capabilities<ReaderCapability>, id: string): unknown {
+	return capabilities[id];
+}
+
+// Not allowed: optional chaining on the capability read is not analyzable.
+export function optionalRead(capabilities: Capabilities<ReaderCapability>): unknown {
+	return capabilities?.reader;
+}
+```
+
+Passing the capability bag to another function is allowed. If that call requires
+capabilities that the current function did not declare, TypeScript and the
+analyzer will report the mismatch:
+
+```ts
+function needWriter(capabilities: Capabilities<WriterCapability>): void {
+	capabilities.writer.write("ok");
+}
+
+// Allowed: `writer` is required transitively by `needWriter`.
+export function save(capabilities: Capabilities<WriterCapability>): void {
+	needWriter(capabilities);
+}
+```
+
+Forwarded calls must have an analyzable callee. Calls through `any`, dynamic
+registry lookups, or other unresolved call targets are reported as unsupported:
+
+```ts
+declare const dynamicRun: (...args: any[]) => void;
+
+// Not allowed: the analyzer cannot inspect the target parameter type.
+export function runDynamic(capabilities: Capabilities<ReaderCapability>): void {
+	dynamicRun(capabilities);
+}
+```
+
+`Capabilities.extend(...)`, `Capabilities.merge(...)`, and
+`Capabilities.override(...)` preserve the original bag when their result is read,
+returned, or forwarded. `extend` is for adding new IDs; adding an ID already
+declared by the current function is reported as a redundant provider:
+
+```ts
+declare const writer: { write(value: string): void };
+
+// Allowed: `writer` is added before forwarding to a function that needs it.
+export function addWriter(capabilities: Capabilities<ReaderCapability>): void {
+	const extended = Capabilities.extend(capabilities, { writer });
+	needWriter(extended);
+}
+
+// Not allowed: this function already accepts `writer`.
+export function redundantProvider(
+	capabilities: Capabilities<ReaderCapability | WriterCapability>,
+): void {
+	Capabilities.extend(capabilities, { writer });
+}
+
+// Allowed when replacement is intentional.
+export function replaceWriter(
+	capabilities: Capabilities<ReaderCapability | WriterCapability>,
+): Capabilities<ReaderCapability | WriterCapability> {
+	return Capabilities.override(capabilities, { writer });
+}
+```
+
+Open-ended bags cannot be checked for unused IDs. Use a concrete union for normal
+effectful functions, or `Capabilities<never>` for functions that require no
+services:
+
+```ts
+type AnyCapability = Capability<string, unknown>;
+
+// Allowed with an explicit suppression when writing a framework pass-through.
+// diy-ignore-next-line -- framework hook accepts and forwards any capability bag.
+export function frameworkHook(capabilities: Capabilities<AnyCapability>): void {
+	void capabilities;
+}
+
+// Allowed: explicitly empty.
+export function pureBoundary(_capabilities: Capabilities<never>): void {}
+```
+
+Generic capability bags are allowed for framework-style pass-through helpers. If
+one of these helpers needs to read from the bag directly, DIY intentionally bails
+out instead of guessing which concrete IDs are allowed. This should be rare; add
+a suppression when it is intentional:
+
+```ts
+type AnyCapability = Capability<string, unknown>;
+
+// Allowed: pass-through only.
+export function forwardGeneric<Allowed extends AnyCapability>(
+	capabilities: Capabilities<Allowed>,
+	next: (capabilities: Capabilities<Allowed>) => void,
+): void {
+	next(capabilities);
+}
+
+// Allowed with an explicit suppression when the generic direct read is intentional.
+// diy-ignore-next-line -- framework helper reads from a generic bag by design.
+export function readGeneric<Allowed extends ReaderCapability>(
+	capabilities: Capabilities<Allowed>,
+): string {
+	return capabilities.reader.read();
+}
+```
+
+For known analyzer false positives or intentional framework escape hatches, put a
+reasoned suppression on the previous line. Suppressions without a reason, or
+stale suppressions that do not hide any diagnostic, are reported:
+
+```ts
+// diy-ignore-next-line -- framework wrapper forwards an intentionally open bag.
+export function wrap(capabilities: Capabilities<AnyCapability>): void {
+	void capabilities;
+}
+```
 
 ## Advanced Features
 
