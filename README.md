@@ -14,6 +14,20 @@ incorrect wiring, and report dead dependency declarations. That makes the source
 practical for coding agents to update quickly and precisely while the checker
 and CLI verify the result.
 
+## Almost Algebraic Effects
+
+Compared with algebraic effects, DIY chooses explicit capability passing over
+implicit effect handling. In TypeScript, that implicitness is also a cost. DIY's
+explicit parameter is boring, but it is inspectable, typeable, analyzable, easy
+to test, and requires no special runtime or compiler support.
+
+- DIY plus `Promise` is the pragmatic JavaScript answer.
+- Algebraic effects are the more general programming-language answer.
+- Multi-shot continuations are powerful, but not the main missing feature for
+  everyday JavaScript.
+- The main thing algebraic effects would improve over DIY is ergonomic implicit
+  effect handling, not raw capability.
+
 ## Getting Started
 
 Set up the runtime package and analyzer for a TypeScript project:
