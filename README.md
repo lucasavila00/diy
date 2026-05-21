@@ -3,18 +3,18 @@
 DIY organizes TypeScript dependencies with plain capability types:
 
 - Readable function signatures.
-- Agents use the CLI and TypeScript to fix missing or unneeded capabilities.
+- CLI diagnostics for missing or unneeded capabilities.
 - No runtime DI framework, reflection, metadata scanning, or graph solving.
 
-The tradeoff is manually maintained TypeScript DI annotations, checked by the CLI and updated by agents, in exchange for no runtime cost, no control-flow changes, and easy-to-read explicit code.
+The tradeoff is manually maintained TypeScript DI annotations, checked by the CLI, in exchange for no runtime cost, no control-flow changes, and easy-to-read explicit code.
 
 ## Getting Started
 
-Get up and running with DIY in just a few simple steps:
+Set up the runtime package and analyzer for a TypeScript project:
 
 ### 1. Install
 
-Install the runtime and analyzer packages from npm:
+Install the runtime and CLI packages from npm:
 
 ```shell
 npm i @beff/diy @beff/diy-cli
@@ -45,8 +45,8 @@ export type ClockCapability = Capability<"clock", ClockLike>;
 export type AppCapability = ClockCapability | FsCapability;
 ```
 
-Use TypeScript unions to group multiple dependencies. Here, `AppCapability` means a
-container may provide both clock and filesystem services.
+Use TypeScript unions to group multiple dependencies. Here, `AppCapability` means
+the capability bag provides both clock and filesystem services.
 
 ### 3. Provide services
 
@@ -402,9 +402,9 @@ Suppressions must include a reason after `--` and must sit on the line before th
 diagnostic. Suppressions without a reason, or stale suppressions that do not hide
 any diagnostic, are reported.
 
-## Advanced Features
+## Capability Helpers
 
-### Add capabilities locally
+### Extend capabilities locally
 
 Use `Capabilities.extend(...)` to add services around a smaller dependency set:
 
