@@ -15,6 +15,7 @@ import type {
 	AnalyzedSourceFile,
 	UnsupportedAnalysisReason,
 } from "./native-types.ts";
+import { recordDeadCodeMetric } from "./timing.ts";
 import { locationForNode, scanFunctionBody } from "./usage-scanner.ts";
 
 export function collectAnalyzedCapabilityFunctions(
@@ -25,6 +26,8 @@ export function collectAnalyzedCapabilityFunctions(
 	for (const sourceFile of sourceFiles) {
 		collectFunctionsFromSourceFile(project, sourceFile, functions);
 	}
+	recordDeadCodeMetric("source files", sourceFiles.length);
+	recordDeadCodeMetric("analyzed capability functions", functions.length);
 	for (const analyzedFunction of functions) {
 		scanFunctionBody(project, analyzedFunction);
 	}
@@ -116,6 +119,7 @@ function readAnalyzedCapabilityFunction(
 		isReportable: sourceFile.reportable,
 		line: location.line,
 		name,
+		node,
 		/* c8 ignore next -- parsed parameter names have a static name. */
 		parameterName: staticName(firstParam.name) ?? "",
 		parameterSymbol,

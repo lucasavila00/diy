@@ -1,4 +1,4 @@
-import type { SourceFile } from "@typescript/native-preview/unstable/ast";
+import type { FunctionLikeDeclaration, SourceFile } from "@typescript/native-preview/unstable/ast";
 import type { API, Project, Symbol as TsgoSymbol } from "@typescript/native-preview/unstable/sync";
 
 import type { DiagnosticSuppression } from "../backend/diagnostic-suppressions.ts";
@@ -31,6 +31,7 @@ export type AnalyzedCapabilityFunction = {
 	readonly isReportable: boolean;
 	readonly line: number;
 	readonly name: string;
+	readonly node: FunctionLikeDeclaration;
 	readonly parameterName: string;
 	readonly parameterSymbol: TsgoSymbol;
 	readonly propagatedCapabilitySources: Map<string | number, ReadonlySet<string>>;

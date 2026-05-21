@@ -9,7 +9,7 @@ import type {
 } from "@typescript/native-preview/unstable/ast";
 import type { Checker, Project, Type } from "@typescript/native-preview/unstable/sync";
 
-import { isFunctionLike, locationForOffset, nodeKey, staticName } from "./ast-utils.ts";
+import { isFunctionLike, locationForOffset, staticName } from "./ast-utils.ts";
 import {
 	capabilityIds,
 	expressionSymbol,
@@ -29,14 +29,17 @@ import type {
 	AnalyzedSourceFile,
 	ForwardedExpression,
 } from "./native-types.ts";
+import { recordDeadCodeMetric } from "./timing.ts";
 
 export function scanFunctionBody(
 	project: Project,
 	analyzedFunction: AnalyzedCapabilityFunction,
 ): void {
+	let scannedNodes = 0;
 	const visit = (node: Node): void => {
+		scannedNodes += 1;
 		if (
-			node !== functionNode(project, analyzedFunction) &&
+			node !== analyzedFunction.node &&
 			isFunctionLike(node) &&
 			hasOwnCapabilitiesBinding(analyzedFunction.sourceFile, node)
 		) {
@@ -57,28 +60,11 @@ export function scanFunctionBody(
 		}
 		node.forEachChild(visit);
 	};
-	const node = functionNode(project, analyzedFunction);
-	/* c8 ignore next -- analyzed functions are collected from the same source tree. */
-	if (node != null) {
-		visit(node);
-	}
+	visit(analyzedFunction.node);
 	if (analyzedFunction.isGenericDeclaration && analyzedFunction.directCapabilityIds.size > 0) {
 		analyzedFunction.unsupportedReasons.push({ kind: "generic-direct-read" });
 	}
-}
-
-function functionNode(
-	project: Project,
-	analyzedFunction: AnalyzedCapabilityFunction,
-): Node | undefined {
-	return project.program
-		.getSourceFile(analyzedFunction.filePath)
-		?.forEachChild(function find(node): Node | undefined {
-			if (nodeKey(node) === analyzedFunction.id) {
-				return node;
-			}
-			return node.forEachChild(find);
-		});
+	recordDeadCodeMetric("scanned AST nodes", scannedNodes);
 }
 
 function scanPropertyAccess(
@@ -174,12 +160,12 @@ function scanCall(
 	if (isCapabilitiesHelperCall(analyzedFunction.sourceFile, node)) {
 		return;
 	}
+	const signature = resolveCallSignature(project.checker, node);
 	for (const [index, argument] of node.arguments.entries()) {
 		const forwarded = forwardedExpression(project.checker, analyzedFunction, argument);
 		if (forwarded == null) {
 			continue;
 		}
-		const signature = resolveCallSignature(project.checker, node);
 		/* c8 ignore next -- forwarded calls without signatures are reported below as unresolved. */
 		const parameterType =
 			signature == null ? undefined : project.checker.getParameterType(signature, index);

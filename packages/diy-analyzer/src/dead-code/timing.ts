@@ -5,8 +5,14 @@ type TimingEntry = {
 	readonly ms: number;
 };
 
+type MetricEntry = {
+	readonly label: string;
+	readonly value: number;
+};
+
 const enabled = process.env["DIY_ANALYZER_TIMING"] === "1";
 const entries: TimingEntry[] = [];
+const metrics = new Map<string, number>();
 let flushed = false;
 
 export function timeDeadCodePhase<T>(label: string, run: () => T): T {
@@ -33,11 +39,22 @@ export async function timeDeadCodePhaseAsync<T>(label: string, run: () => Promis
 	}
 }
 
+export function recordDeadCodeMetric(label: string, value: number): void {
+	if (!enabled) {
+		return;
+	}
+	metrics.set(label, (metrics.get(label) ?? 0) + value);
+}
+
 export function flushDeadCodeTimings(): void {
 	if (!enabled || flushed) {
 		return;
 	}
 	flushed = true;
-	const lines = entries.map((entry) => `  ${entry.label}: ${entry.ms.toFixed(1)}ms`);
+	const metricEntries: MetricEntry[] = Array.from(metrics, ([label, value]) => ({ label, value }));
+	const lines = [
+		...metricEntries.map((entry) => `  ${entry.label}: ${entry.value}`),
+		...entries.map((entry) => `  ${entry.label}: ${entry.ms.toFixed(1)}ms`),
+	];
 	process.stderr.write(`DIY analyzer dead-code timings:\n${lines.join("\n")}\n`);
 }
