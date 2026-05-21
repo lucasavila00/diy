@@ -362,23 +362,20 @@ services:
 ```ts
 type AnyCapability = Capability<string, unknown>;
 
-// Allowed with an explicit suppression when writing a framework pass-through.
-// diy-ignore-next-line -- framework hook forwards any capability bag.
-export function frameworkHook(
-	capabilities: Capabilities<AnyCapability>,
-	next: (capabilities: Capabilities<AnyCapability>) => void,
-): void {
-	next(capabilities);
+// Not allowed for regular capability parameters.
+export function openBag(capabilities: Capabilities<AnyCapability>): void {
+	void capabilities;
 }
 
 // Allowed: explicitly empty.
 export function pureBoundary(_capabilities: Capabilities<never>): void {}
 ```
 
-Generic capability bags are allowed for framework-style pass-through helpers. If
-one of these helpers needs to read from the bag directly, DIY intentionally bails
-out instead of guessing which concrete IDs are allowed. This should be rare; add
-a suppression when it is intentional:
+`Capability<string, unknown>` is intended for generic bounds in framework-style
+pass-through helpers, not as the declared bag for a regular function. If one of
+these helpers needs to read from the bag directly, DIY intentionally bails out
+instead of guessing which concrete IDs are allowed. This should be rare; add a
+suppression when it is intentional:
 
 ```ts
 type AnyCapability = Capability<string, unknown>;

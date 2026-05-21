@@ -15,7 +15,7 @@
 
 - Put filesystem input expansion in `src/core/`.
 - Put only default syntax lint behavior in `src/lint/`.
-- Put tsgo AST helpers, source loading, native syntax rules, and checker-backed dead-code analysis in `src/dead-code/`: `native-analysis.ts` should orchestrate, `checker-program.ts` and `source-files.ts` should load tsgo inputs, `native-syntax-rules.ts` should contain shared lint syntax rules, `capability-functions.ts` should collect explicit `Capabilities<...>` functions, `usage-scanner.ts` should scan function bodies, `capability-types.ts` should contain checker helpers, and `results.ts` should project diagnostics and graph output.
+- Put tsgo AST helpers, source loading, native syntax rules, and checker-backed dead-code analysis in `src/dead-code/`: `native-analysis.ts` should orchestrate, `checker-program.ts` and `source-files.ts` should load tsgo inputs, `native-syntax-rules.ts` should contain shared lint syntax rules, `capability-functions.ts` should collect functions whose first parameter resolves to DIY `Capabilities<...>`, `usage-scanner.ts` should scan function bodies, `capability-types.ts` should contain checker helpers, and `results.ts` should project diagnostics and graph output.
 - Put layer-neutral public result contracts in `src/model/`, and shared cross-layer utilities in `src/shared/`.
 - Graph passes should reuse checker-resolved function analysis from `src/dead-code/`; do not reintroduce the old AST-only arena.
 - Put analysis result finalization, sorting, code-frame human-output formatting, and graph-output formatting in `src/backend/`.
