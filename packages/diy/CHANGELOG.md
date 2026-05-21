@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.26
+
+### Patch Changes
+
+- Fixed suppresion bugs
+
 ## 0.0.25
 
 ### Patch Changes
