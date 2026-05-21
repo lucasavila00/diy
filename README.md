@@ -1,42 +1,26 @@
 # DIY: TypeScript Dependency Injection for the Agentic Era
 
-DIY organizes TypeScript dependencies with plain capability types:
+DIY handles TypeScript dependencies using straightforward capability types:
 
-- Functions say what they need.
-- Callers pass those capabilities in.
-- The checker and CLI catch bad wiring, unused capabilities, and redundant providers.
-- No container, decorators, reflection, or runtime graph magic.
-
-Effectful functions take `capabilities` first, read services as plain object
-properties, and return ordinary values or `Promise`s. The result is boring
-TypeScript that can be checked, searched, edited, and analyzed.
+* Functions explicitly declare what they need.
+* Callers provide those capabilities.
+* The type checker and CLI catch misconfigured wiring, unused capabilities, and leftover providers.
+* Zero containers, decorators, reflection, or runtime magic.
 
 ## Agent-First
 
-DIY makes dependency wiring local. When a function starts using a new service, an
-agent updates that function's capability type and the callers that pass it in.
-There is no hidden container registration, decorator metadata, or runtime graph
-to discover.
+Dependency wiring with DIY is entirely local. If a function needs a new service, an AI agent just updates the function's capability type and tweaks the callers passing it in. You won't find any hidden container registries, decorator metadata, or obscure runtime graphs to dig through.
 
-That manual annotation is the tradeoff. It is a small amount of visible source
-churn, but it gives agents something concrete to maintain and gives TypeScript
-and the DIY CLI something concrete to verify. If the agent misses a caller,
-over-declares a dependency, or leaves a provider unused, the checks point at the
-source.
+The tradeoff here is manual annotation. Sure, it adds a bit of visible source churn, but it gives agents explicit code to maintain and gives TypeScript (and the DIY CLI) hard rules to verify. If an agent forgets a caller, over-declares a dependency, or abandons a provider, the checks will point right to the exact line of code.
 
 ## Almost Algebraic Effects
 
-Compared with algebraic effects, DIY chooses explicit capability passing over
-implicit effect handling. Hidden magic can feel nicer at the call site, but it
-is harder to see, type-check, analyze, and test in plain TypeScript.
+When it comes to algebraic effects, DIY leans into explicit capability passing rather than implicit effect handling. While hidden magic might look cleaner at the call site, it's a pain to trace, type-check, analyze, and test in standard TypeScript.
 
-- DIY plus `Promise` gives JavaScript most of the useful shape: code asks for
-  capabilities, and callers decide what those capabilities do.
-- Async work uses the language's normal `await` path.
-- Multi-shot continuations are powerful, but they are not the main missing
-  feature for everyday JavaScript.
-- Algebraic effects can make wiring more implicit. DIY keeps it visible so
-  humans, agents, TypeScript, and the analyzer can all see it.
+* Combining DIY with Promises hits the sweet spot for JavaScript: the code requests capabilities, and the callers define how they work.
+* Async operations just use standard await.
+* Multi-shot continuations are undeniably cool, but they aren't exactly the biggest gap in everyday JavaScript development.
+* While algebraic effects can obscure how things are wired, DIY keeps everything out in the open where humans, agents, TypeScript, and the analyzer can actually read it.
 
 ## Getting Started
 
