@@ -56,7 +56,7 @@ Build a `Capabilities` value from concrete service implementations:
 import * as fs from "node:fs/promises";
 
 import { Capabilities } from "@beff/diy/capabilities";
-import type { AppCapability, ClockCapability } from "./capabilities.ts";
+import type { AppCapability } from "./capabilities.ts";
 
 const capabilities = Capabilities.create<AppCapability>({
 	clock: { now: () => new Date() },
@@ -76,10 +76,9 @@ export async function readTimestampedConfig(
 	capabilities: Capabilities<ClockCapability | FsCapability>,
 	path: string,
 ): Promise<string> {
-	const { clock, fs } = capabilities;
-	const config = await fs.readFile(path, "utf8");
+	const config = await capabilities.fs.readFile(path, "utf8");
 
-	return `[${clock.now().toISOString()}]\n${config}`;
+	return `[${capabilities.clock.now().toISOString()}]\n${config}`;
 }
 ```
 
@@ -103,7 +102,8 @@ Then add scripts that run `diy-cli` with that project file:
 ```json
 {
 	"scripts": {
-		"diy:check": "diy-cli -p diy.json",
+		"diy:lint": "diy-cli -p diy.json",
+		"diy:check": "diy-cli --dead-code -p diy.json",
 		"diy:graph": "diy-cli --graph -p diy.json > diy-module-graph.txt"
 	}
 }
@@ -228,7 +228,7 @@ Run `diy-cli --dead-code -p diy.json` to check capability reachability. Dead-cod
 mode also runs the default lint rules.
 
 A function's declared `Capabilities<...>` union is the complete list of
-capability IDs that function is allowed to require. Every declared ID must be
+capability IDs that function is allowed to require. Every non-`never` ID must be
 used directly or through an analyzed forwarded call. If a function intentionally
 does not use services, name the parameter `_capabilities` and declare
 `Capabilities<never>`.
@@ -343,9 +343,12 @@ services:
 type AnyCapability = Capability<string, unknown>;
 
 // Allowed with an explicit suppression when writing a framework pass-through.
-// diy-ignore-next-line -- framework hook accepts and forwards any capability bag.
-export function frameworkHook(capabilities: Capabilities<AnyCapability>): void {
-	void capabilities;
+// diy-ignore-next-line -- framework hook forwards any capability bag.
+export function frameworkHook(
+	capabilities: Capabilities<AnyCapability>,
+	next: (capabilities: Capabilities<AnyCapability>) => void,
+): void {
+	next(capabilities);
 }
 
 // Allowed: explicitly empty.
@@ -377,16 +380,9 @@ export function readGeneric<Allowed extends ReaderCapability>(
 }
 ```
 
-For known analyzer false positives or intentional framework escape hatches, put a
-reasoned suppression on the previous line. Suppressions without a reason, or
-stale suppressions that do not hide any diagnostic, are reported:
-
-```ts
-// diy-ignore-next-line -- framework wrapper forwards an intentionally open bag.
-export function wrap(capabilities: Capabilities<AnyCapability>): void {
-	void capabilities;
-}
-```
+Suppressions must include a reason after `--` and must sit on the line before the
+diagnostic. Suppressions without a reason, or stale suppressions that do not hide
+any diagnostic, are reported.
 
 ## Advanced Features
 
@@ -437,14 +433,11 @@ const production = Capabilities.create<AppCapability>({
 	fs,
 });
 
-const testCapabilities = Capabilities.override(
-	production,
-	{
-		clock: {
-			now: () => new Date("2026-01-01T00:00:00.000Z"),
-		},
+const testCapabilities = Capabilities.override(production, {
+	clock: {
+		now: () => new Date("2026-01-01T00:00:00.000Z"),
 	},
-);
+});
 ```
 
 ### Merge capability containers
