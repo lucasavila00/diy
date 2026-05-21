@@ -53,7 +53,6 @@ export type CapabilityProviderCheck = {
 
 export type ForwardedExpression = {
 	readonly provided: ReadonlySet<string>;
-	readonly usesDeclared: boolean;
 };
 
 export type UnsupportedAnalysisReason =

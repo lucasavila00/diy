@@ -172,14 +172,10 @@ A forwarded value is represented as:
 ```ts
 type ForwardedExpression = {
 	readonly provided: ReadonlySet<string>;
-	readonly usesDeclared: boolean;
 };
 ```
 
-`provided` is the set of labels already supplied by a derived value. `usesDeclared`
-tracks whether a helper expression depends on the original declared bag. When the callee
-parameter is generic and the forwarded helper preserves the declared bag, the scanner can
-fall back to the current function's declared set.
+`provided` is the set of labels already supplied by a derived value.
 
 Forwarding edges are stored as:
 

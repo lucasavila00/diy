@@ -64,13 +64,35 @@ src/main.ts:35:8 unused capability
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:40:6 unused capability
+src/main.ts:39:8 unused capability
+  37 | }
   38 |
-  39 | const migration = {
-> 40 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
+> 39 | export function passMergedToEmpty(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ Declares unused capability "reader".
+  40 | 	needEmpty(Capabilities.merge(capabilities));
+  41 | }
+  42 |
+  = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:43:8 unused capability
+  41 | }
+  42 |
+> 43 | export function returnMerged(
+     |        ^ Declares unused capability "reader".
+  44 | 	capabilities: Capabilities<ReadCapability>,
+  45 | ): Capabilities<ReadCapability> {
+  46 | 	return Capabilities.merge(capabilities);
+  = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:50:6 unused capability
+  48 |
+  49 | const migration = {
+> 50 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
      | 	    ^ Declares unused capability "writer".
-  41 | 		capabilities.reader;
-  42 | 	},
-  43 | };
+  51 | 		capabilities.reader;
+  52 | 	},
+  53 | };
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

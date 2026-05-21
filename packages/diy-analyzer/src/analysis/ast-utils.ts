@@ -38,10 +38,6 @@ export function nodeNameNode(node: Node): Node | undefined {
 	return (node as unknown as { readonly name?: Node }).name;
 }
 
-export function nodeExpression(node: Node): Node | undefined {
-	return (node as unknown as { readonly expression?: Node }).expression;
-}
-
 export function nodeInitializer(node: Node): Node | undefined {
 	return (node as unknown as { readonly initializer?: Node }).initializer;
 }

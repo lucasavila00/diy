@@ -12,7 +12,6 @@ import type { Checker, Project, Type } from "@typescript/native-preview/unstable
 import {
 	isFunctionLike,
 	locationForOffset,
-	nodeExpression,
 	nodeInitializer,
 	nodeName,
 	nodeNameNode,
@@ -60,9 +59,7 @@ export function scanFunctionBody(
 		) {
 			return;
 		}
-		if (node.kind === SyntaxKind.ReturnStatement) {
-			scanForwardedReturn(project.checker, analyzedFunction, node);
-		} else if (node.kind === SyntaxKind.VariableDeclaration) {
+		if (node.kind === SyntaxKind.VariableDeclaration) {
 			scanPropagatedVariable(project.checker, analyzedFunction, node);
 		} else if (node.kind === SyntaxKind.BinaryExpression) {
 			scanPropagatedAssignment(project.checker, analyzedFunction, node);
@@ -213,21 +210,6 @@ function scanCall(
 	}
 }
 
-function scanForwardedReturn(
-	checker: Checker,
-	analyzedFunction: AnalyzedCapabilityFunction,
-	node: Node,
-): void {
-	const expression = nodeExpression(node);
-	if (expression == null || !isExpression(expression)) {
-		return;
-	}
-	const forwarded = forwardedExpression(checker, analyzedFunction, expression);
-	if (forwarded?.usesDeclared === true) {
-		addDeclaredRequired(analyzedFunction);
-	}
-}
-
 function scanPropagatedVariable(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
@@ -345,7 +327,7 @@ function forwardedExpression(
 			provided.add(id);
 		}
 	}
-	return { provided, usesDeclared: true };
+	return { provided };
 }
 
 function forwardedRequiredCapabilities(
@@ -360,9 +342,6 @@ function forwardedRequiredCapabilities(
 			: null;
 	if (parameterIds != null && parameterIds.size > 0) {
 		return parameterIds;
-	}
-	if (parameterIds != null && forwarded.usesDeclared) {
-		return analyzedFunction.declaredCapabilityIds;
 	}
 	return null;
 }
@@ -423,12 +402,6 @@ function isPropagationHelperName(name: string | null): boolean {
 	return name === "extend" || name === "merge" || name === "override";
 }
 
-function addDeclaredRequired(analyzedFunction: AnalyzedCapabilityFunction): void {
-	for (const id of analyzedFunction.declaredCapabilityIds) {
-		analyzedFunction.directCapabilityIds.add(id);
-	}
-}
-
 function addPropagatedSource(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
@@ -448,11 +421,11 @@ function capabilitiesSourceExpression(
 ): ForwardedExpression | null {
 	const symbol = expressionSymbol(checker, expression);
 	if (sameSymbol(symbol, analyzedFunction.parameterSymbol)) {
-		return { provided: new Set(), usesDeclared: false };
+		return { provided: new Set() };
 	}
 	const id = symbolId(symbol);
 	const provided = id == null ? undefined : analyzedFunction.propagatedCapabilitySources.get(id);
-	return provided == null ? null : { provided, usesDeclared: false };
+	return provided == null ? null : { provided };
 }
 
 function hasOwnCapabilitiesBinding(checker: Checker, node: FunctionLikeDeclaration): boolean {

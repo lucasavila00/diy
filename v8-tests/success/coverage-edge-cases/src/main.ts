@@ -35,10 +35,6 @@ export function mergeEmpty(capabilities: Capabilities<never>): void {
 	needEmpty(Capabilities.merge(capabilities));
 }
 
-export function passProvidedToEmpty(capabilities: Capabilities<EdgeCapability>): void {
-	needEmpty(Capabilities.merge(capabilities));
-}
-
 export function helperWithCreatedOnly(capabilities: Capabilities<EdgeCapability>): void {
 	capabilities.edge.run();
 	capabilities[`edge`].run();

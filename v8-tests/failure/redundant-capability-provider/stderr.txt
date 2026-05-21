@@ -1,3 +1,25 @@
+src/main.ts:6:8 unused capability
+  4 | type WriteCapability = Capability<"write", unknown>;
+  5 |
+> 6 | export function load(
+    |        ^ Declares unused capabilities: "read", "write".
+  7 | 	capabilities: Capabilities<ReadCapability | WriteCapability>,
+  8 | ): Capabilities<ReadCapability | WriteCapability> {
+  9 | 	return Capabilities.extend(capabilities, Capabilities.create<WriteCapability>({ write: {} }));
+  = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:12:8 unused capability
+  10 | }
+  11 |
+> 12 | export function loadBoth(
+     |        ^ Declares unused capabilities: "read", "write".
+  13 | 	capabilities: Capabilities<ReadCapability | WriteCapability>,
+  14 | ): Capabilities<ReadCapability | WriteCapability> {
+  15 | 	return Capabilities.extend(
+  = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:9:9 redundant capability provider
    7 | 	capabilities: Capabilities<ReadCapability | WriteCapability>,
    8 | ): Capabilities<ReadCapability | WriteCapability> {
