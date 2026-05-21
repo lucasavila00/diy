@@ -1,8 +1,8 @@
 import { resolve } from "node:path";
 
 import type { DiySourceConfig } from "../config/source-files.ts";
-import { analyzeNativeModuleGraph } from "./native-analysis.ts";
 import type { AnalyzeOptions, DiyModuleGraph } from "../model/types.ts";
+import { analyzeNativeModuleGraph } from "./native-analysis.ts";
 
 export async function analyzeDiyModuleGraph(
 	config: DiySourceConfig,

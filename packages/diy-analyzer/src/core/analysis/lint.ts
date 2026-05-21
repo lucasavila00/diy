@@ -1,17 +1,11 @@
 import { resolve } from "node:path";
 
+import type { DiySourceConfig } from "../config/source-files.ts";
+import type { AnalyzeOptions, DiyAnalysis } from "../model/types.ts";
+import { buildNativeSyntaxProgram, closeNativeSyntaxProgram } from "./checker-program.ts";
 import { applyDiagnosticSuppressions } from "./diagnostic-suppressions.ts";
 import { finalizeAnalysis } from "./finalize.ts";
-import type { DiySourceConfig } from "../config/source-files.ts";
-import {
-	buildNativeSyntaxProgram,
-	closeNativeSyntaxProgram,
-} from "./checker-program.ts";
-import {
-	analyzeNativeDiySyntax,
-	collectNativeParseErrors,
-} from "./native-syntax-rules.ts";
-import type { AnalyzeOptions, DiyAnalysis } from "../model/types.ts";
+import { analyzeNativeDiySyntax, collectNativeParseErrors } from "./native-syntax-rules.ts";
 
 export async function analyzeDiyLint(
 	config: DiySourceConfig,

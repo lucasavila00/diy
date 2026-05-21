@@ -1,10 +1,10 @@
 import { resolve } from "node:path";
 
-import { applyDiagnosticSuppressions } from "./diagnostic-suppressions.ts";
-import { finalizeAnalysis } from "./finalize.ts";
 import type { DiySourceConfig } from "../config/source-files.ts";
 import { expandSourceFiles } from "../config/source-files.ts";
 import type { AnalyzeOptions, DiyAnalysis } from "../model/types.ts";
+import { applyDiagnosticSuppressions } from "./diagnostic-suppressions.ts";
+import { finalizeAnalysis } from "./finalize.ts";
 import { analyzeNativeDeadCodeFromFiles } from "./native-analysis.ts";
 import { timeDeadCodePhase, timeDeadCodePhaseAsync } from "./timing.ts";
 
