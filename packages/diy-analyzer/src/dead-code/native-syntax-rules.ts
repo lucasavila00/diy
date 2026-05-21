@@ -178,6 +178,7 @@ function checkNoRenamedDiyImport(
 		reportRenamedDiyImport(namedBindings);
 		return;
 	}
+	/* c8 ignore next -- named bindings are either namespace imports or named imports. */
 	if (namedBindings.kind !== SyntaxKind.NamedImports) {
 		return;
 	}
@@ -259,6 +260,7 @@ function diagnosticMessage(diagnostic: Diagnostic): string {
 	if (diagnostic.messageChain == null || diagnostic.messageChain.length === 0) {
 		return diagnostic.text;
 	}
+	/* c8 ignore next -- current tsgo syntax diagnostics used by fixtures are flat messages. */
 	return [diagnostic.text, ...diagnostic.messageChain.map(diagnosticMessage)].join(" ");
 }
 

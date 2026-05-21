@@ -11,7 +11,8 @@
 		"**/.turbo/**",
 		"**/.cache/**",
 		"**/.tmp/**",
-		"**/diy-module-graph.txt"
+		"**/diy-module-graph.txt",
+		"v8-tests/failure/parse-error/**/main.ts"
 	],
 	"sortImports": {}
 }

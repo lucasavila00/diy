@@ -3,5 +3,6 @@
 	"compilerOptions": {
 		"types": []
 	},
+	"exclude": ["parse-error/src/main.ts"],
 	"include": ["*/src/**/*.ts"]
 }

@@ -31,18 +31,21 @@ export async function timeDeadCodePhaseAsync<T>(label: string, run: () => Promis
 	if (!enabled) {
 		return run();
 	}
+	/* c8 ignore start -- timing output is enabled only for manual benchmarks. */
 	const start = performance.now();
 	try {
 		return await run();
 	} finally {
 		entries.push({ label, ms: performance.now() - start });
 	}
+	/* c8 ignore stop */
 }
 
 export function recordDeadCodeMetric(label: string, value: number): void {
 	if (!enabled) {
 		return;
 	}
+	/* c8 ignore next -- timing output is enabled only for manual benchmarks. */
 	metrics.set(label, (metrics.get(label) ?? 0) + value);
 }
 
@@ -50,6 +53,7 @@ export function flushDeadCodeTimings(): void {
 	if (!enabled || flushed) {
 		return;
 	}
+	/* c8 ignore start -- timing output is enabled only for manual benchmarks. */
 	flushed = true;
 	const metricEntries: MetricEntry[] = Array.from(metrics, ([label, value]) => ({ label, value }));
 	const lines = [
@@ -57,4 +61,5 @@ export function flushDeadCodeTimings(): void {
 		...entries.map((entry) => `  ${entry.label}: ${entry.ms.toFixed(1)}ms`),
 	];
 	process.stderr.write(`DIY analyzer dead-code timings:\n${lines.join("\n")}\n`);
+	/* c8 ignore stop */
 }

@@ -1,4 +1,4 @@
-broken/main.fixture:1:15 unsupported analysis
+src/main.ts:1:15 unsupported analysis
 > 1 | const value = ;
     |               ^ Expression expected.
   2 |
