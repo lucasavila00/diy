@@ -17,7 +17,7 @@ const cliOutputPath = resolve(packageRoot, "../diy-cli/dist-cli/cli.js");
 await build({
 	bundle: true,
 	conditions: ["require", "node"],
-	entryPoints: [join(packageRoot, "src/app/cli.ts")],
+	entryPoints: [join(packageRoot, "src/cli/cli.ts")],
 	external: ["@typescript/native-preview", "@typescript/native-preview/*"],
 	format: "cjs",
 	mainFields: ["main", "module"],

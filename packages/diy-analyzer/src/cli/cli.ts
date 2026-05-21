@@ -1,11 +1,11 @@
 import { Command, CommanderError } from "commander";
 
-import { formatDiyAnalysis } from "../backend/format.ts";
-import { formatDiyModuleGraph } from "../backend/module-graph-format.ts";
-import { analyzeDiyDeadCode } from "../dead-code/analyze.ts";
-import { flushDeadCodeTimings, timeDeadCodePhaseAsync } from "../dead-code/timing.ts";
-import { analyzeDiyModuleGraph } from "../graph/analyze.ts";
-import { analyzeDiyLint } from "../lint/analyze.ts";
+import { formatDiyAnalysis } from "./reporting/format.ts";
+import { formatDiyModuleGraph } from "./reporting/module-graph-format.ts";
+import { analyzeDiyDeadCode } from "../core/analysis/analyze.ts";
+import { flushDeadCodeTimings, timeDeadCodePhaseAsync } from "../core/analysis/timing.ts";
+import { analyzeDiyModuleGraph } from "../core/analysis/module-graph.ts";
+import { analyzeDiyLint } from "../core/analysis/lint.ts";
 import { resolveDiyProject } from "./config.ts";
 
 type DiyCliWriter = (value: string) => void;

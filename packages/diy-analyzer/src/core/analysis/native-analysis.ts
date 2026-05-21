@@ -1,4 +1,4 @@
-import type { DiySourceConfig } from "../core/source-files.ts";
+import type { DiySourceConfig } from "../config/source-files.ts";
 import type {
 	DiyAnalyzerUnsupported,
 	DiyAnalyzerViolation,

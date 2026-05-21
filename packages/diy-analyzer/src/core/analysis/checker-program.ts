@@ -3,9 +3,9 @@ import { dirname, join, resolve } from "node:path";
 
 import { API } from "@typescript/native-preview/unstable/sync";
 
-import type { DiagnosticSuppression } from "../backend/diagnostic-suppressions.ts";
-import { expandSourceFiles } from "../core/source-files.ts";
-import type { DiySourceConfig } from "../core/source-files.ts";
+import type { DiagnosticSuppression } from "./diagnostic-suppressions.ts";
+import { expandSourceFiles } from "../config/source-files.ts";
+import type { DiySourceConfig } from "../config/source-files.ts";
 import type { DiyAnalyzerViolation } from "../model/types.ts";
 import { collectAnalyzedCapabilityFunctions } from "./capability-functions.ts";
 import type {

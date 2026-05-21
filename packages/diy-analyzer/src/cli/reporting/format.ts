@@ -6,63 +6,9 @@ import { codeFrameColumns } from "@babel/code-frame";
 import type {
 	AnalyzeOptions,
 	DiyAnalyzerNote,
-	DiyAnalyzerUnsupported,
-	DiyAnalyzerViolation,
 	DiyAnalysis,
-	DiyUnusedCapabilityFinding,
-} from "../model/types.ts";
-import { normalizePath } from "../shared/path.ts";
-
-export function sortFindings(
-	findings: readonly DiyUnusedCapabilityFinding[],
-): readonly DiyUnusedCapabilityFinding[] {
-	return Array.from(findings).sort(compareFindings);
-}
-
-export function sortUnsupported(
-	unsupported: readonly DiyAnalyzerUnsupported[],
-): readonly DiyAnalyzerUnsupported[] {
-	return Array.from(unsupported).sort(compareUnsupported);
-}
-
-export function sortViolations(
-	violations: readonly DiyAnalyzerViolation[],
-): readonly DiyAnalyzerViolation[] {
-	return Array.from(violations).sort(compareViolations);
-}
-
-function compareFindings(
-	left: DiyUnusedCapabilityFinding,
-	right: DiyUnusedCapabilityFinding,
-): number {
-	/* c8 ignore next -- sorting fallback branches are deterministic tie breakers. */
-	return (
-		left.filePath.localeCompare(right.filePath) ||
-		left.line - right.line ||
-		left.functionName.localeCompare(right.functionName)
-	);
-}
-
-function compareUnsupported(left: DiyAnalyzerUnsupported, right: DiyAnalyzerUnsupported): number {
-	/* c8 ignore next -- sorting fallback branches are deterministic tie breakers. */
-	return (
-		left.filePath.localeCompare(right.filePath) ||
-		(left.line ?? 0) - (right.line ?? 0) ||
-		(left.functionName ?? "").localeCompare(right.functionName ?? "") ||
-		left.reason.localeCompare(right.reason)
-	);
-}
-
-/* c8 ignore next -- violation sorting fallback branches are deterministic output plumbing. */
-function compareViolations(left: DiyAnalyzerViolation, right: DiyAnalyzerViolation): number {
-	return (
-		left.filePath.localeCompare(right.filePath) ||
-		left.line - right.line ||
-		(left.functionName ?? "").localeCompare(right.functionName ?? "") ||
-		left.name.localeCompare(right.name) ||
-		left.reason.localeCompare(right.reason)
-	);
-}
+} from "../../core/model/types.ts";
+import { normalizePath } from "../../core/shared/path.ts";
 
 /* c8 ignore next -- violation fixtures do not currently emit grouped capability ID suffixes. */
 function formatList(values: readonly string[]): string {

@@ -19,7 +19,7 @@
 			"project": ["src/**/*.ts!", "script/**/*.mjs!"]
 		},
 		"packages/diy-analyzer": {
-			"entry": ["src/app/cli.ts!", "script/build.mjs!"],
+			"entry": ["src/cli/cli.ts!", "script/build.mjs!"],
 			"project": ["src/**/*.ts!", "script/**/*.mjs!"]
 		},
 		"packages/diy-cli": {

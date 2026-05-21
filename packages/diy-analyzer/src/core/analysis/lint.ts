@@ -1,16 +1,16 @@
 import { resolve } from "node:path";
 
-import { applyDiagnosticSuppressions } from "../backend/diagnostic-suppressions.ts";
-import { finalizeAnalysis } from "../backend/finalize.ts";
-import type { DiySourceConfig } from "../core/source-files.ts";
+import { applyDiagnosticSuppressions } from "./diagnostic-suppressions.ts";
+import { finalizeAnalysis } from "./finalize.ts";
+import type { DiySourceConfig } from "../config/source-files.ts";
 import {
 	buildNativeSyntaxProgram,
 	closeNativeSyntaxProgram,
-} from "../dead-code/checker-program.ts";
+} from "./checker-program.ts";
 import {
 	analyzeNativeDiySyntax,
 	collectNativeParseErrors,
-} from "../dead-code/native-syntax-rules.ts";
+} from "./native-syntax-rules.ts";
 import type { AnalyzeOptions, DiyAnalysis } from "../model/types.ts";
 
 export async function analyzeDiyLint(

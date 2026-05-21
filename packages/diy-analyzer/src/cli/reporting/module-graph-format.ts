@@ -5,8 +5,8 @@ import type {
 	DiyModuleGraph,
 	DiyModuleGraphFunction,
 	DiyModuleGraphModule,
-} from "../model/types.ts";
-import { normalizePath } from "../shared/path.ts";
+} from "../../core/model/types.ts";
+import { normalizePath } from "../../core/shared/path.ts";
 
 export function formatDiyModuleGraph(graph: DiyModuleGraph, options: AnalyzeOptions = {}): string {
 	const modules = graph.modules.filter((moduleInfo) => moduleInfo.functions.length > 0);

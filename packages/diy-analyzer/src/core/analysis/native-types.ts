@@ -1,7 +1,7 @@
 import type { FunctionLikeDeclaration, SourceFile } from "@typescript/native-preview/unstable/ast";
 import type { API, Project, Symbol as TsgoSymbol } from "@typescript/native-preview/unstable/sync";
 
-import type { DiagnosticSuppression } from "../backend/diagnostic-suppressions.ts";
+import type { DiagnosticSuppression } from "./diagnostic-suppressions.ts";
 import type { DiyAnalyzerViolation } from "../model/types.ts";
 
 export type AnalyzedSourceFile = {
