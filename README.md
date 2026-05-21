@@ -3,10 +3,16 @@
 DIY organizes TypeScript dependencies with plain capability types:
 
 - Readable function signatures.
-- CLI diagnostics for missing or unneeded capabilities.
+- TypeScript and CLI checks for standardized, correct capability usage.
+- Dead-capability diagnostics for unneeded dependency declarations.
 - No runtime DI framework, reflection, metadata scanning, or graph solving.
 
-The tradeoff is manually maintained TypeScript DI annotations, checked by the CLI, in exchange for no runtime cost, no control-flow changes, and easy-to-read explicit code.
+DIY keeps dependency wiring in raw TypeScript source instead of hiding it behind a
+runtime DI abstraction. The tradeoff is maintaining explicit capability
+annotations, but the TypeScript checker and DIY CLI enforce the pattern, catch
+incorrect wiring, and report dead dependency declarations. That makes the source
+practical for coding agents to update quickly and precisely while the checker
+and CLI verify the result.
 
 ## Getting Started
 
