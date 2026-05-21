@@ -248,77 +248,24 @@ export function resolveCallSignature(
 	checker: Checker,
 	node: CallExpression,
 ): Signature | undefined {
-	const returnedCalleeSignature = callSignatureFromReturnedCallee(checker, node);
-	if (returnedCalleeSignature != null) {
-		return returnedCalleeSignature;
-	}
-	try {
-		const resolved = checker.getResolvedSignature(node);
-		if (resolved != null) {
-			const firstParameter = checker.getParameterType(resolved, 0);
-			if (
-				node.arguments.length > 0 &&
-				firstParameter != null &&
-				(firstParameter.flags & TypeFlags.Any) !== 0
-			) {
-				throw new Error("Resolved signature has an `any` parameter.");
-			}
-			return resolved;
-		}
-	} catch {
-		// Native-preview can currently throw for some valid call expressions. Fall back to the
-		// callee type's call signatures, which is enough for capability forwarding.
-	}
-	const calleeType = checker.getTypeAtLocation(node.expression);
-	/* c8 ignore next -- parsed call expressions have a callee type in tsgo projects. */
-	if (calleeType == null) {
-		return callSignatureFromCalleeSymbol(checker, node);
-	}
-	return (
-		checker.getSignaturesOfType(calleeType, SignatureKind.Call)[0] ??
-		callSignatureFromCalleeSymbol(checker, node)
-	);
+	const type = callableType(checker, node.expression);
+	/* c8 ignore next -- parsed call expressions have callable types in tsgo projects. */
+	return type == null ? undefined : checker.getSignaturesOfType(type, SignatureKind.Call)[0];
 }
 
-function callSignatureFromReturnedCallee(
-	checker: Checker,
-	node: CallExpression,
-): Signature | undefined {
-	const expression = unwrapExpression(node.expression);
+function callableType(checker: Checker, callee: Expression): Type | undefined {
+	const expression = unwrapExpression(callee);
 	if (expression.kind !== SyntaxKind.CallExpression) {
-		return undefined;
+		return checker.getTypeAtLocation(callableTypeLocation(expression));
 	}
-	const returnType = expressionType(checker, expression as CallExpression);
-	/* c8 ignore next -- returned function callees have checker return types. */
-	if (returnType == null) {
-		return undefined;
-	}
-	return checker.getSignaturesOfType(returnType, SignatureKind.Call)[0];
+	return expressionType(checker, expression as CallExpression);
 }
 
-function callSignatureFromCalleeSymbol(
-	checker: Checker,
-	node: CallExpression,
-): Signature | undefined {
-	const expression = unwrapExpression(node.expression);
-	/* c8 ignore next -- fallback currently receives property-access callees. */
-	const location =
-		expression.kind === SyntaxKind.PropertyAccessExpression
-			? (expression as PropertyAccessExpression).name
-			: expression;
-	/* c8 ignore next -- fallback locations are identifiers after property-access handling. */
-	const symbol =
-		location.kind === SyntaxKind.Identifier
-			? (checker.getResolvedSymbol(location as Identifier) ?? checker.getSymbolAtLocation(location))
-			: checker.getSymbolAtLocation(location);
-	/* c8 ignore next -- fallback is only used after a symbol is available. */
-	const symbolType =
-		symbol == null ? undefined : checker.getTypeOfSymbolAtLocation(symbol, location);
-	/* c8 ignore next -- fallback symbol lookup is only used for resolved callees. */
-	if (symbolType == null) {
-		return undefined;
+function callableTypeLocation(expression: Expression): Expression {
+	if (expression.kind === SyntaxKind.PropertyAccessExpression) {
+		return (expression as PropertyAccessExpression).name;
 	}
-	return checker.getSignaturesOfType(symbolType, SignatureKind.Call)[0];
+	return expression;
 }
 
 export function expressionType(checker: Checker, expression: Expression): Type | undefined {
