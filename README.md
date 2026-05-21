@@ -102,8 +102,8 @@ Then add scripts that run `diy-cli` with that project file:
 ```json
 {
 	"scripts": {
-		"diy:lint": "diy-cli -p diy.json",
-		"diy:check": "diy-cli --dead-code -p diy.json",
+		"diy:lint": "diy-cli --no-dead-code-analysis -p diy.json",
+		"diy:check": "diy-cli -p diy.json",
 		"diy:graph": "diy-cli --graph -p diy.json > diy-module-graph.txt"
 	}
 }
@@ -155,7 +155,7 @@ Usage: diy-cli [options]
 Options:
 
 - `-p, --project <path>`: Required path to `diy.json`.
-- `--dead-code`: Run unused-capability and capability reachability analysis.
+- `--no-dead-code-analysis`: Run syntax lint rules without unused-capability and reachability analysis.
 - `--graph`: Print a capability module graph instead of normal analyzer diagnostics.
 
 `diy.json` fields:
@@ -165,8 +165,9 @@ Options:
 
 ## Lint Rules
 
-By default, DIY runs a syntax lint pass. These rules keep capability-bearing
-functions easy for people, TypeScript, and the analyzer to read.
+DIY always runs a syntax lint pass. These rules keep capability-bearing functions
+easy for people, TypeScript, and the analyzer to read. Pass
+`--no-dead-code-analysis` to run only these lint rules.
 
 Capability parameters must be the first parameter, and they must be named
 `capabilities` or `_capabilities`:
@@ -244,8 +245,8 @@ import DiyDefault from "@beff/diy";
 
 ## Dead-Code Analysis
 
-Run `diy-cli --dead-code -p diy.json` to check capability reachability. Dead-code
-mode also runs the default lint rules.
+Run `diy-cli -p diy.json` to check capability reachability. Dead-code analysis is
+enabled by default and also runs the lint rules.
 
 A function's declared `Capabilities<...>` union is the complete list of
 capability IDs that function is allowed to require. Every non-`never` ID must be

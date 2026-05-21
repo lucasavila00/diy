@@ -120,6 +120,43 @@ describe("DIY success e2e", () => {
 	}
 });
 
+describe("DIY CLI mode flags", () => {
+	it("runs dead-code analysis by default", async () => {
+		const caseDir = join(v8TestsDir, "failure", "declared-more-than-used");
+		const result = await runCliFixture(caseDir, ["-p", "diy.json"]);
+		expect(result.exitCode).toBe(1);
+		expect(result.stdout).toBe("");
+		expect(result.stderr).toContain('Declares unused capability "writer".');
+	});
+
+	it("can disable dead-code analysis", async () => {
+		const caseDir = join(v8TestsDir, "failure", "declared-more-than-used");
+		const result = await runCliFixture(caseDir, ["--no-dead-code-analysis", "-p", "diy.json"]);
+		expect(result.exitCode).toBe(0);
+		expect(result.stderr).toBe("");
+		expect(result.stdout).toMatch(/^DIY analyzer passed: \d+ files analyzed\.\n$/);
+	});
+
+	it("rejects the removed dead-code flag", async () => {
+		const result = await runCliFixture(rootDir, ["--dead-code", "-p", "diy.json"]);
+		expect(result.exitCode).toBe(1);
+		expect(result.stdout).toBe("");
+		expect(result.stderr).toBe("error: unknown option '--dead-code'\n");
+	});
+
+	it("rejects graph mode with disabled dead-code analysis", async () => {
+		const result = await runCliFixture(rootDir, [
+			"--graph",
+			"--no-dead-code-analysis",
+			"-p",
+			"diy.json",
+		]);
+		expect(result.exitCode).toBe(1);
+		expect(result.stdout).toBe("");
+		expect(result.stderr).toBe("Cannot combine --graph and --no-dead-code-analysis.\n");
+	});
+});
+
 describe("DIY contextual function type edge cases", () => {
 	it("handles parenthesized contextual function types", async () => {
 		const caseDir = mkdtempSync(join(tmpdir(), "diy-contextual-arrow-"));

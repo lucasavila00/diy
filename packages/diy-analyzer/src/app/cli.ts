@@ -33,7 +33,7 @@ function createCommand(io: DiyCliIo): Command {
 	return new Command()
 		.name("diy-cli")
 		.description("Analyze DIY capability usage")
-		.option("--dead-code", "Run dead-code capability analysis")
+		.option("--no-dead-code-analysis", "Run syntax lint rules without dead-code analysis")
 		.option("--graph", "Print a capability module graph")
 		.requiredOption("-p, --project <path>", "Path to the diy.json project file")
 		.allowExcessArguments(false)
@@ -130,16 +130,16 @@ export async function runDiyCli(options: RunDiyCliOptions = {}): Promise<number>
 		/* c8 ignore next -- fixture command tests provide argv explicitly. */
 		command.parse(options.argv ?? process.argv.slice(2), { from: "user" });
 		const parsed = command.opts<{
-			readonly deadCode?: boolean;
+			readonly deadCodeAnalysis?: boolean;
 			readonly graph?: boolean;
 			readonly project: string;
 		}>();
-		/* c8 ignore next -- normal CLI fixture cases use one analysis mode at a time. */
-		if (parsed.graph === true && parsed.deadCode === true) {
-			throw new Error("Cannot combine --graph and --dead-code.");
+		if (parsed.graph === true && parsed.deadCodeAnalysis === false) {
+			throw new Error("Cannot combine --graph and --no-dead-code-analysis.");
 		}
 		commandOptions = {
-			mode: parsed.graph === true ? "graph" : parsed.deadCode === true ? "dead-code" : "lint",
+			mode:
+				parsed.graph === true ? "graph" : parsed.deadCodeAnalysis === false ? "lint" : "dead-code",
 			project: parsed.project,
 		};
 	} catch (error) {

@@ -107,7 +107,7 @@ export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): b
 	});
 }
 
-export function isDiyCapabilitiesType(sourceFile: AnalyzedSourceFile, typeNode: TypeNode): boolean {
+function isDiyCapabilitiesType(sourceFile: AnalyzedSourceFile, typeNode: TypeNode): boolean {
 	if (typeNode.kind !== SyntaxKind.TypeReference) {
 		return false;
 	}

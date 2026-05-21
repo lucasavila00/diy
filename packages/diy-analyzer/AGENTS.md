@@ -9,7 +9,7 @@
 3. `src/lint/analyze.ts` coordinates the default syntax lint pass using the shared native syntax rules.
 4. `src/dead-code/` contains checker-backed dead-code and graph analysis.
 5. `src/backend/finalize.ts` sorts the combined analysis result, `src/backend/format.ts` formats findings, violations, and unsupported-analysis reports, and `src/backend/module-graph-format.ts` formats graph inspection output.
-6. `src/app/cli.ts` wraps CLI parsing and dispatches directly to lint, dead-code, or graph entrypoints.
+6. `src/app/cli.ts` wraps CLI parsing and dispatches directly to default dead-code, opt-out lint, or graph entrypoints.
 
 ## Module Boundaries
 

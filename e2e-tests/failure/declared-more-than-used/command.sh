@@ -1,1 +1,1 @@
-diy-cli --dead-code -p diy.json
+diy-cli -p diy.json
