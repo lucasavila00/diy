@@ -240,14 +240,14 @@ function locationForNode(
 ): { readonly column: number; readonly line: number } {
 	const text = sourceFile.sourceFile.text.slice(node.pos, node.end);
 	const offset = node.pos + Math.max(0, text.search(/\S/));
-	return locationForOffset(sourceFile.lineStarts, offset);
+	return locationForOffset(sourceFile.lineStarts(), offset);
 }
 
 function parseError(
 	sourceFile: AnalyzedSourceFile,
 	diagnostic: Diagnostic,
 ): DiyAnalyzerUnsupported {
-	const location = locationForOffset(sourceFile.lineStarts, diagnostic.pos);
+	const location = locationForOffset(sourceFile.lineStarts(), diagnostic.pos);
 	return {
 		column: location.column,
 		filePath: sourceFile.filePath,

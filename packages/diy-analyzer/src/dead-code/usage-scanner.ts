@@ -31,6 +31,12 @@ import type {
 } from "./native-types.ts";
 import { recordDeadCodeMetric } from "./timing.ts";
 
+type ForwardedArgument = {
+	readonly expression: Expression;
+	readonly forwarded: ForwardedExpression;
+	readonly index: number;
+};
+
 export function scanFunctionBody(
 	project: Project,
 	analyzedFunction: AnalyzedCapabilityFunction,
@@ -160,16 +166,23 @@ function scanCall(
 	if (isCapabilitiesHelperCall(analyzedFunction.sourceFile, node)) {
 		return;
 	}
-	const signature = resolveCallSignature(project.checker, node);
+	const forwardedArguments: ForwardedArgument[] = [];
 	for (const [index, argument] of node.arguments.entries()) {
 		const forwarded = forwardedExpression(project.checker, analyzedFunction, argument);
 		if (forwarded == null) {
 			continue;
 		}
+		forwardedArguments.push({ expression: argument, forwarded, index });
+	}
+	if (forwardedArguments.length === 0) {
+		return;
+	}
+	const signature = resolveCallSignature(project.checker, node);
+	for (const { expression, forwarded, index } of forwardedArguments) {
 		/* c8 ignore next -- forwarded calls without signatures are reported below as unresolved. */
 		const parameterType =
 			signature == null ? undefined : project.checker.getParameterType(signature, index);
-		const argumentType = expressionType(project.checker, argument);
+		const argumentType = expressionType(project.checker, expression);
 		const requiredFromCallType = forwardedRequiredCapabilities(
 			project.checker,
 			analyzedFunction,
@@ -471,5 +484,5 @@ export function locationForNode(
 	while (offset < node.end && /\s/.test(text[offset] ?? "")) {
 		offset += 1;
 	}
-	return locationForOffset(sourceFile.lineStarts, offset);
+	return locationForOffset(sourceFile.lineStarts(), offset);
 }

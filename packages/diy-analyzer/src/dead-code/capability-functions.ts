@@ -180,7 +180,7 @@ function functionLocation(
 	const keywordIndex = text.search(/\b(function|async)\b|[A-Za-z_$][\w$]*\s*:/);
 	/* c8 ignore next -- supported function-like syntax has a keyword or owner label. */
 	const offset = keywordIndex < 0 ? node.pos : node.pos + keywordIndex;
-	return locationForOffset(sourceFile.lineStarts, offset);
+	return locationForOffset(sourceFile.lineStarts(), offset);
 }
 
 export function compareAnalyzedCapabilityFunctions(

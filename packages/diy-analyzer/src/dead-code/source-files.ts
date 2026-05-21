@@ -7,6 +7,7 @@ import type { Project } from "@typescript/native-preview/unstable/sync";
 
 import { lineStarts, literalText } from "./ast-utils.ts";
 import type { AnalyzedSourceFile, ImportBinding } from "./native-types.ts";
+import { diyImportSources } from "./native-types.ts";
 
 export function collectAnalyzedSourceFiles(
 	project: Project,
@@ -36,12 +37,20 @@ export function collectAnalyzedSourceFiles(
 		modules.push({
 			filePath,
 			imports: collectImports(sourceFile),
-			lineStarts: lineStarts(sourceFile.text),
+			lineStarts: lazyLineStarts(sourceFile.text),
 			reportable: coveredSet.has(filePath),
 			sourceFile,
 		});
 	}
 	return modules.sort((left, right) => left.filePath.localeCompare(right.filePath));
+}
+
+function lazyLineStarts(text: string): () => readonly number[] {
+	let starts: readonly number[] | null = null;
+	return () => {
+		starts ??= lineStarts(text);
+		return starts;
+	};
 }
 
 function shouldSkipSourceFile(filePath: string, cwd: string): boolean {
@@ -97,7 +106,7 @@ function collectImports(sourceFile: SourceFile): ReadonlyMap<string, ImportBindi
 		const node = statement as ImportDeclaration;
 		const source = literalText(node.moduleSpecifier);
 		const clause = node.importClause;
-		if (source == null || clause == null) {
+		if (source == null || clause == null || !diyImportSources.has(source)) {
 			continue;
 		}
 		const namedBindings = clause.namedBindings;

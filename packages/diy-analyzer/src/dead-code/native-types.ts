@@ -7,7 +7,7 @@ import type { DiyAnalyzerViolation } from "../model/types.ts";
 export type AnalyzedSourceFile = {
 	readonly filePath: string;
 	readonly imports: ReadonlyMap<string, ImportBinding>;
-	readonly lineStarts: readonly number[];
+	readonly lineStarts: () => readonly number[];
 	readonly reportable: boolean;
 	readonly sourceFile: SourceFile;
 };
