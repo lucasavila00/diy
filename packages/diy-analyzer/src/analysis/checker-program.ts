@@ -175,9 +175,22 @@ function collectNativeSuppressions(modules: readonly AnalyzedSourceFile[]): {
 				column,
 				filePath: sourceFile.filePath,
 				line,
-				targetLine: line + 1,
+				targetLine: suppressionTargetLine(lines, index),
 			});
 		}
 	}
 	return { suppressions, violations };
 }
+
+function suppressionTargetLine(lines: readonly string[], index: number): number {
+	let targetIndex = index + 1;
+	for (const lineText of lines.slice(targetIndex)) {
+		if (!commentOnlyLinePattern.test(lineText)) {
+			break;
+		}
+		targetIndex += 1;
+	}
+	return targetIndex + 1;
+}
+
+const commentOnlyLinePattern = /^\s*(?:(?:\/\/.*)|(?:\/\*.*\*\/))\s*$/;

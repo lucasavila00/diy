@@ -51,6 +51,23 @@ export function suppressedAfterRegularComment(
 	use(capabilities);
 }
 
+export function suppressedBeforeRegularComment(
+	// diy-ignore-next-line -- suppression can sit above another leading comment.
+	// ordinary leading comment should not prevent targeting the parameter line.
+	capabilities: unknown,
+): void {
+	use(capabilities);
+}
+
+export function suppressedBeforeDirectiveStack(
+	// diy-ignore-next-line -- suppression can sit above the rest of the directive stack.
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	// @ts-expect-error intentionally invalid for analyzer suppression coverage.
+	capabilities: Capabilities,
+): void {
+	use(capabilities);
+}
+
 export function suppressedSecondParameter(
 	value: string,
 	// diy-ignore-next-line -- legacy callback shape keeps capabilities after the event value.
