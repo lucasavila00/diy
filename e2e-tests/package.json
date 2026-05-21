@@ -1,6 +1,6 @@
 {
 	"name": "@private/diy-e2e-cli",
-	"version": "0.0.22",
+	"version": "0.0.23",
 	"private": true,
 	"type": "module",
 	"scripts": {
