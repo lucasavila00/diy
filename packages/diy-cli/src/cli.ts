@@ -1,10 +1,9 @@
-import { analyzeDiyDeadCode } from "@beff/diy-analyzer/src/core/analysis/analyze.ts";
-import { analyzeDiyLint } from "@beff/diy-analyzer/src/core/analysis/lint.ts";
-import { analyzeDiyModuleGraph } from "@beff/diy-analyzer/src/core/analysis/module-graph.ts";
+import { analyzeDiy } from "@beff/diy-analyzer/src/core/analysis/analyze.ts";
 import {
 	flushDeadCodeTimings,
 	timeDeadCodePhaseAsync,
 } from "@beff/diy-analyzer/src/core/analysis/timing.ts";
+import type { DiyAnalysis, DiyModuleGraph } from "@beff/diy-analyzer/src/core/model/types.ts";
 import { Command, CommanderError } from "commander";
 
 import { resolveDiyProject } from "./config.ts";
@@ -13,10 +12,9 @@ import { formatDiyModuleGraph } from "./reporting/module-graph-format.ts";
 
 type DiyCliWriter = (value: string) => void;
 
-type DiyCliMode = "dead-code" | "graph" | "lint";
-
 type DiyCliCommandOptions = {
-	readonly mode: DiyCliMode;
+	readonly deadCodeAnalysis: boolean;
+	readonly graph: boolean;
 	readonly project: string;
 };
 
@@ -56,6 +54,13 @@ function formatError(error: unknown): string {
 	return String(error);
 }
 
+function requireGraph(analysis: DiyAnalysis): DiyModuleGraph {
+	if (analysis.graph == null) {
+		throw new Error("Graph analysis did not produce a module graph.");
+	}
+	return analysis.graph;
+}
+
 export async function executeDiyCli(
 	commandOptions: DiyCliCommandOptions,
 	options: {
@@ -69,37 +74,18 @@ export async function executeDiyCli(
 	const originalCwd = process.cwd();
 	process.chdir(projectCwd);
 	try {
-		const analyzeOptions = { cwd: projectCwd };
-
-		if (commandOptions.mode === "graph") {
-			const analysis = await analyzeDiyDeadCode(project.config, analyzeOptions);
-			if (analysis.unsupported.length > 0 || analysis.violations.length > 0) {
-				const output = formatDiyAnalysis(analysis, analyzeOptions);
-				/* c8 ignore next -- non-empty analysis results format to non-empty output. */
-				if (output.length > 0) {
-					options.stderr(output);
-				}
-				return 1;
-			}
-
-			const graph = await analyzeDiyModuleGraph(project.config, analyzeOptions);
-			options.stdout(formatDiyModuleGraph(graph, analyzeOptions));
-			return 0;
-		}
-
-		const analysis =
-			commandOptions.mode === "dead-code"
-				? await timeDeadCodePhaseAsync("dead-code mode total", () =>
-						analyzeDiyDeadCode(project.config, analyzeOptions),
-					)
-				: await analyzeDiyLint(project.config, analyzeOptions);
-		const output =
-			commandOptions.mode === "dead-code"
-				? await timeDeadCodePhaseAsync("format analysis", async () =>
-						formatDiyAnalysis(analysis, analyzeOptions),
-					)
-				: formatDiyAnalysis(analysis, analyzeOptions);
-		if (commandOptions.mode === "dead-code") {
+		const analysisOptions = {
+			cwd: projectCwd,
+			deadCodeAnalysis: commandOptions.deadCodeAnalysis,
+			graph: commandOptions.graph,
+		};
+		const analysis = await timeDeadCodePhaseAsync("analysis total", () =>
+			analyzeDiy(project.config, analysisOptions),
+		);
+		const output = await timeDeadCodePhaseAsync("format analysis", async () =>
+			formatDiyAnalysis(analysis, analysisOptions),
+		);
+		if (commandOptions.deadCodeAnalysis) {
 			flushDeadCodeTimings();
 		}
 		if (output.length > 0) {
@@ -113,7 +99,10 @@ export async function executeDiyCli(
 			return 1;
 		}
 
-		options.stdout(`DIY analyzer passed: ${analysis.coveredFiles.length} files analyzed.\n`);
+		const successOutput = commandOptions.graph
+			? formatDiyModuleGraph(requireGraph(analysis), analysisOptions)
+			: `DIY analyzer passed: ${analysis.coveredFiles.length} files analyzed.\n`;
+		options.stdout(successOutput);
 		return 0;
 	} finally {
 		process.chdir(originalCwd);
@@ -141,8 +130,8 @@ export async function runDiyCli(options: RunDiyCliOptions = {}): Promise<number>
 			throw new Error("Cannot combine --graph and --no-dead-code-analysis.");
 		}
 		commandOptions = {
-			mode:
-				parsed.graph === true ? "graph" : parsed.deadCodeAnalysis === false ? "lint" : "dead-code",
+			deadCodeAnalysis: parsed.deadCodeAnalysis !== false,
+			graph: parsed.graph === true,
 			project: parsed.project,
 		};
 	} catch (error) {

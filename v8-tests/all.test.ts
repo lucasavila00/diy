@@ -26,7 +26,11 @@ function fixtureDirs(parentDir: string): readonly string[] {
 
 async function runAnalyzerFixture(
 	caseDir: string,
-	commandOptions: { readonly mode: "dead-code" | "graph" | "lint"; readonly project: string },
+	commandOptions: {
+		readonly deadCodeAnalysis: boolean;
+		readonly graph: boolean;
+		readonly project: string;
+	},
 ): Promise<CapturedRun> {
 	let stderr = "";
 	let stdout = "";
@@ -64,7 +68,11 @@ async function failureRun(caseDir: string): Promise<CapturedRun> {
 	try {
 		command = readFileSync(commandPath, "utf8").trim();
 	} catch {
-		return runAnalyzerFixture(caseDir, { mode: "lint", project: "diy.json" });
+		return runAnalyzerFixture(caseDir, {
+			deadCodeAnalysis: false,
+			graph: false,
+			project: "diy.json",
+		});
 	}
 
 	const marker = "packages/diy-cli/bin/index.js";
@@ -95,7 +103,11 @@ describe("DIY success e2e", () => {
 
 	for (const caseDir of caseDirs) {
 		it(`${basename(caseDir)} passes`, async () => {
-			const result = await runAnalyzerFixture(caseDir, { mode: "lint", project: "diy.json" });
+			const result = await runAnalyzerFixture(caseDir, {
+				deadCodeAnalysis: false,
+				graph: false,
+				project: "diy.json",
+			});
 			expect(result.exitCode).toBe(0);
 			expect(result.stderr).toBe("");
 			expect(result.stdout).toMatch(/^DIY analyzer passed: \d+ files analyzed\.\n$/);
@@ -103,7 +115,8 @@ describe("DIY success e2e", () => {
 
 		it(`${basename(caseDir)} passes dead-code analysis`, async () => {
 			const result = await runAnalyzerFixture(caseDir, {
-				mode: "dead-code",
+				deadCodeAnalysis: true,
+				graph: false,
 				project: "diy.json",
 			});
 			expect(result.exitCode).toBe(0);
@@ -112,7 +125,11 @@ describe("DIY success e2e", () => {
 		});
 
 		it(`${basename(caseDir)} matches module graph`, async () => {
-			const result = await runAnalyzerFixture(caseDir, { mode: "graph", project: "diy.json" });
+			const result = await runAnalyzerFixture(caseDir, {
+				deadCodeAnalysis: true,
+				graph: true,
+				project: "diy.json",
+			});
 			expect(result.exitCode).toBe(0);
 			expect(result.stderr).toBe("");
 			await expect(result.stdout).toMatchFileSnapshot(join(caseDir, "module-graph.txt"));
@@ -155,6 +172,14 @@ describe("DIY CLI mode flags", () => {
 		expect(result.stdout).toBe("");
 		expect(result.stderr).toBe("Cannot combine --graph and --no-dead-code-analysis.\n");
 	});
+
+	it("runs general analysis before printing the graph", async () => {
+		const caseDir = join(v8TestsDir, "failure", "declared-more-than-used");
+		const result = await runCliFixture(caseDir, ["--graph", "-p", "diy.json"]);
+		expect(result.exitCode).toBe(1);
+		expect(result.stdout).toBe("");
+		expect(result.stderr).toContain('Declares unused capability "writer".');
+	});
 });
 
 describe("DIY contextual function type edge cases", () => {
@@ -174,7 +199,11 @@ describe("DIY contextual function type edge cases", () => {
 				].join("\n"),
 			);
 
-			const result = await runAnalyzerFixture(caseDir, { mode: "lint", project: "diy.json" });
+			const result = await runAnalyzerFixture(caseDir, {
+				deadCodeAnalysis: false,
+				graph: false,
+				project: "diy.json",
+			});
 			expect(result.exitCode).toBe(0);
 			expect(result.stderr).toBe("");
 		} finally {

@@ -38,6 +38,7 @@ export type DiyAnalyzerViolation = {
 export type DiyAnalysis = {
 	readonly coveredFiles: readonly string[];
 	readonly findings: readonly DiyUnusedCapabilityFinding[];
+	readonly graph?: DiyModuleGraph;
 	readonly unsupported: readonly DiyAnalyzerUnsupported[];
 	readonly violations: readonly DiyAnalyzerViolation[];
 };
@@ -59,4 +60,6 @@ export type DiyModuleGraphFunction = {
 
 export type AnalyzeOptions = {
 	readonly cwd?: string;
+	readonly deadCodeAnalysis?: boolean;
+	readonly graph?: boolean;
 };

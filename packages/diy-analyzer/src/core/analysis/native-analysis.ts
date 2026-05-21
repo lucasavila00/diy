@@ -1,4 +1,3 @@
-import type { DiySourceConfig } from "../config/source-files.ts";
 import type {
 	DiyAnalyzerUnsupported,
 	DiyAnalyzerViolation,
@@ -8,7 +7,6 @@ import type {
 } from "../model/types.ts";
 import { compareAnalyzedCapabilityFunctions } from "./capability-functions.ts";
 import {
-	buildCheckerAnalysisProgram,
 	buildCheckerAnalysisProgramFromFiles,
 	closeCheckerAnalysisProgram,
 } from "./checker-program.ts";
@@ -26,20 +24,26 @@ import { timeDeadCodePhase } from "./timing.ts";
 export async function analyzeNativeDeadCodeFromFiles(
 	coveredFiles: readonly string[],
 	cwd: string,
+	options: { readonly graph?: boolean } = {},
 ): Promise<{
 	readonly coveredFiles: readonly string[];
 	readonly findings: readonly DiyUnusedCapabilityFinding[];
+	readonly graph?: DiyModuleGraph;
 	readonly suppressions: CheckerAnalysisProgram["suppressions"];
 	readonly unsupported: readonly DiyAnalyzerUnsupported[];
 	readonly violations: readonly DiyAnalyzerViolation[];
 }> {
 	const program = await buildCheckerAnalysisProgramFromFiles(coveredFiles, cwd);
-	return analyzeNativeDeadCodeProgram(program);
+	return analyzeNativeDeadCodeProgram(program, options);
 }
 
-function analyzeNativeDeadCodeProgram(program: CheckerAnalysisProgram): {
+function analyzeNativeDeadCodeProgram(
+	program: CheckerAnalysisProgram,
+	options: { readonly graph?: boolean },
+): {
 	readonly coveredFiles: readonly string[];
 	readonly findings: readonly DiyUnusedCapabilityFinding[];
+	readonly graph?: DiyModuleGraph;
 	readonly suppressions: CheckerAnalysisProgram["suppressions"];
 	readonly unsupported: readonly DiyAnalyzerUnsupported[];
 	readonly violations: readonly DiyAnalyzerViolation[];
@@ -53,6 +57,9 @@ function analyzeNativeDeadCodeProgram(program: CheckerAnalysisProgram): {
 			findings: timeDeadCodePhase("collect unused findings", () =>
 				collectUnusedFindings(program.analyzedFunctions, required),
 			),
+			...(options.graph === true
+				? { graph: timeDeadCodePhase("module graph", () => moduleGraph(program, required)) }
+				: {}),
 			suppressions: program.suppressions,
 			unsupported: timeDeadCodePhase("collect unsupported analysis", () => [
 				...collectNativeParseErrors(program.project, program.sourceFiles),
@@ -68,20 +75,10 @@ function analyzeNativeDeadCodeProgram(program: CheckerAnalysisProgram): {
 	}
 }
 
-export async function analyzeNativeModuleGraph(
-	config: DiySourceConfig,
-	cwd: string,
-): Promise<DiyModuleGraph> {
-	const program = await buildCheckerAnalysisProgram(config, cwd);
-	try {
-		return moduleGraph(program);
-	} finally {
-		closeCheckerAnalysisProgram(program);
-	}
-}
-
-function moduleGraph(program: CheckerAnalysisProgram): DiyModuleGraph {
-	const required = computeRequiredCapabilityIds(program.analyzedFunctions);
+function moduleGraph(
+	program: CheckerAnalysisProgram,
+	required = computeRequiredCapabilityIds(program.analyzedFunctions),
+): DiyModuleGraph {
 	const functionsByPath = new Map<
 		string,
 		[AnalyzedCapabilityFunction, ...AnalyzedCapabilityFunction[]]

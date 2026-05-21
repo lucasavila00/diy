@@ -139,8 +139,13 @@ const noUselessObject = {
 
 				let hasProjection = false;
 				let sourceName = null;
+				const spreadSourceNames = new Set();
 				for (const property of node.properties) {
 					if (property.type === "SpreadElement") {
+						if (property.argument.type !== "Identifier") {
+							return;
+						}
+						spreadSourceNames.add(property.argument.name);
 						continue;
 					}
 
@@ -158,6 +163,12 @@ const noUselessObject = {
 
 				if (!hasProjection) {
 					return;
+				}
+
+				for (const spreadSourceName of spreadSourceNames) {
+					if (spreadSourceName !== sourceName) {
+						return;
+					}
 				}
 
 				context.report({

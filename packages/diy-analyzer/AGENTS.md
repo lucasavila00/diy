@@ -6,10 +6,10 @@
 
 1. `src/core/config/source-files.ts` expands configured analyzer inputs.
 2. `src/core/analysis/checker-program.ts` loads tsgo projects and source files through `@typescript/native-preview/unstable/sync`.
-3. `src/core/analysis/lint.ts` coordinates the default syntax lint pass using the shared native syntax rules.
-4. `src/core/analysis/` contains checker-backed dead-code, lint, and graph analysis.
+3. `src/core/analysis/analyze.ts` coordinates the default syntax lint pass and optional checker-backed dead-code checks.
+4. `src/core/analysis/` contains checker-backed dead-code, syntax lint, and graph analysis.
 5. `src/core/analysis/finalize.ts` sorts the combined analysis result.
-6. `../diy-cli/src/cli.ts` wraps CLI parsing and dispatches directly to default dead-code, opt-out lint, or graph entrypoints.
+6. `../diy-cli/src/cli.ts` wraps CLI parsing and dispatches to analysis or graph output.
 
 ## Module Boundaries
 

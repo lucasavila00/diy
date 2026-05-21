@@ -16,14 +16,6 @@ import type {
 import { collectAnalyzedSourceFiles, localDiyPaths } from "./source-files.ts";
 import { timeDeadCodePhase } from "./timing.ts";
 
-export async function buildCheckerAnalysisProgram(
-	config: DiySourceConfig,
-	cwd: string,
-): Promise<CheckerAnalysisProgram> {
-	const coveredFiles = await expandSourceFiles(config, cwd);
-	return buildCheckerAnalysisProgramFromFiles(coveredFiles, cwd);
-}
-
 export async function buildCheckerAnalysisProgramFromFiles(
 	coveredFiles: readonly string[],
 	cwd: string,
