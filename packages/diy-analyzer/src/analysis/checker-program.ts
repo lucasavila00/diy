@@ -183,14 +183,14 @@ function collectNativeSuppressions(modules: readonly AnalyzedSourceFile[]): {
 }
 
 function suppressionTargetLine(lines: readonly string[], index: number): number {
-	let targetIndex = index + 1;
-	for (const lineText of lines.slice(targetIndex)) {
-		if (!commentOnlyLinePattern.test(lineText)) {
+	let targetLine = lines.length + 1;
+	for (let targetIndex = index + 1; targetIndex < lines.length; targetIndex += 1) {
+		if (!commentOnlyLinePattern.test(lines[targetIndex]!)) {
+			targetLine = targetIndex + 1;
 			break;
 		}
-		targetIndex += 1;
 	}
-	return targetIndex + 1;
+	return targetLine;
 }
 
 const commentOnlyLinePattern = /^\s*(?:(?:\/\/.*)|(?:\/\*.*\*\/))\s*$/;
