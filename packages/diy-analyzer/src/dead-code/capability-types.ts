@@ -248,6 +248,10 @@ export function resolveCallSignature(
 	checker: Checker,
 	node: CallExpression,
 ): Signature | undefined {
+	const returnedCalleeSignature = callSignatureFromReturnedCallee(checker, node);
+	if (returnedCalleeSignature != null) {
+		return returnedCalleeSignature;
+	}
 	try {
 		const resolved = checker.getResolvedSignature(node);
 		if (resolved != null) {
@@ -274,6 +278,22 @@ export function resolveCallSignature(
 		checker.getSignaturesOfType(calleeType, SignatureKind.Call)[0] ??
 		callSignatureFromCalleeSymbol(checker, node)
 	);
+}
+
+function callSignatureFromReturnedCallee(
+	checker: Checker,
+	node: CallExpression,
+): Signature | undefined {
+	const expression = unwrapExpression(node.expression);
+	if (expression.kind !== SyntaxKind.CallExpression) {
+		return undefined;
+	}
+	const returnType = expressionType(checker, expression as CallExpression);
+	/* c8 ignore next -- returned function callees have checker return types. */
+	if (returnType == null) {
+		return undefined;
+	}
+	return checker.getSignaturesOfType(returnType, SignatureKind.Call)[0];
 }
 
 function callSignatureFromCalleeSymbol(
