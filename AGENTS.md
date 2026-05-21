@@ -92,6 +92,8 @@ Run the CI-equivalent sequence before broad changes: `pnpm run check && pnpm run
 
 The codebase is TypeScript ESM. Keep imports explicit and include `.ts` extensions for local source imports, matching existing files. Use tabs for indentation, `camelCase` for functions and variables, `PascalCase` for exported types/classes, and descriptive kebab-case filenames such as `module-graph.ts`.
 
+Do not introduce aliases for DIY `Capabilities<...>` types. Write capability parameters directly as `capabilities: Capabilities<...>` so the analyzer can read the dependency list.
+
 Do not commit generated `dist/` churn unless the change intentionally updates package output. Keep analyzer output deterministic by sorting paths, rules, and messages consistently.
 
 ## Testing Guidelines

@@ -197,6 +197,26 @@ export function renamed(deps: Capabilities<ReaderCapability>): string {
 }
 ```
 
+Do not hide DIY `Capabilities<...>` behind a type alias. The analyzer expects
+the direct type on each capability parameter:
+
+```ts
+// Allowed.
+export function load(capabilities: Capabilities<ReaderCapability>): string {
+	return capabilities.reader.read();
+}
+
+// Allowed for callback/function-type parameters too.
+type ReaderCallback = (capabilities: Capabilities<ReaderCapability>) => string;
+
+// Not allowed: aliases hide the dependency list from syntax linting.
+type ReaderCaps = Capabilities<ReaderCapability>;
+
+export function loadViaAlias(capabilities: ReaderCaps): string {
+	return capabilities.reader.read();
+}
+```
+
 If a parameter named `capabilities` or `_capabilities` has a type annotation, it
 must be DIY `Capabilities<...>`. This prevents unrelated values from looking like
 DIY capability bags:

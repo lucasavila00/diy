@@ -4,7 +4,8 @@ import type {
 	ImportDeclaration,
 	ImportSpecifier,
 	Node,
-	ParameterDeclaration,
+	TypeAliasDeclaration,
+	TypeNode,
 	TypeReferenceNode,
 } from "@typescript/native-preview/unstable/ast";
 import type { Diagnostic, Project } from "@typescript/native-preview/unstable/sync";
@@ -91,6 +92,9 @@ function analyzeSourceFileSyntax(sourceFile: AnalyzedSourceFile): readonly DiyAn
 		if (node.kind === SyntaxKind.ImportDeclaration) {
 			checkNoRenamedDiyImport(node as ImportDeclaration, report);
 		}
+		if (node.kind === SyntaxKind.TypeAliasDeclaration) {
+			checkNoCapabilitiesAlias(sourceFile, node as TypeAliasDeclaration, report);
+		}
 
 		node.forEachChild((child) => visit(child, node));
 		if (isFunction) {
@@ -109,7 +113,8 @@ function checkCapabilitiesParameters(
 	for (const [index, param] of node.parameters.entries()) {
 		const name = staticName(param.name);
 		const isCapabilitiesName = name === "capabilities" || name === "_capabilities";
-		const hasDiyCapabilitiesType = isDiyCapabilitiesType(sourceFile, param);
+		const hasDiyCapabilitiesType =
+			param.type != null && isDiyCapabilitiesType(sourceFile, param.type);
 		const hasNonDiyCapabilitiesAnnotation =
 			isCapabilitiesName && param.type != null && !hasDiyCapabilitiesType;
 
@@ -141,6 +146,28 @@ function checkCapabilitiesParameters(
 			);
 		}
 	}
+}
+
+function checkNoCapabilitiesAlias(
+	sourceFile: AnalyzedSourceFile,
+	node: TypeAliasDeclaration,
+	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
+): void {
+	const typeNode = (node as unknown as Record<string, TypeNode | undefined>).type;
+	if (typeNode == null || !isDiyCapabilitiesType(sourceFile, typeNode)) {
+		return;
+	}
+	report(
+		typeNode,
+		"invalid capabilities alias",
+		"Do not alias DIY `Capabilities<...>`; write `Capabilities<...>` directly on the capabilities parameter.",
+		[
+			{
+				kind: "help",
+				message: "write `capabilities: Capabilities<AppCapability>` instead of an alias",
+			},
+		],
+	);
 }
 
 function checkNoRenamedDiyImport(
@@ -195,12 +222,8 @@ function isRenamedImportSpecifier(specifier: ImportSpecifier): boolean {
 	return importedName != null && importedName !== specifier.name.text;
 }
 
-function isDiyCapabilitiesType(
-	sourceFile: AnalyzedSourceFile,
-	param: ParameterDeclaration,
-): boolean {
-	const typeNode = param.type;
-	if (typeNode?.kind !== SyntaxKind.TypeReference) {
+function isDiyCapabilitiesType(sourceFile: AnalyzedSourceFile, typeNode: TypeNode): boolean {
+	if (typeNode.kind !== SyntaxKind.TypeReference) {
 		return false;
 	}
 	const typeName = staticName((typeNode as TypeReferenceNode).typeName);

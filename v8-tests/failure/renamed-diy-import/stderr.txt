@@ -95,3 +95,14 @@ src/main.ts:14:8 renamed diy import
   17 |
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:21:24 invalid capabilities alias
+  19 | type DiyFsCapability = DiyCapability<"diy-fs", unknown>;
+  20 | type DiySubpathFsCapability = DiySubpathCapability<"diy-subpath-fs", unknown>;
+> 21 | type AppCapabilities = Capabilities<FsCapability>;
+     |                        ^ Do not alias DIY `Capabilities<...>`; write `Capabilities<...>` directly on the capabilities parameter.
+  22 | type RenamedCapabilities = CapabilitySet<FsCapability>;
+  23 | type RenamedCapabilitiesFromSubpath = CapabilityBag<FsCapability>;
+  24 | type AllowedExternalAlias = RenamedExternal;
+  = help: write `capabilities: Capabilities<AppCapability>` instead of an alias
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

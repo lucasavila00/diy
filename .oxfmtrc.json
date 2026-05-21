@@ -11,6 +11,8 @@
 		"**/.turbo/**",
 		"**/.cache/**",
 		"**/.tmp/**",
+		"**/*.md",
+		"**/*.mdx",
 		"**/diy-module-graph.txt",
 		"v8-tests/failure/parse-error/**/main.ts"
 	],

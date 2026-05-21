@@ -1,6 +1,8 @@
 import type { Capabilities, Capability } from "@beff/diy";
 
 type FsCapability = Capability<"fs", unknown>;
+type StorageCapability = Capability<"storage", unknown>;
+type StorageCaps = Capabilities<StorageCapability>;
 
 declare const defaultCapabilities: Capabilities<FsCapability>;
 declare function use(value: unknown): void;
@@ -11,6 +13,10 @@ export function renamed(svc: Capabilities<FsCapability>): void {
 
 export function second(path: string, capabilities: Capabilities<FsCapability>): void {
 	use(path);
+	use(capabilities);
+}
+
+export function aliased(capabilities: StorageCaps): void {
 	use(capabilities);
 }
 

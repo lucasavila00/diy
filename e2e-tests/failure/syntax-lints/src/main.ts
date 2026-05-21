@@ -1,6 +1,8 @@
 import type { Capabilities, Capabilities as RenamedCapabilities, Capability } from "@beff/diy";
 
 type ReadCapability = Capability<"reader", unknown>;
+type QueueCapability = Capability<"queue", unknown>;
+type QueueCaps = Capabilities<QueueCapability>;
 
 export function renamedParameter(caps: Capabilities<ReadCapability>): void {
 	void caps;
@@ -11,6 +13,10 @@ export function misplacedParameter(
 	capabilities: Capabilities<ReadCapability>,
 ): void {
 	void value;
+	void capabilities;
+}
+
+export function aliasedParameter(capabilities: QueueCaps): void {
 	void capabilities;
 }
 

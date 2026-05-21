@@ -31,6 +31,17 @@ src/main.ts:80:8 unused capability
   = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
+src/main.ts:12:24 invalid capabilities alias
+  10 | type AnyCapability = Capability<string, unknown>;
+  11 | // @ts-expect-error intentionally invalid for analyzer coverage
+> 12 | type MissingTypeNode = Capabilities;
+     |                        ^ Do not alias DIY `Capabilities<...>`; write `Capabilities<...>` directly on the capabilities parameter.
+  13 |
+  14 | declare namespace Namespaced {
+  15 | 	export type ReadCapability = Capability<"namespacedReader", unknown>;
+  = help: write `capabilities: Capabilities<AppCapability>` instead of an alias
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:25:37 invalid capabilities parameter
   23 | }
   24 |
