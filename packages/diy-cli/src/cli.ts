@@ -1,9 +1,9 @@
-import { analyzeDiy } from "@beff/diy-analyzer/src/core/analysis/analyze.ts";
+import { analyzeDiy } from "@beff/diy-analyzer/src/analysis/analyze.ts";
 import {
 	flushDeadCodeTimings,
 	timeDeadCodePhaseAsync,
-} from "@beff/diy-analyzer/src/core/analysis/timing.ts";
-import type { DiyAnalysis, DiyModuleGraph } from "@beff/diy-analyzer/src/core/model/types.ts";
+} from "@beff/diy-analyzer/src/analysis/timing.ts";
+import type { DiyAnalysis, DiyModuleGraph } from "@beff/diy-analyzer/src/model/types.ts";
 import { Command, CommanderError } from "commander";
 
 import { resolveDiyProject } from "./config.ts";

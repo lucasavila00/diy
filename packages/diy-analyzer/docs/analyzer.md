@@ -12,8 +12,8 @@ calculation over those facts, and reports unused capability declarations or patt
 cannot prove soundly.
 
 Representative entrypoints are
-[`analyze.ts`](../src/core/analysis/analyze.ts) and
-[`native-analysis.ts`](../src/core/analysis/native-analysis.ts).
+[`analyze.ts`](../src/analysis/analyze.ts) and
+[`native-analysis.ts`](../src/analysis/native-analysis.ts).
 
 ## What The Analyzer Models
 
@@ -80,8 +80,8 @@ function. Conceptually, this is a local transfer function:
   unsupported-analysis facts.
 
 Useful examples of this fact extraction live in
-[`capability-functions.ts`](../src/core/analysis/capability-functions.ts) and
-[`usage-scanner.ts`](../src/core/analysis/usage-scanner.ts).
+[`capability-functions.ts`](../src/analysis/capability-functions.ts) and
+[`usage-scanner.ts`](../src/analysis/usage-scanner.ts).
 
 ## The Dataflow Problem
 
@@ -114,7 +114,7 @@ a fixed point. That fixed point is the analyzer's transitive requirement graph:
 - `unused = declared - transitive`.
 
 The fixed-point computation and result projection are represented in
-[`results.ts`](../src/core/analysis/results.ts).
+[`results.ts`](../src/analysis/results.ts).
 
 ## Graph Traversal And Boundaries
 

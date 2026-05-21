@@ -6,8 +6,8 @@ import type {
 	AnalyzeOptions,
 	DiyAnalyzerNote,
 	DiyAnalysis,
-} from "@beff/diy-analyzer/src/core/model/types.ts";
-import { normalizePath } from "@beff/diy-analyzer/src/core/shared/path.ts";
+} from "@beff/diy-analyzer/src/model/types.ts";
+import { normalizePath } from "@beff/diy-analyzer/src/shared/path.ts";
 
 /* c8 ignore next -- violation fixtures do not currently emit grouped capability ID suffixes. */
 function formatList(values: readonly string[]): string {

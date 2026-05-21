@@ -12,7 +12,7 @@
 	"workspaces": {
 		".": {
 			"entry": ["oxlint-plugin-local.mjs", "scripts/check-knip-workspaces.mjs"],
-			"project": ["*.json", "*.mjs", "scripts/**/*.mjs"]
+			"project": ["*.json", "*.mjs"]
 		},
 		"packages/diy": {
 			"entry": ["src/index.ts!", "src/capabilities.ts!", "script/fixup-package.mjs!"],
