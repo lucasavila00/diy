@@ -9,7 +9,16 @@ import type {
 } from "@typescript/native-preview/unstable/ast";
 import type { Checker, Project, Type } from "@typescript/native-preview/unstable/sync";
 
-import { isFunctionLike, locationForOffset, staticName } from "./ast-utils.ts";
+import {
+	isFunctionLike,
+	locationForOffset,
+	nodeExpression,
+	nodeInitializer,
+	nodeName,
+	nodeNameNode,
+	objectLiteralProperties,
+	staticName,
+} from "./ast-utils.ts";
 import {
 	capabilityIds,
 	expressionSymbol,
@@ -211,7 +220,7 @@ function scanForwardedReturn(
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: Node,
 ): void {
-	const expression = (node as unknown as Record<string, Node | undefined>).expression;
+	const expression = nodeExpression(node);
 	if (expression == null || !isExpression(expression)) {
 		return;
 	}
@@ -226,8 +235,7 @@ function scanPropagatedVariable(
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: Node,
 ): void {
-	const record = node as unknown as Record<string, Node | undefined>;
-	const initializer = record.initializer;
+	const initializer = nodeInitializer(node);
 	if (initializer == null || !isExpression(initializer)) {
 		return;
 	}
@@ -235,7 +243,7 @@ function scanPropagatedVariable(
 	if (forwarded == null) {
 		return;
 	}
-	const name = record.name;
+	const name = nodeNameNode(node);
 	/* c8 ignore next -- variable declarations always expose a binding name. */
 	if (name != null) {
 		addPropagatedSource(checker, analyzedFunction, name, forwarded.provided);
@@ -402,11 +410,8 @@ function objectLiteralCapabilityIds(expression: Expression): ReadonlySet<string>
 	if (objectLiteral == null || objectLiteral.kind !== SyntaxKind.ObjectLiteralExpression) {
 		return ids;
 	}
-	const properties = (objectLiteral as unknown as Record<string, readonly Node[] | undefined>)
-		.properties;
-	/* c8 ignore next -- object literal expressions expose a properties array. */
-	for (const property of properties ?? []) {
-		const name = staticName((property as unknown as Record<string, unknown>).name);
+	for (const property of objectLiteralProperties(objectLiteral)) {
+		const name = nodeName(property);
 		if (name != null) {
 			ids.add(name);
 		}

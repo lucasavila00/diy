@@ -1,5 +1,9 @@
 import { SyntaxKind } from "@typescript/native-preview/unstable/ast";
-import type { FunctionLikeDeclaration, Node } from "@typescript/native-preview/unstable/ast";
+import type {
+	FunctionLikeDeclaration,
+	Node,
+	TypeNode,
+} from "@typescript/native-preview/unstable/ast";
 
 export function literalText(node: Node): string | null {
 	if (
@@ -26,6 +30,53 @@ export function staticName(node: unknown): string | null {
 	return null;
 }
 
+export function nodeName(node: Node): string | null {
+	return staticName((node as unknown as { readonly name?: unknown }).name);
+}
+
+export function nodeNameNode(node: Node): Node | undefined {
+	return (node as unknown as { readonly name?: Node }).name;
+}
+
+export function nodeExpression(node: Node): Node | undefined {
+	return (node as unknown as { readonly expression?: Node }).expression;
+}
+
+export function nodeInitializer(node: Node): Node | undefined {
+	return (node as unknown as { readonly initializer?: Node }).initializer;
+}
+
+export function typeReferenceArguments(typeNode: TypeNode): readonly TypeNode[] {
+	/* c8 ignore next -- callers pass TypeReference nodes when type arguments are expected. */
+	if (typeNode.kind !== SyntaxKind.TypeReference) {
+		return [];
+	}
+	return (
+		(typeNode as unknown as { readonly typeArguments?: readonly TypeNode[] }).typeArguments ?? []
+	);
+}
+
+export function typeReferenceName(typeNode: TypeNode): Node | undefined {
+	/* c8 ignore next -- callers pass TypeReference nodes when type names are expected. */
+	if (typeNode.kind !== SyntaxKind.TypeReference) {
+		return undefined;
+	}
+	return (typeNode as unknown as { readonly typeName?: Node }).typeName;
+}
+
+export function intersectionTypes(typeNode: TypeNode): readonly TypeNode[] {
+	/* c8 ignore next -- callers pass IntersectionType nodes when intersection members are expected. */
+	if (typeNode.kind !== SyntaxKind.IntersectionType) {
+		return [];
+	}
+	return (typeNode as unknown as { readonly types: readonly TypeNode[] }).types;
+}
+
+export function objectLiteralProperties(node: Node): readonly Node[] {
+	/* c8 ignore next -- object literal expressions expose a properties array. */
+	return (node as unknown as { readonly properties?: readonly Node[] }).properties ?? [];
+}
+
 export function isFunctionLike(node: Node): node is FunctionLikeDeclaration {
 	return (
 		node.kind === SyntaxKind.FunctionDeclaration ||
@@ -33,6 +84,21 @@ export function isFunctionLike(node: Node): node is FunctionLikeDeclaration {
 		node.kind === SyntaxKind.ArrowFunction ||
 		node.kind === SyntaxKind.MethodDeclaration
 	);
+}
+
+export function ownerNameForChild(node: Node, ownerName: string | null): string | null {
+	if (
+		node.kind === SyntaxKind.VariableDeclaration ||
+		node.kind === SyntaxKind.ClassDeclaration ||
+		node.kind === SyntaxKind.ClassExpression
+	) {
+		return nodeName(node) ?? ownerName;
+	}
+	if (node.kind === SyntaxKind.PropertyAssignment || node.kind === SyntaxKind.MethodDeclaration) {
+		const name = nodeName(node);
+		return name == null ? ownerName : ownerName == null ? name : `${ownerName}.${name}`;
+	}
+	return ownerName;
 }
 
 export function nodeKey(node: Node): string {

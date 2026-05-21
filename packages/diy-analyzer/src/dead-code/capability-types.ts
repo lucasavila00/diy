@@ -19,7 +19,7 @@ import type {
 	Type,
 } from "@typescript/native-preview/unstable/sync";
 
-import { literalText, staticName } from "./ast-utils.ts";
+import { literalText, staticName, typeReferenceArguments, typeReferenceName } from "./ast-utils.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
@@ -57,23 +57,11 @@ function isPublicId(name: string): boolean {
 }
 
 export function isNeverCapabilitiesType(typeNode: TypeNode): boolean {
-	/* c8 ignore next -- callers only pass DIY Capabilities type references. */
-	if (typeNode.kind !== SyntaxKind.TypeReference) {
-		return false;
-	}
-	const typeArguments = (typeNode as unknown as Record<string, readonly TypeNode[] | undefined>)
-		.typeArguments;
-	return typeArguments?.[0]?.kind === SyntaxKind.NeverKeyword;
+	return firstCapabilityTypeArgument(typeNode)?.kind === SyntaxKind.NeverKeyword;
 }
 
 export function isOpaqueCapabilitiesType(checker: Checker, typeNode: TypeNode): boolean {
-	/* c8 ignore next -- callers only pass DIY Capabilities type references. */
-	if (typeNode.kind !== SyntaxKind.TypeReference) {
-		return false;
-	}
-	const typeArguments = (typeNode as unknown as Record<string, readonly TypeNode[] | undefined>)
-		.typeArguments;
-	const firstTypeArgument = typeArguments?.[0];
+	const firstTypeArgument = firstCapabilityTypeArgument(typeNode);
 	if (firstTypeArgument == null) {
 		return false;
 	}
@@ -82,13 +70,7 @@ export function isOpaqueCapabilitiesType(checker: Checker, typeNode: TypeNode): 
 }
 
 export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): boolean {
-	/* c8 ignore next -- callers only pass DIY Capabilities type references. */
-	if (typeNode.kind !== SyntaxKind.TypeReference) {
-		return false;
-	}
-	const typeArguments = (typeNode as unknown as Record<string, readonly TypeNode[] | undefined>)
-		.typeArguments;
-	const firstTypeArgument = typeArguments?.[0];
+	const firstTypeArgument = firstCapabilityTypeArgument(typeNode);
 	if (firstTypeArgument == null) {
 		return false;
 	}
@@ -107,11 +89,15 @@ export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): b
 	});
 }
 
+function firstCapabilityTypeArgument(typeNode: TypeNode): TypeNode | undefined {
+	return typeReferenceArguments(typeNode)[0];
+}
+
 function isDiyCapabilitiesType(sourceFile: AnalyzedSourceFile, typeNode: TypeNode): boolean {
 	if (typeNode.kind !== SyntaxKind.TypeReference) {
 		return false;
 	}
-	const typeName = (typeNode as unknown as Record<string, Node | undefined>).typeName;
+	const typeName = typeReferenceName(typeNode);
 	/* c8 ignore next -- TypeReference nodes always have a typeName. */
 	if (typeName == null) {
 		return false;

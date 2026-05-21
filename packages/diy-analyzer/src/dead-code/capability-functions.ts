@@ -2,7 +2,14 @@ import { SyntaxKind } from "@typescript/native-preview/unstable/ast";
 import type { FunctionLikeDeclaration, Node } from "@typescript/native-preview/unstable/ast";
 import type { Project } from "@typescript/native-preview/unstable/sync";
 
-import { isFunctionLike, locationForOffset, nodeKey, staticName } from "./ast-utils.ts";
+import {
+	isFunctionLike,
+	locationForOffset,
+	nodeKey,
+	nodeName,
+	ownerNameForChild,
+	staticName,
+} from "./ast-utils.ts";
 import {
 	capabilityIds,
 	isNeverCapabilitiesType,
@@ -42,7 +49,7 @@ function collectFunctionsFromSourceFile(
 	const namespaceStack: string[] = [];
 	const visit = (node: Node, ownerName: string | null): void => {
 		if (node.kind === SyntaxKind.ModuleDeclaration) {
-			const name = staticName((node as unknown as Record<string, unknown>)["name"]);
+			const name = nodeName(node);
 			/* c8 ignore next -- parsed namespace declarations have a static name. */
 			if (name != null) {
 				namespaceStack.push(name);
@@ -51,7 +58,7 @@ function collectFunctionsFromSourceFile(
 				return;
 			}
 		}
-		const nextOwnerName = childOwnerName(node, ownerName);
+		const nextOwnerName = ownerNameForChild(node, ownerName);
 		if (isFunctionLike(node)) {
 			const analyzedFunction = readAnalyzedCapabilityFunction(
 				project,
@@ -133,7 +140,7 @@ function functionName(
 	node: FunctionLikeDeclaration,
 	ownerName: string | null,
 ): string {
-	const named = staticName((node as unknown as Record<string, unknown>).name);
+	const named = nodeName(node);
 	/* c8 ignore next -- owner-name handling is shared across methods, arrows, and function expressions. */
 	if (
 		ownerName != null &&
@@ -152,22 +159,6 @@ function functionName(
 	}
 	const location = locationForNode(sourceFile, node);
 	return `<anonymous>@${location.line}:${location.column}`;
-}
-
-function childOwnerName(node: Node, ownerName: string | null): string | null {
-	if (node.kind === SyntaxKind.VariableDeclaration) {
-		/* c8 ignore next -- variable declarations without static names keep the current owner. */
-		return staticName((node as unknown as Record<string, unknown>).name) ?? ownerName;
-	}
-	if (node.kind === SyntaxKind.ClassDeclaration || node.kind === SyntaxKind.ClassExpression) {
-		/* c8 ignore next -- anonymous classes keep the current owner name. */
-		return staticName((node as unknown as Record<string, unknown>).name) ?? ownerName;
-	}
-	if (node.kind === SyntaxKind.PropertyAssignment || node.kind === SyntaxKind.MethodDeclaration) {
-		const name = staticName((node as unknown as Record<string, unknown>).name);
-		return name == null ? ownerName : ownerName == null ? name : `${ownerName}.${name}`;
-	}
-	return ownerName;
 }
 
 function functionLocation(

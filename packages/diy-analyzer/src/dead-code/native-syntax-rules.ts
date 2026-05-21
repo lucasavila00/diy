@@ -13,7 +13,14 @@ import type {
 	DiyAnalyzerUnsupported,
 	DiyAnalyzerViolation,
 } from "../model/types.ts";
-import { literalText, locationForOffset, staticName } from "./ast-utils.ts";
+import {
+	intersectionTypes,
+	isFunctionLike,
+	literalText,
+	locationForOffset,
+	nodeName,
+	staticName,
+} from "./ast-utils.ts";
 import { resolvedDiyCapabilitiesType } from "./capability-types.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
@@ -85,7 +92,7 @@ function analyzeSourceFileSyntax(
 	};
 
 	const visit = (node: Node, parent: Node | null): void => {
-		const isFunction = isNativeFunctionLike(node);
+		const isFunction = isFunctionLike(node);
 		if (isFunction) {
 			functionStack.push({
 				name: nativeFunctionName(node, parent),
@@ -175,8 +182,9 @@ function hasDiyCapabilitiesIntersection(
 	if (typeNode.kind !== SyntaxKind.IntersectionType) {
 		return false;
 	}
-	const types = (typeNode as unknown as { readonly types: readonly TypeNode[] }).types;
-	return types.some((member) => resolvedDiyCapabilitiesType(checker, sourceFile, member) != null);
+	return intersectionTypes(typeNode).some(
+		(member) => resolvedDiyCapabilitiesType(checker, sourceFile, member) != null,
+	);
 }
 
 function checkNoRenamedDiyImport(
@@ -231,25 +239,16 @@ function isRenamedImportSpecifier(specifier: ImportSpecifier): boolean {
 	return importedName != null && importedName !== specifier.name.text;
 }
 
-function isNativeFunctionLike(node: Node): node is FunctionLikeDeclaration {
-	return (
-		node.kind === SyntaxKind.FunctionDeclaration ||
-		node.kind === SyntaxKind.FunctionExpression ||
-		node.kind === SyntaxKind.ArrowFunction ||
-		node.kind === SyntaxKind.MethodDeclaration
-	);
-}
-
 function nativeFunctionName(node: FunctionLikeDeclaration, parent: Node | null): string | null {
-	const named = staticName((node as unknown as Record<string, unknown>)["name"]);
+	const named = nodeName(node);
 	if (named != null) {
 		return named;
 	}
 	if (parent?.kind === SyntaxKind.VariableDeclaration) {
-		return staticName((parent as unknown as Record<string, unknown>)["name"]);
+		return nodeName(parent);
 	}
 	if (parent?.kind === SyntaxKind.PropertyAssignment) {
-		return staticName((parent as unknown as Record<string, unknown>)["name"]);
+		return nodeName(parent);
 	}
 	return null;
 }
