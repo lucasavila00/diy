@@ -43,7 +43,8 @@ For that function, the analyzer records:
   contributes `reader` to the direct set.
 - `forwarded`: calls where the capability object, or a derived capability object, is
   passed onward to another function. `writeLog(capabilities, value)` creates a
-  forwarding edge from `handleRequest` to the callee's capability requirements.
+  forwarding fact from `handleRequest` to the capability set required by the callee
+  parameter at that call site.
 - `unsupported`: syntax or type shapes where the analyzer cannot safely recover a finite
   capability set or a static access path. `capabilities[name]` is unsupported because
   `name` is a runtime value, so the analyzer cannot know which label was read.
@@ -94,15 +95,16 @@ Each function starts with:
 required(function) = direct(function)
 ```
 
-Forwarding adds constraints. If function `f` forwards its capability object into a callee
-that requires labels `{ a, b }`, then `f` also requires those labels unless the forwarded
-value already provides them locally through an extension or merge.
+Forwarding adds constraints. If function `f` forwards its capability object into a
+callee parameter typed as requiring labels `{ a, b }`, then `f` also requires those
+labels unless the forwarded value already provides them locally through an extension or
+merge.
 
 In simplified form:
 
 ```text
-for each forwarding edge f -> callee:
-	required(f) += required_by_call(callee) - provided_by_forwarded_value
+for each forwarding fact in f:
+	required(f) += required_by_forwarded_parameter - provided_by_forwarded_value
 ```
 
 The implementation repeats this propagation until no `required` set changes. Because
@@ -110,7 +112,8 @@ the sets only grow and the universe of capability labels is finite, the iteratio
 a fixed point. That fixed point is the analyzer's transitive requirement graph:
 
 - `direct` says what a function reads itself;
-- `transitive` says what a function needs after following forwarding edges;
+- `transitive` says what a function needs after adding the requirements of forwarded
+  capability parameters;
 - `unused = declared - transitive`.
 
 The fixed-point computation and result projection are represented in
@@ -123,8 +126,9 @@ does not introduce a separate dependency model. It materializes each analyzed fu
 with its direct and transitive capability sets, then formatting turns those sets into the
 CLI tree output.
 
-The graph is not a general call graph. It only contains edges that matter to capability
-flow: places where a DIY capability source is forwarded into a callable parameter whose
+The graph is not a general call graph, and the current graph output does not print call
+edges. It materializes the per-function direct and transitive capability sets computed
+from places where a DIY capability source is forwarded into a callable parameter whose
 required capability type can be recovered. Ordinary calls without capability forwarding
 are ignored because they do not change the dependency-injection proof.
 
@@ -152,8 +156,9 @@ The CLI has three useful modes over the same core machinery:
 - default analysis runs syntax checks plus dead-code capability analysis;
 - `--no-dead-code-analysis` runs syntax checks without the fixed-point unused-capability
   pass;
-- `--graph` first requires the analysis to have no violations or unsupported cases, then
-  prints the capability graph.
+- `--graph` asks the same dead-code analysis path to also materialize a module graph;
+  the CLI prints diagnostics first and only prints the graph when there are no findings,
+  violations, or unsupported cases.
 
 ## Why The Analyzer Is Shaped This Way
 
