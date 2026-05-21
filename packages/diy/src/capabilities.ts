@@ -1,11 +1,46 @@
 declare const capabilityId: unique symbol;
 declare const serviceType: unique symbol;
 
+/**
+ * Define one dependency your code can ask for.
+ *
+ * @example
+ * ```ts
+ * import type { Capability } from "@beff/diy";
+ *
+ * type ClockCapability = Capability<"clock", { now(): Date }>;
+ * ```
+ *
+ * The name `"clock"` becomes `capabilities.clock` when a function receives
+ * `Capabilities<ClockCapability>`.
+ */
 export interface Capability<Id extends string, Service> {
 	readonly [capabilityId]: Id;
 	readonly [serviceType]: Service;
 }
 
+/**
+ * Use `Capabilities<...>` as the first parameter of functions that need
+ * services.
+ *
+ * @example
+ * ```ts
+ * import type { Capabilities, Capability } from "@beff/diy";
+ * import type { PathLike } from "node:fs";
+ *
+ * type ClockCapability = Capability<"clock", { now(): Date }>;
+ * type FsCapability = Capability<"fs", { readFile(path: PathLike, encoding: "utf8"): Promise<string> }>;
+ *
+ * async function readConfig(
+ * 	capabilities: Capabilities<ClockCapability | FsCapability>,
+ * 	path: PathLike,
+ * ): Promise<string> {
+ * 	const config = await capabilities.fs.readFile(path, "utf8");
+ *
+ * 	return `[${capabilities.clock.now().toISOString()}]\n${config}`;
+ * }
+ * ```
+ */
 export type Capabilities<in Allowed extends Capability<string, unknown>> = {
 	readonly [Single in Allowed as Single[typeof capabilityId]]: Single[typeof serviceType];
 };
@@ -98,9 +133,66 @@ function merge(
 	return Object.assign({}, ...capabilitiesList) as Capabilities<Capability<string, unknown>>;
 }
 
+/**
+ * Build and compose DIY capability bags.
+ *
+ * @example
+ * ```ts
+ * import { Capabilities, type Capability } from "@beff/diy";
+ *
+ * type ClockCapability = Capability<"clock", { now(): Date }>;
+ * type LoggerCapability = Capability<"logger", { info(message: string): void }>;
+ * type AppCapability = ClockCapability | LoggerCapability;
+ *
+ * const capabilities = Capabilities.create<AppCapability>({
+ * 	clock: { now: () => new Date() },
+ * 	logger: { info: console.log },
+ * });
+ * ```
+ */
 export const Capabilities = {
+	/**
+	 * Build the app's concrete services.
+	 *
+	 * @example
+	 * ```ts
+	 * const capabilities = Capabilities.create<AppCapability>({
+	 * 	clock: { now: () => new Date() },
+	 * 	fs,
+	 * });
+	 * ```
+	 */
 	create,
+	/**
+	 * Add scoped services around an existing bag.
+	 *
+	 * @example
+	 * ```ts
+	 * const jobCapabilities = Capabilities.extend(
+	 * 	capabilities,
+	 * 	Capabilities.create<ProgressCapability>({ progress }),
+	 * );
+	 * ```
+	 */
 	extend,
+	/**
+	 * Combine capability bags built by separate modules.
+	 *
+	 * @example
+	 * ```ts
+	 * const appCapabilities = Capabilities.merge(nodeCapabilities, databaseCapabilities);
+	 * ```
+	 */
 	merge,
+	/**
+	 * Replace services without changing the capability type.
+	 *
+	 * @example
+	 * ```ts
+	 * const quietCapabilities = Capabilities.override(capabilities, {
+	 * 	logger: { info: () => undefined },
+	 * });
+	 * ```
+	 */
 	override,
 };
