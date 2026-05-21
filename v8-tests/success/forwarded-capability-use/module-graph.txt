@@ -67,8 +67,8 @@ src/main.ts
 |  `-- indirect: alpha
 |
 +-- overrideThenForward
-|  +-- direct: (none)
-|  `-- indirect: alpha, gamma
+|  +-- direct: alpha
+|  `-- indirect: gamma
 |
 `-- propagatedAliasThenForward
    +-- direct: (none)

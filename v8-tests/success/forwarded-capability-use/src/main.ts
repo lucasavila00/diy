@@ -72,6 +72,7 @@ export function extendThenForward(capabilities: Capabilities<AlphaCapability>): 
 export function overrideThenForward(
 	capabilities: Capabilities<AlphaCapability | GammaCapability>,
 ): void {
+	capabilities.alpha.read();
 	const overridden = Capabilities.override(capabilities, {
 		alpha: alphaReplacement,
 	});

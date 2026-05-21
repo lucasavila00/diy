@@ -40,7 +40,6 @@ import type {
 import { recordDeadCodeMetric } from "./timing.ts";
 
 type ForwardedArgument = {
-	readonly expression: Expression;
 	readonly forwarded: ForwardedExpression;
 	readonly index: number;
 };
@@ -178,7 +177,7 @@ function scanCall(
 		if (forwarded == null) {
 			continue;
 		}
-		forwardedArguments.push({ expression: argument, forwarded, index });
+		forwardedArguments.push({ forwarded, index });
 	}
 	if (forwardedArguments.length === 0) {
 		return;
@@ -283,7 +282,9 @@ function readCapabilitiesExtend(
 	) {
 		return null;
 	}
-	return { extra: providedCapabilityIds(checker, argumentsAfterFirst(node)) };
+	return {
+		extra: providedCapabilityIds(checker, analyzedFunction.sourceFile, argumentsAfterFirst(node)),
+	};
 }
 
 function forwardedExpression(
@@ -322,10 +323,12 @@ function forwardedExpression(
 		return null;
 	}
 	const provided = new Set(firstSource.provided);
-	if (helperName === "extend" || helperName === "merge") {
-		for (const id of providedCapabilityIds(checker, argumentsAfterFirst(call))) {
-			provided.add(id);
-		}
+	for (const id of providedCapabilityIds(
+		checker,
+		analyzedFunction.sourceFile,
+		argumentsAfterFirst(call),
+	)) {
+		provided.add(id);
 	}
 	return { provided };
 }
@@ -348,11 +351,12 @@ function forwardedRequiredCapabilities(
 
 function providedCapabilityIds(
 	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
 	expressions: readonly Expression[],
 ): ReadonlySet<string> {
 	const provided = new Set<string>();
 	for (const expression of expressions) {
-		for (const id of objectLiteralCapabilityIds(expression)) {
+		for (const id of objectLiteralCapabilityIds(sourceFile, expression)) {
 			provided.add(id);
 		}
 		const type = expressionType(checker, expression);
@@ -367,14 +371,17 @@ function providedCapabilityIds(
 	return provided;
 }
 
-function objectLiteralCapabilityIds(expression: Expression): ReadonlySet<string> {
+function objectLiteralCapabilityIds(
+	sourceFile: AnalyzedSourceFile,
+	expression: Expression,
+): ReadonlySet<string> {
 	const ids = new Set<string>();
 	const unwrapped = unwrapExpression(expression);
 	let objectLiteral = unwrapped.kind === SyntaxKind.ObjectLiteralExpression ? unwrapped : null;
 	if (unwrapped.kind === SyntaxKind.CallExpression) {
 		const call = unwrapped as CallExpression;
 		/* c8 ignore next -- capability factory calls in fixtures pass their provider object. */
-		objectLiteral = call.arguments[0] ?? null;
+		objectLiteral = isCapabilitiesCreateCall(sourceFile, call) ? (call.arguments[0] ?? null) : null;
 	}
 	if (objectLiteral == null || objectLiteral.kind !== SyntaxKind.ObjectLiteralExpression) {
 		return ids;
@@ -386,6 +393,18 @@ function objectLiteralCapabilityIds(expression: Expression): ReadonlySet<string>
 		}
 	}
 	return ids;
+}
+
+function isCapabilitiesCreateCall(sourceFile: AnalyzedSourceFile, call: CallExpression): boolean {
+	const callee = call.expression;
+	if (callee.kind !== SyntaxKind.PropertyAccessExpression) {
+		return false;
+	}
+	const propertyAccess = callee as PropertyAccessExpression;
+	return (
+		staticName(propertyAccess.name) === "create" &&
+		isImportedCapabilitiesValue(sourceFile, propertyAccess.expression)
+	);
 }
 
 function argumentsAfterFirst(call: CallExpression): readonly Expression[] {

@@ -315,6 +315,10 @@ function needWriter(capabilities: Capabilities<WriterCapability>): void {
 	capabilities.writer.write("ok");
 }
 
+function needReader(capabilities: Capabilities<ReaderCapability>): void {
+	capabilities.reader.read();
+}
+
 // Allowed: `writer` is required transitively by `needWriter`.
 export function save(capabilities: Capabilities<WriterCapability>): void {
 	needWriter(capabilities);
@@ -334,9 +338,11 @@ export function runDynamic(capabilities: Capabilities<ReaderCapability>): void {
 ```
 
 `Capabilities.extend(...)`, `Capabilities.merge(...)`, and
-`Capabilities.override(...)` preserve the original bag when their result is read,
-returned, or forwarded. `extend` is for adding new IDs; adding an ID already
-declared by the current function is reported as a redundant provider:
+`Capabilities.override(...)` create derived bags. Forwarding a derived bag requires
+only the IDs demanded by the callee and not provided locally by the helper call.
+Returning a derived bag does not count as using the current function's declared
+capabilities. `extend` is for adding new IDs; adding an ID already declared by the
+current function is reported as a redundant provider:
 
 ```ts
 declare const writer: { write(value: string): void };
@@ -354,11 +360,13 @@ export function redundantProvider(
 	Capabilities.extend(capabilities, { writer });
 }
 
-// Allowed when replacement is intentional.
+// Allowed when the original `writer` is also genuinely required here.
 export function replaceWriter(
 	capabilities: Capabilities<ReaderCapability | WriterCapability>,
-): Capabilities<ReaderCapability | WriterCapability> {
-	return Capabilities.override(capabilities, { writer });
+): void {
+	capabilities.writer.write("audit");
+	const replaced = Capabilities.override(capabilities, { writer });
+	needReader(replaced);
 }
 ```
 
