@@ -42,14 +42,14 @@ src/main.ts:25:37 invalid capabilities parameter
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:30:2 invalid capabilities parameter
-  28 |
+src/main.ts:31:2 invalid capabilities parameter
   29 | export function directMissingTypeArgument(
-> 30 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+  30 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+> 31 | 	capabilities: Capabilities,
      | 	^ `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
-  31 | 	capabilities: Capabilities,
   32 | ): void {
   33 | 	use(capabilities);
+  34 | }
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 

@@ -1,6 +1,10 @@
 Module graph
 
 src/main.ts
-`-- start
++-- start
+|  +-- direct: fs
+|  `-- indirect: (none)
+|
+`-- suppressedRenamedParameter
    +-- direct: fs
    `-- indirect: (none)
