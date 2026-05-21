@@ -23,14 +23,30 @@ like `{ reader, logger }`, where each label is the public property name exposed 
 TypeScript type.
 
 The unit of analysis is a function whose first parameter resolves to DIY
-`Capabilities<...>`. For each such function, the analyzer records:
+`Capabilities<...>`. For example:
 
-- `declared`: the capability labels allowed by the parameter type;
-- `direct`: labels read directly from that parameter, such as `capabilities.reader`;
+```ts
+type AppCapability = ReaderCapability | LoggerCapability;
+
+function handleRequest(capabilities: Capabilities<AppCapability>, name: string) {
+	const value = capabilities.reader.read();
+	writeLog(capabilities, value);
+	return capabilities[name];
+}
+```
+
+For that function, the analyzer records:
+
+- `declared`: the capability labels allowed by the parameter type. In the example,
+  `Capabilities<AppCapability>` gives the declared set `{ reader, logger }`.
+- `direct`: labels read directly from that parameter. `capabilities.reader.read()`
+  contributes `reader` to the direct set.
 - `forwarded`: calls where the capability object, or a derived capability object, is
-  passed onward to another function;
+  passed onward to another function. `writeLog(capabilities, value)` creates a
+  forwarding edge from `handleRequest` to the callee's capability requirements.
 - `unsupported`: syntax or type shapes where the analyzer cannot safely recover a finite
-  capability set or a static access path.
+  capability set or a static access path. `capabilities[name]` is unsupported because
+  `name` is a runtime value, so the analyzer cannot know which label was read.
 
 The analyzer is intentionally conservative. If it can prove a capability is needed, it
 keeps it. If it cannot prove enough about a function, it reports unsupported analysis
