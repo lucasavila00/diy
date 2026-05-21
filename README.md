@@ -4,31 +4,39 @@ DIY organizes TypeScript dependencies with plain capability types:
 
 - Functions say what they need.
 - Callers pass those capabilities in.
-- The checker and CLI catch bad wiring and unused dependencies.
+- The checker and CLI catch bad wiring, unused capabilities, and redundant providers.
 - No container, decorators, reflection, or runtime graph magic.
 
-DIY keeps wiring visible in source: effectful functions ask for the capabilities
-they need, and callers pass them in. The TypeScript checker and DIY CLI make that
-boring pattern enforceable, catching incorrect wiring and dead dependency
-declarations without a runtime DI container.
+Effectful functions take `capabilities` first, read services as plain object
+properties, and return ordinary values or `Promise`s. The result is boring
+TypeScript that can be checked, searched, edited, and analyzed.
+
+## Agent-First
+
+DIY makes dependency wiring local. When a function starts using a new service, an
+agent updates that function's capability type and the callers that pass it in.
+There is no hidden container registration, decorator metadata, or runtime graph
+to discover.
+
+That manual annotation is the tradeoff. It is a small amount of visible source
+churn, but it gives agents something concrete to maintain and gives TypeScript
+and the DIY CLI something concrete to verify. If the agent misses a caller,
+over-declares a dependency, or leaves a provider unused, the checks point at the
+source.
 
 ## Almost Algebraic Effects
 
 Compared with algebraic effects, DIY chooses explicit capability passing over
 implicit effect handling. Hidden magic can feel nicer at the call site, but it
-is harder to see, type-check, analyze, and test in plain TypeScript. DIY's
-explicit parameter is boring, but boring is useful: no special runtime or
-compiler support.
+is harder to see, type-check, analyze, and test in plain TypeScript.
 
-- DIY plus `Promise` gives JavaScript most of the useful shape of algebraic
-  effects: code asks for capabilities, and callers decide what those
-  capabilities do.
-- Algebraic effects make that wiring part of the language. DIY keeps it as
-  plain TypeScript arguments.
-- Multi-shot continuations are powerful, but not the main missing feature for
-  everyday JavaScript.
-- The main thing algebraic effects would improve over DIY is ergonomic implicit
-  effect handling, not raw capability.
+- DIY plus `Promise` gives JavaScript most of the useful shape: code asks for
+  capabilities, and callers decide what those capabilities do.
+- Async work uses the language's normal `await` path.
+- Multi-shot continuations are powerful, but they are not the main missing
+  feature for everyday JavaScript.
+- Algebraic effects can make wiring more implicit. DIY keeps it visible so
+  humans, agents, TypeScript, and the analyzer can all see it.
 
 ## Getting Started
 
