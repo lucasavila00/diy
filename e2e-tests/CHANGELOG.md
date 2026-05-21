@@ -1,5 +1,13 @@
 # @private/diy-e2e-cli
 
+## 0.0.26
+
+### Patch Changes
+
+- Updated dependencies
+  - @beff/diy@0.0.26
+  - @beff/diy-cli@0.0.26
+
 ## 0.0.25
 
 ### Patch Changes
