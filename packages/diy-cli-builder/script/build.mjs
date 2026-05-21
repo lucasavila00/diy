@@ -1,4 +1,3 @@
-import { cp, mkdir } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,22 +5,23 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const require = createRequire(import.meta.url);
+const workspaceRoot = resolve(packageRoot, "../..");
+const cliRoot = join(workspaceRoot, "packages/diy-cli");
+const analyzerRoot = join(workspaceRoot, "packages/diy-analyzer");
+const analyzerRequire = createRequire(join(analyzerRoot, "package.json"));
 const tinyglobbyCjsPath = join(
-	dirname(require.resolve("tinyglobby/package.json")),
+	dirname(analyzerRequire.resolve("tinyglobby/package.json")),
 	"dist/index.cjs",
 );
-const outputPath = join(packageRoot, "dist-cli", "cli.js");
-const cliOutputPath = resolve(packageRoot, "../diy-cli/dist-cli/cli.js");
 
 await build({
 	bundle: true,
 	conditions: ["require", "node"],
-	entryPoints: [join(packageRoot, "src/cli/cli.ts")],
+	entryPoints: [join(cliRoot, "src/cli.ts")],
 	external: ["@typescript/native-preview", "@typescript/native-preview/*"],
 	format: "cjs",
 	mainFields: ["main", "module"],
-	outfile: outputPath,
+	outfile: join(cliRoot, "dist-cli/cli.cjs"),
 	platform: "node",
 	plugins: [
 		{
@@ -33,6 +33,3 @@ await build({
 	],
 	target: "node22",
 });
-
-await mkdir(dirname(cliOutputPath), { recursive: true });
-await cp(outputPath, cliOutputPath);

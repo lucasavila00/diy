@@ -8,7 +8,19 @@
 		"bin",
 		"dist-cli"
 	],
+	"type": "module",
+	"scripts": {
+		"typecheck": "tsc --noEmit -p tsconfig.json"
+	},
 	"dependencies": {
 		"@typescript/native-preview": "7.0.0-dev.20260519.1"
+	},
+	"devDependencies": {
+		"@babel/code-frame": "^7.29.0",
+		"@beff/diy-analyzer": "workspace:*",
+		"@types/babel__code-frame": "^7.27.0",
+		"@types/node": "^24.9.0",
+		"commander": "^11.1.0",
+		"typescript": "^6.0.3"
 	}
 }

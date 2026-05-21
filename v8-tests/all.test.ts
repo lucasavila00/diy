@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { executeDiyCli, runDiyCli } from "../packages/diy-analyzer/src/cli/cli.ts";
+import { executeDiyCli, runDiyCli } from "../packages/diy-cli/src/cli.ts";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const v8TestsDir = join(rootDir, "v8-tests");

@@ -1,9 +1,12 @@
+import { analyzeDiyDeadCode } from "@beff/diy-analyzer/src/core/analysis/analyze.ts";
+import { analyzeDiyLint } from "@beff/diy-analyzer/src/core/analysis/lint.ts";
+import { analyzeDiyModuleGraph } from "@beff/diy-analyzer/src/core/analysis/module-graph.ts";
+import {
+	flushDeadCodeTimings,
+	timeDeadCodePhaseAsync,
+} from "@beff/diy-analyzer/src/core/analysis/timing.ts";
 import { Command, CommanderError } from "commander";
 
-import { analyzeDiyDeadCode } from "../core/analysis/analyze.ts";
-import { analyzeDiyLint } from "../core/analysis/lint.ts";
-import { analyzeDiyModuleGraph } from "../core/analysis/module-graph.ts";
-import { flushDeadCodeTimings, timeDeadCodePhaseAsync } from "../core/analysis/timing.ts";
 import { resolveDiyProject } from "./config.ts";
 import { formatDiyAnalysis } from "./reporting/format.ts";
 import { formatDiyModuleGraph } from "./reporting/module-graph-format.ts";

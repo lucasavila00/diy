@@ -19,13 +19,23 @@
 			"project": ["src/**/*.ts!", "script/**/*.mjs!"]
 		},
 		"packages/diy-analyzer": {
-			"entry": ["src/cli/cli.ts!", "script/build.mjs!"],
-			"project": ["src/**/*.ts!", "script/**/*.mjs!"]
+			"entry": [
+				"src/core/analysis/analyze.ts!",
+				"src/core/analysis/lint.ts!",
+				"src/core/analysis/module-graph.ts!",
+				"src/core/analysis/timing.ts!",
+				"src/core/config/source-files.ts!"
+			],
+			"project": ["src/**/*.ts!"]
 		},
 		"packages/diy-cli": {
-			"entry": ["bin/index.js!"],
+			"entry": ["bin/index.js!", "src/cli.ts!"],
 			"ignoreDependencies": ["@typescript/native-preview"],
-			"project": ["bin/**/*.js!"]
+			"project": ["bin/**/*.js!", "src/**/*.ts!", "tsconfig.json!"]
+		},
+		"packages/diy-cli-builder": {
+			"entry": ["script/build.mjs!"],
+			"project": ["package.json!", "script/**/*.mjs!"]
 		}
 	}
 }

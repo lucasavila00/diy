@@ -1,0 +1,12 @@
+{
+	"name": "@private/diy-cli-builder",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "node ./script/build.mjs"
+	},
+	"devDependencies": {
+		"esbuild": "^0.27.0"
+	}
+}

@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-const { runCli } = require("../dist-cli/cli.js");
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const { runCli } = require("../dist-cli/cli.cjs");
 
 runCli().catch((error) => {
 	if (error instanceof Error) {

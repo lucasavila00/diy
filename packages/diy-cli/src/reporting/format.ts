@@ -2,9 +2,12 @@ import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 
 import { codeFrameColumns } from "@babel/code-frame";
-
-import type { AnalyzeOptions, DiyAnalyzerNote, DiyAnalysis } from "../../core/model/types.ts";
-import { normalizePath } from "../../core/shared/path.ts";
+import type {
+	AnalyzeOptions,
+	DiyAnalyzerNote,
+	DiyAnalysis,
+} from "@beff/diy-analyzer/src/core/model/types.ts";
+import { normalizePath } from "@beff/diy-analyzer/src/core/shared/path.ts";
 
 /* c8 ignore next -- violation fixtures do not currently emit grouped capability ID suffixes. */
 function formatList(values: readonly string[]): string {

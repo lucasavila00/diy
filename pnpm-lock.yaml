@@ -50,28 +50,16 @@ importers:
 
   packages/diy-analyzer:
     dependencies:
-      '@babel/code-frame':
-        specifier: ^7.29.0
-        version: 7.29.0
       '@typescript/native-preview':
         specifier: 7.0.0-dev.20260519.1
         version: 7.0.0-dev.20260519.1
-      commander:
-        specifier: ^11.1.0
-        version: 11.1.0
-      tinyglobby:
-        specifier: ^0.2.16
-        version: 0.2.16
     devDependencies:
-      '@types/babel__code-frame':
-        specifier: ^7.27.0
-        version: 7.27.0
       '@types/node':
         specifier: ^24.9.0
         version: 24.12.3
-      esbuild:
-        specifier: ^0.27.0
-        version: 0.27.7
+      tinyglobby:
+        specifier: ^0.2.16
+        version: 0.2.16
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -81,6 +69,31 @@ importers:
       '@typescript/native-preview':
         specifier: 7.0.0-dev.20260519.1
         version: 7.0.0-dev.20260519.1
+    devDependencies:
+      '@babel/code-frame':
+        specifier: ^7.29.0
+        version: 7.29.0
+      '@beff/diy-analyzer':
+        specifier: workspace:*
+        version: link:../diy-analyzer
+      '@types/babel__code-frame':
+        specifier: ^7.27.0
+        version: 7.27.0
+      '@types/node':
+        specifier: ^24.9.0
+        version: 24.12.3
+      commander:
+        specifier: ^11.1.0
+        version: 11.1.0
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  packages/diy-cli-builder:
+    devDependencies:
+      esbuild:
+        specifier: ^0.27.0
+        version: 0.27.7
 
   v8-tests/failure:
     dependencies:
