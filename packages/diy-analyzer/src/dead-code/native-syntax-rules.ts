@@ -175,11 +175,8 @@ function hasDiyCapabilitiesIntersection(
 	if (typeNode.kind !== SyntaxKind.IntersectionType) {
 		return false;
 	}
-	const types = (typeNode as unknown as Record<string, readonly TypeNode[] | undefined>).types;
-	return (
-		types?.some((member) => resolvedDiyCapabilitiesType(checker, sourceFile, member) != null) ??
-		false
-	);
+	const types = (typeNode as unknown as { readonly types: readonly TypeNode[] }).types;
+	return types.some((member) => resolvedDiyCapabilitiesType(checker, sourceFile, member) != null);
 }
 
 function checkNoRenamedDiyImport(

@@ -25,6 +25,10 @@ export function secondAlias(path: string, capabilities: StorageCaps): void {
 	use(capabilities);
 }
 
+export function intersected(capabilities: StorageCaps & Capabilities<FsCapability>): void {
+	use(capabilities);
+}
+
 export function defaulted(capabilities: Capabilities<FsCapability> = defaultCapabilities): void {
 	use(capabilities);
 }

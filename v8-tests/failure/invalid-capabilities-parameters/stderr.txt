@@ -42,13 +42,24 @@ src/main.ts:23:43 invalid capabilities parameter
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:32:25 invalid capabilities parameter
+src/main.ts:28:29 invalid capabilities type
+  26 | }
+  27 |
+> 28 | export function intersected(capabilities: StorageCaps & Capabilities<FsCapability>): void {
+     |                             ^ Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
+  29 | 	use(capabilities);
   30 | }
   31 |
-> 32 | export function untyped(capabilities: unknown): void {
-     |                         ^ `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
-  33 | 	use(capabilities);
+  = help: write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:36:25 invalid capabilities parameter
   34 | }
   35 |
+> 36 | export function untyped(capabilities: unknown): void {
+     |                         ^ `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
+  37 | 	use(capabilities);
+  38 | }
+  39 |
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
