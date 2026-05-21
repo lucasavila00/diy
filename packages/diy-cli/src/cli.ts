@@ -85,9 +85,7 @@ export async function executeDiyCli(
 		const output = await timeDeadCodePhaseAsync("format analysis", async () =>
 			formatDiyAnalysis(analysis, analysisOptions),
 		);
-		if (commandOptions.deadCodeAnalysis) {
-			flushDeadCodeTimings();
-		}
+		flushDeadCodeTimings();
 		if (output.length > 0) {
 			options.stderr(output);
 		}

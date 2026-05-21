@@ -173,6 +173,20 @@ describe("DIY CLI mode flags", () => {
 		expect(result.stderr).toBe("Cannot combine --graph and --no-dead-code-analysis.\n");
 	});
 
+	it("rejects direct graph analysis with disabled dead-code analysis", async () => {
+		const caseDir = join(v8TestsDir, "failure", "declared-more-than-used");
+		await expect(
+			executeDiyCli(
+				{ deadCodeAnalysis: false, graph: true, project: "diy.json" },
+				{
+					cwd: caseDir,
+					stderr: () => {},
+					stdout: () => {},
+				},
+			),
+		).rejects.toThrow("Cannot combine --graph and --no-dead-code-analysis.");
+	});
+
 	it("runs general analysis before printing the graph", async () => {
 		const caseDir = join(v8TestsDir, "failure", "declared-more-than-used");
 		const result = await runCliFixture(caseDir, ["--graph", "-p", "diy.json"]);
