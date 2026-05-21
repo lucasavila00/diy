@@ -16,7 +16,12 @@ export function misplacedParameter(
 	void capabilities;
 }
 
-export function aliasedParameter(capabilities: QueueCaps): void {
+export function renamedAliasedParameter(queue: QueueCaps): void {
+	void queue;
+}
+
+export function misplacedAliasedParameter(value: string, capabilities: QueueCaps): void {
+	void value;
 	void capabilities;
 }
 

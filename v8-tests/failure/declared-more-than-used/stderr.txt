@@ -1,54 +1,65 @@
-src/main.ts:8:8 unused capability
-   6 | type HyphenCapability = Capability<"reader-id", unknown>;
-   7 |
->  8 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
+src/main.ts:9:8 unused capability
+   7 | type ReadWriteCapabilities = Capabilities<ReadCapability | WriteCapability>;
+   8 |
+>  9 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
      |        ^ Declares unused capability "writer".
-   9 | 	capabilities.reader;
-  10 | }
-  11 |
+  10 | 	capabilities.reader;
+  11 | }
+  12 |
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:12:8 unused capability
-  10 | }
-  11 |
-> 12 | export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
+src/main.ts:13:8 unused capability
+  11 | }
+  12 |
+> 13 | export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
      |        ^ Declares unused capability "reader".
-  13 | 	capabilities.writer;
-  14 | }
-  15 |
+  14 | 	capabilities.writer;
+  15 | }
+  16 |
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:16:8 unused capability
-  14 | }
-  15 |
-> 16 | export function hyphenated(capabilities: Capabilities<ReadCapability | HyphenCapability>): void {
+src/main.ts:17:8 unused capability
+  15 | }
+  16 |
+> 17 | export function aliased(capabilities: ReadWriteCapabilities): void {
+     |        ^ Declares unused capability "writer".
+  18 | 	capabilities.reader;
+  19 | }
+  20 |
+  = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:21:8 unused capability
+  19 | }
+  20 |
+> 21 | export function hyphenated(capabilities: Capabilities<ReadCapability | HyphenCapability>): void {
      |        ^ Declares unused capability "reader-id".
-  17 | 	capabilities.reader;
-  18 | }
-  19 |
+  22 | 	capabilities.reader;
+  23 | }
+  24 |
   = help: remove "reader-id" from `Capabilities<...>`, or add a real `capabilities["reader-id"]` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:20:8 unused capability
-  18 | }
-  19 |
-> 20 | export function grouped(
+src/main.ts:25:8 unused capability
+  23 | }
+  24 |
+> 25 | export function grouped(
      |        ^ Declares unused capabilities: "extra", "writer".
-  21 | 	capabilities: Capabilities<ExtraCapability | ReadCapability | WriteCapability>,
-  22 | ): void {
-  23 | 	capabilities.reader;
+  26 | 	capabilities: Capabilities<ExtraCapability | ReadCapability | WriteCapability>,
+  27 | ): void {
+  28 | 	capabilities.reader;
   = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:27:6 unused capability
-  25 |
-  26 | const migration = {
-> 27 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
+src/main.ts:32:6 unused capability
+  30 |
+  31 | const migration = {
+> 32 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
      | 	    ^ Declares unused capability "writer".
-  28 | 		capabilities.reader;
-  29 | 	},
-  30 | };
+  33 | 		capabilities.reader;
+  34 | 	},
+  35 | };
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

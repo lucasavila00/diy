@@ -2,7 +2,7 @@ src/main.ts:3:41 invalid capabilities parameter
   1 | type AlphaService = { read(): string };
   2 |
 > 3 | export const untypedStandalone = async (capabilities: {
-    |                                         ^ `capabilities` parameters with a type annotation must use DIY `Capabilities<...>`.
+    |                                         ^ `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
   4 | 	readonly alpha: AlphaService;
   5 | }): Promise<string> => capabilities.alpha.read();
   6 |

@@ -33,8 +33,23 @@ export function capabilityIds(checker: Checker, type: Type): ReadonlySet<string>
 }
 
 export function isCapabilitiesType(checker: Checker, type: Type): boolean {
-	const text = checker.typeToString(type);
-	return text === "Capabilities<never>" || text.startsWith("Capabilities<");
+	return isDiyCapabilitiesResolvedType(type);
+}
+
+export function resolvedDiyCapabilitiesType(
+	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): Type | undefined {
+	const type = checker.getTypeFromTypeNode(typeNode);
+	/* c8 ignore next -- tsgo resolves parsed type annotations in analyzer inputs. */
+	if (type == null) {
+		return undefined;
+	}
+	if (isDiyCapabilitiesResolvedType(type)) {
+		return type;
+	}
+	return isDiyCapabilitiesType(sourceFile, typeNode) ? type : undefined;
 }
 
 function isPublicId(name: string): boolean {
@@ -115,6 +130,55 @@ export function isDiyCapabilitiesType(sourceFile: AnalyzedSourceFile, typeNode: 
 		return imported?.kind === "namespace" && diyImportSources.has(imported.source);
 	}
 	return false;
+}
+
+function isDiyCapabilitiesResolvedType(type: Type): boolean {
+	return hasDiyCapabilitiesDeclaration(type) || hasDiyCapabilitiesDeclaration(targetType(type));
+}
+
+function targetType(type: Type): Type | undefined {
+	try {
+		return (type as Type & { readonly getTarget?: () => Type }).getTarget?.();
+	} catch {
+		return undefined;
+	}
+}
+
+function hasDiyCapabilitiesDeclaration(type: Type | undefined): boolean {
+	const symbol = (
+		type as (Type & { readonly getSymbol?: () => TsgoSymbol | undefined }) | undefined
+	)?.getSymbol?.();
+	return (
+		symbol?.declarations?.some((declaration) => {
+			const filePath = declarationFilePath(declaration);
+			/* c8 ignore next -- tsgo symbol declarations expose source paths. */
+			if (filePath == null) {
+				return false;
+			}
+			const normalized = filePath.replaceAll("\\", "/");
+			const isCapabilitiesFile =
+				normalized.endsWith("/capabilities.ts") || normalized.endsWith("/capabilities.d.ts");
+			/* c8 ignore next -- fixtures resolve DIY through the local packages path. */
+			return (
+				isCapabilitiesFile &&
+				(normalized.includes("/packages/diy/") || normalized.includes("/node_modules/@beff/diy/"))
+			);
+		}) ?? false
+	);
+}
+
+function declarationFilePath(declaration: unknown): string | null {
+	/* c8 ignore next -- callers pass tsgo declaration objects. */
+	if (declaration == null || typeof declaration !== "object") {
+		return null;
+	}
+	const path = (declaration as { readonly path?: unknown }).path;
+	/* c8 ignore next -- tsgo symbol declarations expose source paths. */
+	if (typeof path === "string") {
+		return path;
+	}
+	/* c8 ignore next -- tsgo symbol declarations expose source paths. */
+	return null;
 }
 
 export function isImportedCapabilitiesValue(

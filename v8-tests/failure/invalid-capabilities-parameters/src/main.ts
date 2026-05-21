@@ -16,7 +16,12 @@ export function second(path: string, capabilities: Capabilities<FsCapability>): 
 	use(capabilities);
 }
 
-export function aliased(capabilities: StorageCaps): void {
+export function renamedAlias(storage: StorageCaps): void {
+	use(storage);
+}
+
+export function secondAlias(path: string, capabilities: StorageCaps): void {
+	use(path);
 	use(capabilities);
 }
 

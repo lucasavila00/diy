@@ -5,10 +5,10 @@ import type { Project } from "@typescript/native-preview/unstable/sync";
 import { isFunctionLike, locationForOffset, nodeKey, staticName } from "./ast-utils.ts";
 import {
 	capabilityIds,
-	isDiyCapabilitiesType,
 	isNeverCapabilitiesType,
 	isOpaqueCapabilitiesType,
 	isOpenCapabilityBagType,
+	resolvedDiyCapabilitiesType,
 } from "./capability-types.ts";
 import type {
 	AnalyzedCapabilityFunction,
@@ -80,7 +80,8 @@ function readAnalyzedCapabilityFunction(
 	if (firstParam == null || firstParam.type == null) {
 		return null;
 	}
-	if (!isDiyCapabilitiesType(sourceFile, firstParam.type)) {
+	const declaredType = resolvedDiyCapabilitiesType(project.checker, sourceFile, firstParam.type);
+	if (declaredType == null) {
 		return null;
 	}
 	const parameterSymbol = project.checker.getSymbolAtLocation(firstParam.name);
@@ -88,10 +89,7 @@ function readAnalyzedCapabilityFunction(
 	if (parameterSymbol == null) {
 		return null;
 	}
-	const declaredType = project.checker.getTypeFromTypeNode(firstParam.type);
-	/* c8 ignore next -- tsgo resolves parsed Capabilities annotations to a type. */
-	const declaredCapabilityIds =
-		declaredType == null ? new Set<string>() : capabilityIds(project.checker, declaredType);
+	const declaredCapabilityIds = capabilityIds(project.checker, declaredType);
 	const isGenericDeclaration = isOpaqueCapabilitiesType(project.checker, firstParam.type);
 	const location = functionLocation(sourceFile, node);
 	const localName = functionName(sourceFile, node, ownerName);

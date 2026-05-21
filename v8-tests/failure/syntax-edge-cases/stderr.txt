@@ -12,7 +12,7 @@ src/main.ts:44:17 invalid capabilities parameter
   42 |
   43 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
 > 44 | 	function inner(capabilities: unknown): void {
-     | 	               ^ `capabilities` parameters with a type annotation must use DIY `Capabilities<...>`.
+     | 	               ^ `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
   45 | 		use(capabilities);
   46 | 	}
   47 | 	inner(capabilities);

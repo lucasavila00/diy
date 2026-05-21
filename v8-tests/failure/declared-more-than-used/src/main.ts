@@ -4,6 +4,7 @@ type ReadCapability = Capability<"reader", unknown>;
 type WriteCapability = Capability<"writer", unknown>;
 type ExtraCapability = Capability<"extra", unknown>;
 type HyphenCapability = Capability<"reader-id", unknown>;
+type ReadWriteCapabilities = Capabilities<ReadCapability | WriteCapability>;
 
 export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
 	capabilities.reader;
@@ -11,6 +12,10 @@ export function load(capabilities: Capabilities<ReadCapability | WriteCapability
 
 export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
 	capabilities.writer;
+}
+
+export function aliased(capabilities: ReadWriteCapabilities): void {
+	capabilities.reader;
 }
 
 export function hyphenated(capabilities: Capabilities<ReadCapability | HyphenCapability>): void {

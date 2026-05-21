@@ -59,7 +59,7 @@ function analyzeNativeDeadCodeProgram(program: CheckerAnalysisProgram): {
 				...collectUnsupported(program.analyzedFunctions),
 			]),
 			violations: timeDeadCodePhase("collect violations", () => [
-				...analyzeNativeDiySyntax(program.sourceFiles),
+				...analyzeNativeDiySyntax(program.project, program.sourceFiles),
 				...collectProviderViolations(program.analyzedFunctions),
 			]),
 		};

@@ -26,7 +26,7 @@ export async function analyzeDiyLint(
 			suppressions: program.suppressions.suppressions,
 			unsupported: collectNativeParseErrors(program.project, program.sourceFiles),
 			violations: [
-				...analyzeNativeDiySyntax(program.sourceFiles),
+				...analyzeNativeDiySyntax(program.project, program.sourceFiles),
 				...program.suppressions.violations,
 			],
 		});

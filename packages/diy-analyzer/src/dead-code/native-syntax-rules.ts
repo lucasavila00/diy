@@ -4,11 +4,8 @@ import type {
 	ImportDeclaration,
 	ImportSpecifier,
 	Node,
-	TypeAliasDeclaration,
-	TypeNode,
-	TypeReferenceNode,
 } from "@typescript/native-preview/unstable/ast";
-import type { Diagnostic, Project } from "@typescript/native-preview/unstable/sync";
+import type { Checker, Diagnostic, Project } from "@typescript/native-preview/unstable/sync";
 
 import type {
 	DiyAnalyzerNote,
@@ -16,6 +13,7 @@ import type {
 	DiyAnalyzerViolation,
 } from "../model/types.ts";
 import { literalText, locationForOffset, staticName } from "./ast-utils.ts";
+import { resolvedDiyCapabilitiesType } from "./capability-types.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
@@ -24,6 +22,7 @@ type FunctionFrame = {
 };
 
 export function analyzeNativeDiySyntax(
+	project: Project,
 	sourceFiles: readonly AnalyzedSourceFile[],
 ): readonly DiyAnalyzerViolation[] {
 	const violations: DiyAnalyzerViolation[] = [];
@@ -31,7 +30,7 @@ export function analyzeNativeDiySyntax(
 		if (!sourceFile.reportable) {
 			continue;
 		}
-		violations.push(...analyzeSourceFileSyntax(sourceFile));
+		violations.push(...analyzeSourceFileSyntax(project.checker, sourceFile));
 	}
 	return violations;
 }
@@ -52,7 +51,10 @@ export function collectNativeParseErrors(
 	return unsupported;
 }
 
-function analyzeSourceFileSyntax(sourceFile: AnalyzedSourceFile): readonly DiyAnalyzerViolation[] {
+function analyzeSourceFileSyntax(
+	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
+): readonly DiyAnalyzerViolation[] {
 	const violations: DiyAnalyzerViolation[] = [];
 	const functionStack: FunctionFrame[] = [];
 
@@ -87,13 +89,10 @@ function analyzeSourceFileSyntax(sourceFile: AnalyzedSourceFile): readonly DiyAn
 			functionStack.push({
 				name: nativeFunctionName(node, parent),
 			});
-			checkCapabilitiesParameters(sourceFile, node, report);
+			checkCapabilitiesParameters(checker, sourceFile, node, report);
 		}
 		if (node.kind === SyntaxKind.ImportDeclaration) {
 			checkNoRenamedDiyImport(node as ImportDeclaration, report);
-		}
-		if (node.kind === SyntaxKind.TypeAliasDeclaration) {
-			checkNoCapabilitiesAlias(sourceFile, node as TypeAliasDeclaration, report);
 		}
 
 		node.forEachChild((child) => visit(child, node));
@@ -106,6 +105,7 @@ function analyzeSourceFileSyntax(sourceFile: AnalyzedSourceFile): readonly DiyAn
 }
 
 function checkCapabilitiesParameters(
+	checker: Checker,
 	sourceFile: AnalyzedSourceFile,
 	node: FunctionLikeDeclaration,
 	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
@@ -114,7 +114,7 @@ function checkCapabilitiesParameters(
 		const name = staticName(param.name);
 		const isCapabilitiesName = name === "capabilities" || name === "_capabilities";
 		const hasDiyCapabilitiesType =
-			param.type != null && isDiyCapabilitiesType(sourceFile, param.type);
+			param.type != null && resolvedDiyCapabilitiesType(checker, sourceFile, param.type) != null;
 		const hasNonDiyCapabilitiesAnnotation =
 			isCapabilitiesName && param.type != null && !hasDiyCapabilitiesType;
 
@@ -133,7 +133,7 @@ function checkCapabilitiesParameters(
 			report(
 				param,
 				"invalid capabilities parameter",
-				"`capabilities` parameters with a type annotation must use DIY `Capabilities<...>`.",
+				"`capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.",
 				[capabilitiesParameterHelp()],
 			);
 		}
@@ -146,28 +146,6 @@ function checkCapabilitiesParameters(
 			);
 		}
 	}
-}
-
-function checkNoCapabilitiesAlias(
-	sourceFile: AnalyzedSourceFile,
-	node: TypeAliasDeclaration,
-	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
-): void {
-	const typeNode = (node as unknown as Record<string, TypeNode | undefined>).type;
-	if (typeNode == null || !isDiyCapabilitiesType(sourceFile, typeNode)) {
-		return;
-	}
-	report(
-		typeNode,
-		"invalid capabilities alias",
-		"Do not alias DIY `Capabilities<...>`; write `Capabilities<...>` directly on the capabilities parameter.",
-		[
-			{
-				kind: "help",
-				message: "write `capabilities: Capabilities<AppCapability>` instead of an alias",
-			},
-		],
-	);
 }
 
 function checkNoRenamedDiyImport(
@@ -220,18 +198,6 @@ function isRenamedImportSpecifier(specifier: ImportSpecifier): boolean {
 	const importedName =
 		specifier.propertyName == null ? specifier.name.text : staticName(specifier.propertyName);
 	return importedName != null && importedName !== specifier.name.text;
-}
-
-function isDiyCapabilitiesType(sourceFile: AnalyzedSourceFile, typeNode: TypeNode): boolean {
-	if (typeNode.kind !== SyntaxKind.TypeReference) {
-		return false;
-	}
-	const typeName = staticName((typeNode as TypeReferenceNode).typeName);
-	if (typeName !== "Capabilities") {
-		return false;
-	}
-	const imported = sourceFile.imports.get("Capabilities");
-	return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
 }
 
 function isNativeFunctionLike(node: Node): node is FunctionLikeDeclaration {
