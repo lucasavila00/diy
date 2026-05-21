@@ -87,7 +87,7 @@ function readAnalyzedCapabilityFunction(
 	if (firstParam == null || firstParam.type == null) {
 		return null;
 	}
-	const declaredType = resolvedDiyCapabilitiesType(project.checker, sourceFile, firstParam.type);
+	const declaredType = resolvedDiyCapabilitiesType(project.checker, firstParam.type);
 	if (declaredType == null) {
 		return null;
 	}

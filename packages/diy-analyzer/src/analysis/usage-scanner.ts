@@ -56,7 +56,7 @@ export function scanFunctionBody(
 		if (
 			node !== analyzedFunction.node &&
 			isFunctionLike(node) &&
-			hasOwnCapabilitiesBinding(project.checker, analyzedFunction.sourceFile, node)
+			hasOwnCapabilitiesBinding(project.checker, node)
 		) {
 			return;
 		}
@@ -467,13 +467,12 @@ function capabilitiesSourceExpression(
 
 function hasOwnCapabilitiesBinding(
 	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
 	node: FunctionLikeDeclaration,
 ): boolean {
 	const firstParam = node.parameters[0];
 	if (
 		firstParam?.type != null &&
-		resolvedDiyCapabilitiesType(checker, sourceFile, firstParam.type) != null
+		resolvedDiyCapabilitiesType(checker, firstParam.type) != null
 	) {
 		return true;
 	}

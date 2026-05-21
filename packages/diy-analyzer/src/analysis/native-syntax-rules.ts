@@ -97,7 +97,7 @@ function analyzeSourceFileSyntax(
 			functionStack.push({
 				name: nativeFunctionName(node, parent),
 			});
-			checkCapabilitiesParameters(checker, sourceFile, node, report);
+			checkCapabilitiesParameters(checker, node, report);
 		}
 		if (node.kind === SyntaxKind.ImportDeclaration) {
 			checkNoRenamedDiyImport(node as ImportDeclaration, report);
@@ -114,7 +114,6 @@ function analyzeSourceFileSyntax(
 
 function checkCapabilitiesParameters(
 	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
 	node: FunctionLikeDeclaration,
 	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
 ): void {
@@ -122,9 +121,9 @@ function checkCapabilitiesParameters(
 		const name = staticName(param.name);
 		const isCapabilitiesName = name === "capabilities" || name === "_capabilities";
 		const hasIntersectedDiyCapabilitiesType =
-			param.type != null && hasDiyCapabilitiesIntersection(checker, sourceFile, param.type);
+			param.type != null && hasDiyCapabilitiesIntersection(checker, param.type);
 		const hasDiyCapabilitiesType =
-			param.type != null && resolvedDiyCapabilitiesType(checker, sourceFile, param.type) != null;
+			param.type != null && resolvedDiyCapabilitiesType(checker, param.type) != null;
 		const hasNonDiyCapabilitiesAnnotation =
 			isCapabilitiesName &&
 			param.type != null &&
@@ -176,14 +175,13 @@ function checkCapabilitiesParameters(
 
 function hasDiyCapabilitiesIntersection(
 	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
 	typeNode: TypeNode,
 ): boolean {
 	if (typeNode.kind !== SyntaxKind.IntersectionType) {
 		return false;
 	}
 	return intersectionTypes(typeNode).some(
-		(member) => resolvedDiyCapabilitiesType(checker, sourceFile, member) != null,
+		(member) => resolvedDiyCapabilitiesType(checker, member) != null,
 	);
 }
 

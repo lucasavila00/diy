@@ -7,7 +7,6 @@ import type {
 	CallExpression,
 	Expression,
 	Identifier,
-	Node,
 	PropertyAccessExpression,
 	TypeNode,
 } from "@typescript/native-preview/unstable/ast";
@@ -19,7 +18,7 @@ import type {
 	Type,
 } from "@typescript/native-preview/unstable/sync";
 
-import { literalText, staticName, typeReferenceArguments, typeReferenceName } from "./ast-utils.ts";
+import { literalText, staticName, typeReferenceArguments } from "./ast-utils.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
@@ -38,7 +37,6 @@ export function isCapabilitiesType(checker: Checker, type: Type): boolean {
 
 export function resolvedDiyCapabilitiesType(
 	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
 	typeNode: TypeNode,
 ): Type | undefined {
 	const type = checker.getTypeFromTypeNode(typeNode);
@@ -46,10 +44,7 @@ export function resolvedDiyCapabilitiesType(
 	if (type == null) {
 		return undefined;
 	}
-	if (isDiyCapabilitiesResolvedType(type)) {
-		return type;
-	}
-	return isDiyCapabilitiesType(sourceFile, typeNode) ? type : undefined;
+	return isDiyCapabilitiesResolvedType(type) ? type : undefined;
 }
 
 function isPublicId(name: string): boolean {
@@ -91,31 +86,6 @@ export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): b
 
 function firstCapabilityTypeArgument(typeNode: TypeNode): TypeNode | undefined {
 	return typeReferenceArguments(typeNode)[0];
-}
-
-function isDiyCapabilitiesType(sourceFile: AnalyzedSourceFile, typeNode: TypeNode): boolean {
-	if (typeNode.kind !== SyntaxKind.TypeReference) {
-		return false;
-	}
-	const typeName = typeReferenceName(typeNode);
-	/* c8 ignore next -- TypeReference nodes always have a typeName. */
-	if (typeName == null) {
-		return false;
-	}
-	const parts = entityNameParts(typeName);
-	if (parts.length === 1) {
-		const local = parts[0];
-		/* c8 ignore next -- entityNameParts returns concrete string segments. */
-		const imported = local == null ? null : sourceFile.imports.get(local);
-		return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
-	}
-	if (parts.length === 2 && parts[1] === "Capabilities") {
-		const root = parts[0];
-		/* c8 ignore next -- entityNameParts returns concrete string segments. */
-		const imported = root == null ? null : sourceFile.imports.get(root);
-		return imported?.kind === "namespace" && diyImportSources.has(imported.source);
-	}
-	return false;
 }
 
 function isDiyCapabilitiesResolvedType(type: Type): boolean {
@@ -174,22 +144,6 @@ export function isImportedCapabilitiesValue(
 	const name = staticName(node);
 	const imported = name == null ? null : sourceFile.imports.get(name);
 	return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
-}
-
-function entityNameParts(node: Node): readonly string[] {
-	if (node.kind === SyntaxKind.Identifier) {
-		return [(node as Identifier).text];
-	}
-	/* c8 ignore next -- TypeReference.typeName is always an Identifier or QualifiedName. */
-	if (node.kind !== SyntaxKind.QualifiedName) {
-		return [];
-	}
-	const record = node as unknown as Record<string, Node | undefined>;
-	/* c8 ignore next -- QualifiedName nodes always have left and right children. */
-	if (record.left == null || record.right == null) {
-		return [];
-	}
-	return [...entityNameParts(record.left), ...entityNameParts(record.right)];
 }
 
 export function expressionSymbol(checker: Checker, expression: Expression): TsgoSymbol | undefined {

@@ -1,5 +1,4 @@
 import { Capabilities } from "@beff/diy";
-import * as Diy from "@beff/diy";
 import type { Capability } from "@beff/diy";
 
 import type { EdgeCapability, HiddenCapability } from "./caps.ts";
@@ -17,10 +16,6 @@ export function internalProvider(capabilities: Capabilities<HiddenCapability>): 
 	Capabilities.extend(capabilities, { hidden });
 }
 
-export function namespaceTyped(capabilities: Diy.Capabilities<EdgeCapability>): void {
-	capabilities.edge.run();
-}
-
 export function optionalElementAccess(capabilities: Capabilities<EdgeCapability>): void {
 	capabilities?.["edge"];
 }
@@ -32,7 +27,6 @@ export function computedProvider(capabilities: Capabilities<HiddenCapability>): 
 export function internalUse(): void {
 	internalUnsupported;
 	internalProvider;
-	namespaceTyped;
 	optionalElementAccess;
 	computedProvider;
 }

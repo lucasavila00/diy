@@ -9,10 +9,6 @@ src/internal.ts
 |  +-- direct: (none)
 |  `-- indirect: (none)
 |
-+-- namespaceTyped
-|  +-- direct: edge
-|  `-- indirect: (none)
-|
 +-- optionalElementAccess
 |  +-- direct: (none)
 |  `-- indirect: (none)

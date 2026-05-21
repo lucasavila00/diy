@@ -19,11 +19,13 @@ type FsCapability = Capability<"fs", unknown>;
 type DiyFsCapability = DiyCapability<"diy-fs", unknown>;
 type DiySubpathFsCapability = DiySubpathCapability<"diy-subpath-fs", unknown>;
 type AppCapabilities = Capabilities<FsCapability>;
+type NamespaceCapabilities = DiyNamespace.Capabilities<FsCapability>;
 type RenamedCapabilities = CapabilitySet<FsCapability>;
 type RenamedCapabilitiesFromSubpath = CapabilityBag<FsCapability>;
 type AllowedExternalAlias = RenamedExternal;
 
 declare const capabilities: AppCapabilities;
+declare const namespaceCapabilities: NamespaceCapabilities;
 declare const diyCapability: DiyFsCapability;
 declare const diySubpathCapability: DiySubpathFsCapability;
 declare const renamed: RenamedCapabilities;
@@ -31,6 +33,7 @@ declare const renamedFromSubpath: RenamedCapabilitiesFromSubpath;
 declare const allowedExternalAlias: AllowedExternalAlias;
 
 void capabilities;
+void namespaceCapabilities;
 void diyCapability;
 void diySubpathCapability;
 void renamed;
