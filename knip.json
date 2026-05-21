@@ -9,9 +9,6 @@
 		"v8-tests/success/renamed-capability-provide",
 		"v8-tests/success/unrelated-capabilities-type"
 	],
-	"ignoreIssues": {
-		"packages/diy-analyzer/tsc-slim/out.js": ["exports"]
-	},
 	"workspaces": {
 		".": {
 			"entry": ["oxlint-plugin-local.mjs", "scripts/check-knip-workspaces.mjs"],
@@ -23,11 +20,11 @@
 		},
 		"packages/diy-analyzer": {
 			"entry": ["src/app/cli.ts!", "script/build.mjs!"],
-			"project": ["src/**/*.ts!", "script/**/*.mjs!", "tsc-slim/**/*!"]
+			"project": ["src/**/*.ts!", "script/**/*.mjs!"]
 		},
 		"packages/diy-cli": {
 			"entry": ["bin/index.js!"],
-			"ignoreDependencies": ["@typescript/native-preview", "oxc-parser"],
+			"ignoreDependencies": ["@typescript/native-preview"],
 			"project": ["bin/**/*.js!"]
 		}
 	}

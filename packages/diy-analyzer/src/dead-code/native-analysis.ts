@@ -23,22 +23,6 @@ import {
 } from "./results.ts";
 import { timeDeadCodePhase } from "./timing.ts";
 
-/* c8 ignore start -- CLI dead-code mode expands files once and calls analyzeNativeDeadCodeFromFiles. */
-export async function analyzeNativeDeadCode(
-	config: DiySourceConfig,
-	cwd: string,
-): Promise<{
-	readonly coveredFiles: readonly string[];
-	readonly findings: readonly DiyUnusedCapabilityFinding[];
-	readonly suppressions: CheckerAnalysisProgram["suppressions"];
-	readonly unsupported: readonly DiyAnalyzerUnsupported[];
-	readonly violations: readonly DiyAnalyzerViolation[];
-}> {
-	const program = await buildCheckerAnalysisProgram(config, cwd);
-	return analyzeNativeDeadCodeProgram(program);
-}
-/* c8 ignore stop */
-
 export async function analyzeNativeDeadCodeFromFiles(
 	coveredFiles: readonly string[],
 	cwd: string,

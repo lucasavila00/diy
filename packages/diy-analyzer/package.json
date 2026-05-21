@@ -4,8 +4,7 @@
 	"private": true,
 	"files": [
 		"dist-cli",
-		"src",
-		"tsc-slim"
+		"src"
 	],
 	"type": "module",
 	"scripts": {

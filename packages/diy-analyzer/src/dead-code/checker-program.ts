@@ -45,7 +45,7 @@ export async function buildNativeSyntaxProgram(
 	return buildNativeSyntaxProgramFromFiles(coveredFiles, cwd);
 }
 
-export async function buildNativeSyntaxProgramFromFiles(
+async function buildNativeSyntaxProgramFromFiles(
 	coveredFiles: readonly string[],
 	cwd: string,
 ): Promise<NativeSyntaxProgram> {
@@ -99,7 +99,9 @@ export function closeNativeSyntaxProgram(program: NativeSyntaxProgram): void {
 	program.api.close();
 }
 
-export const closeCheckerAnalysisProgram = closeNativeSyntaxProgram;
+export function closeCheckerAnalysisProgram(program: CheckerAnalysisProgram): void {
+	program.api.close();
+}
 
 function resolveProjectConfig(
 	cwd: string,

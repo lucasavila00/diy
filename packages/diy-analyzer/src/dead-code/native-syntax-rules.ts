@@ -257,11 +257,8 @@ function parseError(
 }
 
 function diagnosticMessage(diagnostic: Diagnostic): string {
-	if (diagnostic.messageChain == null || diagnostic.messageChain.length === 0) {
-		return diagnostic.text;
-	}
-	/* c8 ignore next -- current tsgo syntax diagnostics used by fixtures are flat messages. */
-	return [diagnostic.text, ...diagnostic.messageChain.map(diagnosticMessage)].join(" ");
+	const chain = diagnostic.messageChain ?? [];
+	return [diagnostic.text, ...chain.map(diagnosticMessage)].join(" ");
 }
 
 function capabilitiesParameterHelp(): DiyAnalyzerNote {

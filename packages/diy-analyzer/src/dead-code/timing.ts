@@ -1,5 +1,7 @@
 import { performance } from "node:perf_hooks";
 
+/* c8 ignore start -- benchmark-only timing instrumentation is verified manually with DIY_ANALYZER_TIMING=1. */
+
 type TimingEntry = {
 	readonly label: string;
 	readonly ms: number;
@@ -19,12 +21,14 @@ export function timeDeadCodePhase<T>(label: string, run: () => T): T {
 	if (!enabled) {
 		return run();
 	}
+	/* c8 ignore start -- timing output is enabled only for manual benchmarks. */
 	const start = performance.now();
 	try {
 		return run();
 	} finally {
 		entries.push({ label, ms: performance.now() - start });
 	}
+	/* c8 ignore stop */
 }
 
 export async function timeDeadCodePhaseAsync<T>(label: string, run: () => Promise<T>): Promise<T> {
