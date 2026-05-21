@@ -4,6 +4,7 @@ import type {
 	ImportDeclaration,
 	ImportSpecifier,
 	Node,
+	TypeNode,
 } from "@typescript/native-preview/unstable/ast";
 import type { Checker, Diagnostic, Project } from "@typescript/native-preview/unstable/sync";
 
@@ -113,13 +114,31 @@ function checkCapabilitiesParameters(
 	for (const [index, param] of node.parameters.entries()) {
 		const name = staticName(param.name);
 		const isCapabilitiesName = name === "capabilities" || name === "_capabilities";
+		const hasIntersectedDiyCapabilitiesType =
+			param.type != null && hasDiyCapabilitiesIntersection(checker, sourceFile, param.type);
 		const hasDiyCapabilitiesType =
 			param.type != null && resolvedDiyCapabilitiesType(checker, sourceFile, param.type) != null;
 		const hasNonDiyCapabilitiesAnnotation =
-			isCapabilitiesName && param.type != null && !hasDiyCapabilitiesType;
+			isCapabilitiesName &&
+			param.type != null &&
+			!hasDiyCapabilitiesType &&
+			!hasIntersectedDiyCapabilitiesType;
 
-		if (!isCapabilitiesName && !hasDiyCapabilitiesType) {
+		if (!isCapabilitiesName && !hasDiyCapabilitiesType && !hasIntersectedDiyCapabilitiesType) {
 			continue;
+		}
+		if (hasIntersectedDiyCapabilitiesType) {
+			report(
+				param,
+				"invalid capabilities type",
+				"Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.",
+				[
+					{
+						kind: "help",
+						message: "write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`",
+					},
+				],
+			);
 		}
 		if (!isCapabilitiesName) {
 			report(
@@ -146,6 +165,21 @@ function checkCapabilitiesParameters(
 			);
 		}
 	}
+}
+
+function hasDiyCapabilitiesIntersection(
+	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): boolean {
+	if (typeNode.kind !== SyntaxKind.IntersectionType) {
+		return false;
+	}
+	const types = (typeNode as unknown as Record<string, readonly TypeNode[] | undefined>).types;
+	return (
+		types?.some((member) => resolvedDiyCapabilitiesType(checker, sourceFile, member) != null) ??
+		false
+	);
 }
 
 function checkNoRenamedDiyImport(

@@ -51,11 +51,33 @@ src/main.ts:23:58 invalid capabilities parameter
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:28:1 invalid diagnostic suppression
-  26 | }
+src/main.ts:29:2 invalid capabilities type
   27 |
-> 28 | // diy-ignore-next-line
+  28 | export function intersectedCapabilities(
+> 29 | 	capabilities: Capabilities<ReadCapability> & Capabilities<QueueCapability>,
+     | 	^ Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
+  30 | ): void {
+  31 | 	void capabilities;
+  32 | }
+  = help: write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:35:2 invalid capabilities type
+  33 |
+  34 | export function intersectedAliasedCapabilities(
+> 35 | 	capabilities: QueueCaps & Capabilities<ReadCapability>,
+     | 	^ Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
+  36 | ): void {
+  37 | 	void capabilities;
+  38 | }
+  = help: write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:40:1 invalid diagnostic suppression
+  38 | }
+  39 |
+> 40 | // diy-ignore-next-line
      | ^ `diy-ignore-next-line` requires a non-empty reason after `--`.
-  29 | export function invalidSuppression(capabilities: RenamedCapabilities<ReadCapability>): void {
-  30 | 	void capabilities;
-  31 | }
+  41 | export function invalidSuppression(capabilities: RenamedCapabilities<ReadCapability>): void {
+  42 | 	void capabilities;
+  43 | }

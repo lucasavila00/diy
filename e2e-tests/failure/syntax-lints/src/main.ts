@@ -25,6 +25,18 @@ export function misplacedAliasedParameter(value: string, capabilities: QueueCaps
 	void capabilities;
 }
 
+export function intersectedCapabilities(
+	capabilities: Capabilities<ReadCapability> & Capabilities<QueueCapability>,
+): void {
+	void capabilities;
+}
+
+export function intersectedAliasedCapabilities(
+	capabilities: QueueCaps & Capabilities<ReadCapability>,
+): void {
+	void capabilities;
+}
+
 // diy-ignore-next-line
 export function invalidSuppression(capabilities: RenamedCapabilities<ReadCapability>): void {
 	void capabilities;
