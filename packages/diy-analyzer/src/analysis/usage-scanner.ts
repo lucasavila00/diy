@@ -187,17 +187,15 @@ function scanCall(
 		return;
 	}
 	const signature = resolveCallSignature(project.checker, node);
-	for (const { expression, forwarded, index } of forwardedArguments) {
+	for (const { forwarded, index } of forwardedArguments) {
 		/* c8 ignore next -- forwarded calls without signatures are reported below as unresolved. */
 		const parameterType =
 			signature == null ? undefined : project.checker.getParameterType(signature, index);
-		const argumentType = expressionType(project.checker, expression);
 		const requiredFromCallType = forwardedRequiredCapabilities(
 			project.checker,
 			analyzedFunction,
 			forwarded,
 			parameterType,
-			argumentType,
 		);
 		if (requiredFromCallType == null) {
 			if (
@@ -355,7 +353,6 @@ function forwardedRequiredCapabilities(
 	analyzedFunction: AnalyzedCapabilityFunction,
 	forwarded: ForwardedExpression,
 	parameterType: Type | undefined,
-	argumentType: Type | undefined,
 ): ReadonlySet<string> | null {
 	const parameterIds =
 		parameterType != null && isCapabilitiesType(checker, parameterType)
@@ -363,13 +360,6 @@ function forwardedRequiredCapabilities(
 			: null;
 	if (parameterIds != null && parameterIds.size > 0) {
 		return parameterIds;
-	}
-	const argumentIds =
-		argumentType != null && isCapabilitiesType(checker, argumentType)
-			? capabilityIds(checker, argumentType)
-			: null;
-	if (parameterIds != null && argumentIds != null && argumentIds.size > 0) {
-		return argumentIds;
 	}
 	if (parameterIds != null && forwarded.usesDeclared) {
 		return analyzedFunction.declaredCapabilityIds;
@@ -465,15 +455,9 @@ function capabilitiesSourceExpression(
 	return provided == null ? null : { provided, usesDeclared: false };
 }
 
-function hasOwnCapabilitiesBinding(
-	checker: Checker,
-	node: FunctionLikeDeclaration,
-): boolean {
+function hasOwnCapabilitiesBinding(checker: Checker, node: FunctionLikeDeclaration): boolean {
 	const firstParam = node.parameters[0];
-	if (
-		firstParam?.type != null &&
-		resolvedDiyCapabilitiesType(checker, firstParam.type) != null
-	) {
+	if (firstParam?.type != null && resolvedDiyCapabilitiesType(checker, firstParam.type) != null) {
 		return true;
 	}
 	return node.parameters.some((param) => {

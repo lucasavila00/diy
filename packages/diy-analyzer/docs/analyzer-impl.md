@@ -142,10 +142,8 @@ The main extraction rule is `capabilityIds(checker, type)`: get the checker prop
 of the resolved capability type, then keep public property names. Internal synthetic
 properties are filtered out.
 
-The analyzer recognizes DIY `Capabilities` in two ways. Preferably, the resolved checker
-type points back to DIY's `capabilities.ts` declaration. As a fallback for source shapes
-where the checker type is not enough, it verifies that the type reference is imported
-from `@beff/diy` or `@beff/diy/capabilities`, including namespace imports.
+The analyzer recognizes DIY `Capabilities` when the resolved checker type points back
+to DIY's `capabilities.ts` declaration.
 
 ## AST Transfer Functions
 

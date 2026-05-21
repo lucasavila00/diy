@@ -53,13 +53,24 @@ src/main.ts:25:8 unused capability
   = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:32:6 unused capability
-  30 |
-  31 | const migration = {
-> 32 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
+src/main.ts:35:8 unused capability
+  33 | }
+  34 |
+> 35 | export function passDirectToEmpty(capabilities: Capabilities<ReadCapability>): void {
+     |        ^ Declares unused capability "reader".
+  36 | 	needEmpty(capabilities);
+  37 | }
+  38 |
+  = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:40:6 unused capability
+  38 |
+  39 | const migration = {
+> 40 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
      | 	    ^ Declares unused capability "writer".
-  33 | 		capabilities.reader;
-  34 | 	},
-  35 | };
+  41 | 		capabilities.reader;
+  42 | 	},
+  43 | };
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

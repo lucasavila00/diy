@@ -28,6 +28,14 @@ export function grouped(
 	capabilities.reader;
 }
 
+function needEmpty(capabilities: Capabilities<never>): void {
+	void capabilities;
+}
+
+export function passDirectToEmpty(capabilities: Capabilities<ReadCapability>): void {
+	needEmpty(capabilities);
+}
+
 const migration = {
 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
 		capabilities.reader;

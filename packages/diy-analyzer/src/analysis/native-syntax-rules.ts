@@ -173,10 +173,7 @@ function checkCapabilitiesParameters(
 	}
 }
 
-function hasDiyCapabilitiesIntersection(
-	checker: Checker,
-	typeNode: TypeNode,
-): boolean {
+function hasDiyCapabilitiesIntersection(checker: Checker, typeNode: TypeNode): boolean {
 	if (typeNode.kind !== SyntaxKind.IntersectionType) {
 		return false;
 	}

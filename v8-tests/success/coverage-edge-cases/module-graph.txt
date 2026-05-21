@@ -42,10 +42,6 @@ src/main.ts
 |  +-- direct: (none)
 |  `-- indirect: edge
 |
-+-- passDirectToEmpty
-|  +-- direct: (none)
-|  `-- indirect: edge
-|
 +-- helperWithCreatedOnly
 |  +-- direct: edge
 |  `-- indirect: (none)

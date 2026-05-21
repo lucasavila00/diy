@@ -66,6 +66,7 @@ export function isOpaqueCapabilitiesType(checker: Checker, typeNode: TypeNode): 
 
 export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): boolean {
 	const firstTypeArgument = firstCapabilityTypeArgument(typeNode);
+	/* c8 ignore next -- parsed Capabilities declarations have a type argument here. */
 	if (firstTypeArgument == null) {
 		return false;
 	}
@@ -149,10 +150,7 @@ export function isImportedCapabilitiesValue(
 export function expressionSymbol(checker: Checker, expression: Expression): TsgoSymbol | undefined {
 	const unwrapped = unwrapExpression(expression);
 	if (unwrapped.kind === SyntaxKind.Identifier) {
-		/* c8 ignore next -- resolved symbols are available for identifiers in analyzed source. */
-		return (
-			checker.getResolvedSymbol(unwrapped as Identifier) ?? checker.getSymbolAtLocation(unwrapped)
-		);
+		return checker.getResolvedSymbol(unwrapped as Identifier);
 	}
 	return checker.getSymbolAtLocation(unwrapped);
 }

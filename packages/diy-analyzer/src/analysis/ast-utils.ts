@@ -56,14 +56,6 @@ export function typeReferenceArguments(typeNode: TypeNode): readonly TypeNode[] 
 	);
 }
 
-export function typeReferenceName(typeNode: TypeNode): Node | undefined {
-	/* c8 ignore next -- callers pass TypeReference nodes when type names are expected. */
-	if (typeNode.kind !== SyntaxKind.TypeReference) {
-		return undefined;
-	}
-	return (typeNode as unknown as { readonly typeName?: Node }).typeName;
-}
-
 export function intersectionTypes(typeNode: TypeNode): readonly TypeNode[] {
 	/* c8 ignore next -- callers pass IntersectionType nodes when intersection members are expected. */
 	if (typeNode.kind !== SyntaxKind.IntersectionType) {
