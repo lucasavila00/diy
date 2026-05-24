@@ -1,10 +1,15 @@
-import type { Capabilities, Capability } from "@beff/diy";
+import { Capabilities, type Capability } from "@beff/diy";
 
 type A = Capability<"a", unknown>;
 type B = Capability<"b", unknown>;
 type C = Capability<"c", unknown>;
 type D = Capability<"d", unknown>;
 type E = Capability<"e", unknown>;
+type F = Capability<"f", unknown>;
+
+function needF(capabilities: Capabilities<F>): void {
+	capabilities.f;
+}
 
 type Runner = {
 	run(options: {
@@ -37,6 +42,10 @@ export class Cache {
 		});
 	}
 
+	publicProviderRun(capabilities: Capabilities<never>): void {
+		needF(Capabilities.extend(capabilities, this.#privateProviderCapabilities()));
+	}
+
 	async #privateRun(capabilities: Capabilities<A>): Promise<void> {
 		capabilities.a;
 	}
@@ -59,5 +68,9 @@ export class Cache {
 
 	async #privateNestedJoin(capabilities: Capabilities<E>): Promise<void> {
 		capabilities.e;
+	}
+
+	#privateProviderCapabilities(): Capabilities<F> {
+		return Capabilities.create<F>({ f: {} });
 	}
 }

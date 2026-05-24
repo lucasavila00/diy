@@ -186,35 +186,23 @@ export function resolveCallSignature(
 	checker: Checker,
 	node: CallExpression,
 ): Signature | undefined {
-	for (const location of callableTypeLocations(unwrapExpression(node.expression))) {
-		const signature = checker.getSignaturesOfType(
-			callableType(checker, location),
-			SignatureKind.Call,
-		)[0];
-		if (signature != null) {
-			return signature;
-		}
+	const expression = unwrapExpression(node.expression);
+	const signature = callSignature(checker, expression);
+	if (signature != null || expression.kind !== SyntaxKind.PropertyAccessExpression) {
+		return signature;
 	}
+	return callSignature(checker, (expression as PropertyAccessExpression).name);
 }
 
-function callableType(checker: Checker, expression: Expression): Type {
-	if (expression.kind !== SyntaxKind.CallExpression) {
-		return checker.getTypeAtLocation(expression)!;
-	}
-	return expressionType(checker, expression as CallExpression)!;
-}
-
-function callableTypeLocations(expression: Expression): readonly Expression[] {
-	if (expression.kind === SyntaxKind.PropertyAccessExpression) {
-		const propertyAccess = expression as PropertyAccessExpression;
-		return [propertyAccess.name, propertyAccess];
-	}
-	return [expression];
+function callSignature(checker: Checker, expression: Expression): Signature | undefined {
+	return checker.getSignaturesOfType(checker.getTypeAtLocation(expression)!, SignatureKind.Call)[0];
 }
 
 export function expressionType(checker: Checker, expression: Expression): Type | undefined {
 	const unwrapped = unwrapExpression(expression);
 	if (unwrapped.kind === SyntaxKind.CallExpression) {
+		// WORKAROUND: see WORKAROUNDS.md. tsgo currently reports private call expressions
+		// as callable types, so use the signature return type for call expression values.
 		const signature = resolveCallSignature(checker, unwrapped as CallExpression);
 		/* c8 ignore next -- call expressions used for capability values have signatures. */
 		if (signature != null) {

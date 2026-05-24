@@ -1,6 +1,10 @@
 Module graph
 
 src/main.ts
++-- needF
+|  +-- direct: f
+|  `-- indirect: (none)
+|
 +-- Cache.publicRun
 |  +-- direct: (none)
 |  `-- indirect: a
@@ -20,6 +24,10 @@ src/main.ts
 +-- Cache.publicNestedRun
 |  +-- direct: (none)
 |  `-- indirect: e
+|
++-- Cache.publicProviderRun
+|  +-- direct: (none)
+|  `-- indirect: (none)
 |
 +-- Cache.#privateRun
 |  +-- direct: a
