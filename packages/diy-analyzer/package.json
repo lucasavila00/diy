@@ -10,7 +10,7 @@
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},
 	"dependencies": {
-		"@typescript/native-preview": "7.0.0-dev.20260519.1"
+		"@typescript/native-preview": "7.0.0-dev.20260524.1"
 	},
 	"devDependencies": {
 		"@types/node": "^24.9.0",
