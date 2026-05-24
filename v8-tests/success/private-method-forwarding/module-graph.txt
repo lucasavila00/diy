@@ -1,0 +1,46 @@
+Module graph
+
+src/main.ts
++-- Cache.publicRun
+|  +-- direct: (none)
+|  `-- indirect: a
+|
++-- Cache.publicOtherRun
+|  +-- direct: (none)
+|  `-- indirect: b
+|
++-- Cache.publicStaticRun
+|  +-- direct: (none)
+|  `-- indirect: c
+|
++-- Cache.publicFieldRun
+|  +-- direct: (none)
+|  `-- indirect: d
+|
++-- Cache.publicNestedRun
+|  +-- direct: (none)
+|  `-- indirect: e
+|
++-- Cache.#privateRun
+|  +-- direct: a
+|  `-- indirect: (none)
+|
++-- Cache.#privateOtherRun
+|  +-- direct: b
+|  `-- indirect: (none)
+|
++-- Cache.#privateStaticRun
+|  +-- direct: c
+|  `-- indirect: (none)
+|
++-- Cache.#privateFieldRun
+|  +-- direct: d
+|  `-- indirect: (none)
+|
++-- Cache.#privateNestedRun
+|  +-- direct: e
+|  `-- indirect: (none)
+|
+`-- Cache.#privateNestedJoin
+   +-- direct: e
+   `-- indirect: (none)

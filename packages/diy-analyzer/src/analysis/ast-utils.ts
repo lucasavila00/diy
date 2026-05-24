@@ -82,7 +82,11 @@ export function ownerNameForChild(node: Node, ownerName: string | null): string 
 	) {
 		return nodeName(node) ?? ownerName;
 	}
-	if (node.kind === SyntaxKind.PropertyAssignment || node.kind === SyntaxKind.MethodDeclaration) {
+	if (
+		node.kind === SyntaxKind.PropertyAssignment ||
+		node.kind === SyntaxKind.MethodDeclaration ||
+		node.kind === SyntaxKind.PropertyDeclaration
+	) {
 		const name = nodeName(node);
 		return name == null ? ownerName : ownerName == null ? name : `${ownerName}.${name}`;
 	}

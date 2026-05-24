@@ -186,24 +186,30 @@ export function resolveCallSignature(
 	checker: Checker,
 	node: CallExpression,
 ): Signature | undefined {
-	const type = callableType(checker, node.expression);
-	/* c8 ignore next -- parsed call expressions have callable types in tsgo projects. */
-	return type == null ? undefined : checker.getSignaturesOfType(type, SignatureKind.Call)[0];
+	for (const location of callableTypeLocations(unwrapExpression(node.expression))) {
+		const signature = checker.getSignaturesOfType(
+			callableType(checker, location),
+			SignatureKind.Call,
+		)[0];
+		if (signature != null) {
+			return signature;
+		}
+	}
 }
 
-function callableType(checker: Checker, callee: Expression): Type | undefined {
-	const expression = unwrapExpression(callee);
+function callableType(checker: Checker, expression: Expression): Type {
 	if (expression.kind !== SyntaxKind.CallExpression) {
-		return checker.getTypeAtLocation(callableTypeLocation(expression));
+		return checker.getTypeAtLocation(expression)!;
 	}
-	return expressionType(checker, expression as CallExpression);
+	return expressionType(checker, expression as CallExpression)!;
 }
 
-function callableTypeLocation(expression: Expression): Expression {
+function callableTypeLocations(expression: Expression): readonly Expression[] {
 	if (expression.kind === SyntaxKind.PropertyAccessExpression) {
-		return (expression as PropertyAccessExpression).name;
+		const propertyAccess = expression as PropertyAccessExpression;
+		return [propertyAccess.name, propertyAccess];
 	}
-	return expression;
+	return [expression];
 }
 
 export function expressionType(checker: Checker, expression: Expression): Type | undefined {
