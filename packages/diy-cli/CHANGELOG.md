@@ -1,5 +1,11 @@
 # @beff/diy-cli
 
+## 0.0.27
+
+### Patch Changes
+
+- Fix private access bug
+
 ## 0.0.26
 
 ### Patch Changes
