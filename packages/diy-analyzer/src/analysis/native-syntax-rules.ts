@@ -6,7 +6,7 @@ import type {
 	Node,
 	TypeNode,
 } from "@typescript/native-preview/unstable/ast";
-import type { Checker, Diagnostic, Project } from "@typescript/native-preview/unstable/sync";
+import type { Diagnostic, Project } from "@typescript/native-preview/unstable/sync";
 
 import type {
 	DiyAnalyzerNote,
@@ -21,7 +21,7 @@ import {
 	nodeName,
 	staticName,
 } from "./ast-utils.ts";
-import { resolvedDiyCapabilitiesType } from "./capability-types.ts";
+import { isDiyCapabilitiesAnnotation } from "./capability-types.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
@@ -30,7 +30,7 @@ type FunctionFrame = {
 };
 
 export function analyzeNativeDiySyntax(
-	project: Project,
+	_project: Project,
 	sourceFiles: readonly AnalyzedSourceFile[],
 ): readonly DiyAnalyzerViolation[] {
 	const violations: DiyAnalyzerViolation[] = [];
@@ -38,7 +38,7 @@ export function analyzeNativeDiySyntax(
 		if (!sourceFile.reportable) {
 			continue;
 		}
-		violations.push(...analyzeSourceFileSyntax(project.checker, sourceFile));
+		violations.push(...analyzeSourceFileSyntax(sourceFile));
 	}
 	return violations;
 }
@@ -59,10 +59,7 @@ export function collectNativeParseErrors(
 	return unsupported;
 }
 
-function analyzeSourceFileSyntax(
-	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
-): readonly DiyAnalyzerViolation[] {
+function analyzeSourceFileSyntax(sourceFile: AnalyzedSourceFile): readonly DiyAnalyzerViolation[] {
 	const violations: DiyAnalyzerViolation[] = [];
 	const functionStack: FunctionFrame[] = [];
 
@@ -97,7 +94,7 @@ function analyzeSourceFileSyntax(
 			functionStack.push({
 				name: nativeFunctionName(node, parent),
 			});
-			checkCapabilitiesParameters(checker, node, report);
+			checkCapabilitiesParameters(sourceFile, node, report);
 		}
 		if (node.kind === SyntaxKind.ImportDeclaration) {
 			checkNoRenamedDiyImport(node as ImportDeclaration, report);
@@ -113,7 +110,7 @@ function analyzeSourceFileSyntax(
 }
 
 function checkCapabilitiesParameters(
-	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
 	node: FunctionLikeDeclaration,
 	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
 ): void {
@@ -121,9 +118,9 @@ function checkCapabilitiesParameters(
 		const name = staticName(param.name);
 		const isCapabilitiesName = name === "capabilities" || name === "_capabilities";
 		const hasIntersectedDiyCapabilitiesType =
-			param.type != null && hasDiyCapabilitiesIntersection(checker, param.type);
+			param.type != null && hasDiyCapabilitiesIntersection(sourceFile, param.type);
 		const hasDiyCapabilitiesType =
-			param.type != null && resolvedDiyCapabilitiesType(checker, param.type) != null;
+			param.type != null && isDiyCapabilitiesAnnotation(sourceFile, param.type);
 		const hasNonDiyCapabilitiesAnnotation =
 			isCapabilitiesName &&
 			param.type != null &&
@@ -173,12 +170,15 @@ function checkCapabilitiesParameters(
 	}
 }
 
-function hasDiyCapabilitiesIntersection(checker: Checker, typeNode: TypeNode): boolean {
+function hasDiyCapabilitiesIntersection(
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): boolean {
 	if (typeNode.kind !== SyntaxKind.IntersectionType) {
 		return false;
 	}
-	return intersectionTypes(typeNode).some(
-		(member) => resolvedDiyCapabilitiesType(checker, member) != null,
+	return intersectionTypes(typeNode).some((member) =>
+		isDiyCapabilitiesAnnotation(sourceFile, member),
 	);
 }
 

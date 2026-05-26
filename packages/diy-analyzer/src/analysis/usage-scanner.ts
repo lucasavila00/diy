@@ -23,9 +23,9 @@ import {
 	expressionSymbol,
 	expressionType,
 	isCapabilitiesType,
+	isDiyCapabilitiesAnnotation,
 	isImportedCapabilitiesValue,
 	isUnresolvedForwardingParameter,
-	resolvedDiyCapabilitiesType,
 	resolveCallSignature,
 	sameSymbol,
 	staticStringExpression,
@@ -54,7 +54,7 @@ export function scanFunctionBody(
 		if (
 			node !== analyzedFunction.node &&
 			isFunctionLike(node) &&
-			hasOwnCapabilitiesBinding(project.checker, node)
+			hasOwnCapabilitiesBinding(analyzedFunction.sourceFile, node)
 		) {
 			return;
 		}
@@ -447,9 +447,12 @@ function capabilitiesSourceExpression(
 	return provided == null ? null : { provided };
 }
 
-function hasOwnCapabilitiesBinding(checker: Checker, node: FunctionLikeDeclaration): boolean {
+function hasOwnCapabilitiesBinding(
+	sourceFile: AnalyzedSourceFile,
+	node: FunctionLikeDeclaration,
+): boolean {
 	const firstParam = node.parameters[0];
-	if (firstParam?.type != null && resolvedDiyCapabilitiesType(checker, firstParam.type) != null) {
+	if (firstParam?.type != null && isDiyCapabilitiesAnnotation(sourceFile, firstParam.type)) {
 		return true;
 	}
 	return node.parameters.some((param) => {

@@ -35,28 +35,52 @@ export function isCapabilitiesType(checker: Checker, type: Type): boolean {
 	return isDiyCapabilitiesResolvedType(type);
 }
 
+export function isDiyCapabilitiesAnnotation(
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): boolean {
+	return capabilitiesAnnotationTypeNode(sourceFile, typeNode) != null;
+}
+
+function capabilitiesAnnotationTypeNode(
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): TypeNode | undefined {
+	const resolved = resolveCapabilitiesAnnotationTypeNode(sourceFile, typeNode, new Set());
+	return resolved != null && typeReferenceArguments(resolved).length > 0 ? resolved : undefined;
+}
+
 export function resolvedDiyCapabilitiesType(
 	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
 	typeNode: TypeNode,
 ): Type | undefined {
-	for (const type of capabilityTypeCandidates(checker, typeNode)) {
-		if (type != null && isDiyCapabilitiesResolvedType(type)) {
-			return type;
-		}
+	const directCapabilitiesNode = capabilitiesAnnotationTypeNode(sourceFile, typeNode);
+	if (directCapabilitiesNode == null) {
+		return undefined;
 	}
-	return undefined;
+	// Identity is established above from local syntax and imports. The checker is
+	// only queried here for property data from the direct Capabilities<...> node.
+	return checker.getTypeAtLocation(directCapabilitiesNode);
 }
 
 function isPublicId(name: string): boolean {
 	return !name.includes("@") && name !== "__type";
 }
 
-export function isNeverCapabilitiesType(typeNode: TypeNode): boolean {
-	return firstCapabilityTypeArgument(typeNode)?.kind === SyntaxKind.NeverKeyword;
+export function isNeverCapabilitiesType(
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): boolean {
+	return firstCapabilityTypeArgument(sourceFile, typeNode)?.kind === SyntaxKind.NeverKeyword;
 }
 
-export function isOpaqueCapabilitiesType(checker: Checker, typeNode: TypeNode): boolean {
-	const firstTypeArgument = firstCapabilityTypeArgument(typeNode);
+export function isOpaqueCapabilitiesType(
+	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): boolean {
+	const firstTypeArgument = firstCapabilityTypeArgument(sourceFile, typeNode);
 	if (firstTypeArgument == null) {
 		return false;
 	}
@@ -64,8 +88,12 @@ export function isOpaqueCapabilitiesType(checker: Checker, typeNode: TypeNode): 
 	return type != null && (type.flags & TypeFlags.TypeParameter) !== 0;
 }
 
-export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): boolean {
-	const firstTypeArgument = firstCapabilityTypeArgument(typeNode);
+export function isOpenCapabilityBagType(
+	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): boolean {
+	const firstTypeArgument = firstCapabilityTypeArgument(sourceFile, typeNode);
 	/* c8 ignore next -- parsed Capabilities declarations have a type argument here. */
 	if (firstTypeArgument == null) {
 		return false;
@@ -85,29 +113,60 @@ export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): b
 	});
 }
 
-function firstCapabilityTypeArgument(typeNode: TypeNode): TypeNode | undefined {
-	return typeReferenceArguments(typeNode)[0];
-}
-
-function capabilityTypeCandidates(
-	checker: Checker,
+function firstCapabilityTypeArgument(
+	sourceFile: AnalyzedSourceFile,
 	typeNode: TypeNode,
-): readonly (Type | undefined)[] {
-	// Type annotations can expose their imported alias from the TypeNode and
-	// their instantiated mapped type from the node location. Both are semantic
-	// checker results, and resolvedDiyCapabilitiesType validates the declaration
-	// path before accepting either candidate. The location type is only relevant
-	// for annotations that are syntactically `Capabilities<...>`; using it for
-	// unrelated annotations can read contextual function parameter state.
-	return isCapabilitiesTypeReference(typeNode)
-		? [checker.getTypeFromTypeNode(typeNode), checker.getTypeAtLocation(typeNode)]
-		: [checker.getTypeFromTypeNode(typeNode)];
+): TypeNode | undefined {
+	const directCapabilitiesNode = capabilitiesAnnotationTypeNode(sourceFile, typeNode);
+	return directCapabilitiesNode == null
+		? undefined
+		: typeReferenceArguments(directCapabilitiesNode)[0];
 }
 
-function isCapabilitiesTypeReference(typeNode: TypeNode): boolean {
-	return (
-		staticName((typeNode as unknown as { readonly typeName?: unknown }).typeName) === "Capabilities"
-	);
+function resolveCapabilitiesAnnotationTypeNode(
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+	seenAliases: Set<string>,
+): TypeNode | undefined {
+	const unwrapped = unwrapTypeNode(typeNode);
+	if (isImportedDiyCapabilitiesTypeReference(sourceFile, unwrapped)) {
+		return unwrapped;
+	}
+	const aliasName = typeReferenceName(unwrapped);
+	if (aliasName == null || seenAliases.has(aliasName)) {
+		return undefined;
+	}
+	const aliasType = sourceFile.typeAliases.get(aliasName);
+	if (aliasType == null) {
+		return undefined;
+	}
+	seenAliases.add(aliasName);
+	return resolveCapabilitiesAnnotationTypeNode(sourceFile, aliasType, seenAliases);
+}
+
+function unwrapTypeNode(typeNode: TypeNode): TypeNode {
+	if (typeNode.kind === SyntaxKind.ParenthesizedType) {
+		const inner = (typeNode as unknown as { readonly type?: TypeNode }).type;
+		/* c8 ignore next -- parsed parenthesized type nodes expose their inner type. */
+		return inner == null ? typeNode : unwrapTypeNode(inner);
+	}
+	return typeNode;
+}
+
+function typeReferenceName(typeNode: TypeNode): string | null {
+	if (typeNode.kind !== SyntaxKind.TypeReference) {
+		return null;
+	}
+	return staticName((typeNode as unknown as { readonly typeName?: unknown }).typeName);
+}
+
+function isImportedDiyCapabilitiesTypeReference(
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): boolean {
+	const name = typeReferenceName(typeNode);
+	const imported = name == null ? null : sourceFile.imports.get(name);
+	return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
 }
 
 function isDiyCapabilitiesResolvedType(type: Type): boolean {

@@ -1,6 +1,0 @@
-Module graph
-
-packages/app/src/main.ts
-`-- operation.run
-   +-- direct: data
-   `-- indirect: (none)

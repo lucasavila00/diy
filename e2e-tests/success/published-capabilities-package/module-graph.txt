@@ -1,0 +1,10 @@
+Module graph
+
+src/main.ts
++-- loadPrimary
+|  +-- direct: primaryService
+|  `-- indirect: (none)
+|
+`-- loadSecondary
+   +-- direct: secondaryService
+   `-- indirect: (none)

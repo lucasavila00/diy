@@ -12,6 +12,7 @@ import {
 } from "./ast-utils.ts";
 import {
 	capabilityIds,
+	isDiyCapabilitiesAnnotation,
 	isNeverCapabilitiesType,
 	isOpaqueCapabilitiesType,
 	isOpenCapabilityBagType,
@@ -87,7 +88,11 @@ function readAnalyzedCapabilityFunction(
 	if (firstParam == null || firstParam.type == null) {
 		return null;
 	}
-	const declaredType = resolvedDiyCapabilitiesType(project.checker, firstParam.type);
+	if (!isDiyCapabilitiesAnnotation(sourceFile, firstParam.type)) {
+		return null;
+	}
+	const declaredType = resolvedDiyCapabilitiesType(project.checker, sourceFile, firstParam.type);
+	/* c8 ignore next -- tsgo provides a type for parsed DIY Capabilities annotations. */
 	if (declaredType == null) {
 		return null;
 	}
@@ -97,7 +102,11 @@ function readAnalyzedCapabilityFunction(
 		return null;
 	}
 	const declaredCapabilityIds = capabilityIds(project.checker, declaredType);
-	const isGenericDeclaration = isOpaqueCapabilitiesType(project.checker, firstParam.type);
+	const isGenericDeclaration = isOpaqueCapabilitiesType(
+		project.checker,
+		sourceFile,
+		firstParam.type,
+	);
 	const location = functionLocation(sourceFile, node);
 	const localName = functionName(sourceFile, node, ownerName);
 	const name = namespaceStack.length === 0 ? localName : `${namespaceStack.join(".")}.${localName}`;
@@ -105,10 +114,10 @@ function readAnalyzedCapabilityFunction(
 	if (
 		declaredCapabilityIds.size === 0 &&
 		!isGenericDeclaration &&
-		!isNeverCapabilitiesType(firstParam.type)
+		!isNeverCapabilitiesType(sourceFile, firstParam.type)
 	) {
 		unsupportedReasons.push({
-			kind: isOpenCapabilityBagType(project.checker, firstParam.type)
+			kind: isOpenCapabilityBagType(project.checker, sourceFile, firstParam.type)
 				? "open-capability-bag"
 				: "unresolved-declaration",
 		});

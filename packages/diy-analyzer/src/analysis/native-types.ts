@@ -1,4 +1,8 @@
-import type { FunctionLikeDeclaration, SourceFile } from "@typescript/native-preview/unstable/ast";
+import type {
+	FunctionLikeDeclaration,
+	SourceFile,
+	TypeNode,
+} from "@typescript/native-preview/unstable/ast";
 import type { API, Project, Symbol as TsgoSymbol } from "@typescript/native-preview/unstable/sync";
 
 import type { DiyAnalyzerViolation } from "../model/types.ts";
@@ -10,6 +14,7 @@ export type AnalyzedSourceFile = {
 	readonly lineStarts: () => readonly number[];
 	readonly reportable: boolean;
 	readonly sourceFile: SourceFile;
+	readonly typeAliases: ReadonlyMap<string, TypeNode>;
 };
 
 export type ImportBinding = {
