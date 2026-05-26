@@ -1,0 +1,8 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@example/capabilities": ["packages/capabilities/index.d.ts"]
+		}
+	}
+}

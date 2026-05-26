@@ -1,0 +1,10 @@
+Module graph
+
+src/main.ts
++-- loadPrimarySuggestions
+|  +-- direct: primaryDeps
+|  `-- indirect: (none)
+|
+`-- loadSecondarySuggestions
+   +-- direct: secondaryDeps
+   `-- indirect: (none)
