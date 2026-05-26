@@ -13,7 +13,19 @@ const resolveFilteredNames = async (
 
 const NameService = { resolveFilteredNames };
 
+const NameTasks = {
+	refresh: async (
+		capabilities: Capabilities<AccessCapability | CatalogCapability>,
+		sourceConfig: SourceConfig,
+	): Promise<readonly string[]> => readAllowedNames(capabilities, sourceConfig.ids),
+};
+
 export const loadNames = async (
 	capabilities: Capabilities<AccessCapability | CatalogCapability>,
 	sourceConfig: SourceConfig,
 ): Promise<readonly string[]> => NameService.resolveFilteredNames(capabilities, sourceConfig);
+
+export const loadTaskNames = async (
+	capabilities: Capabilities<AccessCapability | CatalogCapability>,
+	sourceConfig: SourceConfig,
+): Promise<readonly string[]> => NameTasks.refresh(capabilities, sourceConfig);

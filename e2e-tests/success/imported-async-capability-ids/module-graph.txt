@@ -10,6 +10,14 @@ src/main.ts
 |  +-- direct: (none)
 |  `-- indirect: access, catalog
 |
-`-- loadNames
++-- NameTasks.refresh
+|  +-- direct: (none)
+|  `-- indirect: access, catalog
+|
++-- loadNames
+|  +-- direct: (none)
+|  `-- indirect: access, catalog
+|
+`-- loadTaskNames
    +-- direct: (none)
    `-- indirect: access, catalog
