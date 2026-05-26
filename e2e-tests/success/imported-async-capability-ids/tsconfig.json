@@ -5,7 +5,8 @@
 		"moduleResolution": "Bundler",
 		"noEmit": true,
 		"paths": {
-			"@example/services": ["packages/services/src/capabilities.ts"]
+			"@example/services": ["packages/services/src/capabilities.ts"],
+			"@example/services/handlers": ["packages/services/src/handlers.ts"]
 		},
 		"strict": true,
 		"target": "ES2022",

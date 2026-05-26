@@ -1,9 +1,14 @@
 Module graph
 
+packages/services/src/handlers.ts
+`-- readAllowedNames
+   +-- direct: access, catalog
+   `-- indirect: (none)
+
 src/main.ts
 +-- resolveFilteredNames
-|  +-- direct: access, catalog
-|  `-- indirect: (none)
+|  +-- direct: (none)
+|  `-- indirect: access, catalog
 |
 `-- loadNames
    +-- direct: (none)
