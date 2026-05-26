@@ -12,11 +12,11 @@ import {
 } from "./ast-utils.ts";
 import {
 	capabilityIds,
+	declaredParameterType,
 	isDiyCapabilitiesAnnotation,
 	isNeverCapabilitiesType,
 	isOpaqueCapabilitiesType,
 	isOpenCapabilityBagType,
-	resolvedDiyCapabilitiesType,
 } from "./capability-types.ts";
 import type {
 	AnalyzedCapabilityFunction,
@@ -91,14 +91,14 @@ function readAnalyzedCapabilityFunction(
 	if (!isDiyCapabilitiesAnnotation(sourceFile, firstParam.type)) {
 		return null;
 	}
-	const declaredType = resolvedDiyCapabilitiesType(project.checker, sourceFile, firstParam.type);
-	/* c8 ignore next -- tsgo provides a type for parsed DIY Capabilities annotations. */
-	if (declaredType == null) {
-		return null;
-	}
 	const parameterSymbol = project.checker.getSymbolAtLocation(firstParam.name);
 	/* c8 ignore next -- tsgo provides symbols for declared parameters. */
 	if (parameterSymbol == null) {
+		return null;
+	}
+	const declaredType = declaredParameterType(project.checker, firstParam.name, parameterSymbol);
+	/* c8 ignore next -- tsgo provides a type for parsed DIY Capabilities parameters. */
+	if (declaredType == null) {
 		return null;
 	}
 	const declaredCapabilityIds = capabilityIds(project.checker, declaredType);

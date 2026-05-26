@@ -7,6 +7,7 @@ import type {
 	CallExpression,
 	Expression,
 	Identifier,
+	Node,
 	PropertyAccessExpression,
 	TypeNode,
 } from "@typescript/native-preview/unstable/ast";
@@ -50,18 +51,18 @@ function capabilitiesAnnotationTypeNode(
 	return resolved != null && typeReferenceArguments(resolved).length > 0 ? resolved : undefined;
 }
 
-export function resolvedDiyCapabilitiesType(
+export function declaredParameterType(
 	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
-	typeNode: TypeNode,
+	parameterName: Node,
+	parameterSymbol: TsgoSymbol,
 ): Type | undefined {
-	const directCapabilitiesNode = capabilitiesAnnotationTypeNode(sourceFile, typeNode);
-	if (directCapabilitiesNode == null) {
-		return undefined;
-	}
-	// Identity is established above from local syntax and imports. The checker is
-	// only queried here for property data from the direct Capabilities<...> node.
-	return checker.getTypeAtLocation(directCapabilitiesNode);
+	// For declared parameter types, ask the checker for the binding's type. In
+	// external-project states, type-node locations can report contextual value
+	// types such as Promise instead of the annotation's declared type.
+	return (
+		checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterName) ??
+		checker.getTypeAtLocation(parameterName)
+	);
 }
 
 function isPublicId(name: string): boolean {

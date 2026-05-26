@@ -1,0 +1,10 @@
+Module graph
+
+src/main.ts
++-- resolveFilteredNames
+|  +-- direct: access, catalog
+|  `-- indirect: (none)
+|
+`-- loadNames
+   +-- direct: (none)
+   `-- indirect: access, catalog

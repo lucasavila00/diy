@@ -1,33 +1,27 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	declaredParameterType,
 	isDiyCapabilitiesAnnotation,
 	isOpaqueCapabilitiesType,
-	resolvedDiyCapabilitiesType,
 } from "../../packages/diy-analyzer/src/analysis/capability-types.ts";
 
-type CheckerArg = Parameters<typeof resolvedDiyCapabilitiesType>[0];
-type SourceFileArg = Parameters<typeof resolvedDiyCapabilitiesType>[1];
-type TypeNodeArg = Parameters<typeof resolvedDiyCapabilitiesType>[2];
+type ParameterNameArg = Parameters<typeof declaredParameterType>[1];
+type ParameterSymbolArg = Parameters<typeof declaredParameterType>[2];
+type SourceFileArg = Parameters<typeof isDiyCapabilitiesAnnotation>[0];
+type TypeNodeArg = Parameters<typeof isDiyCapabilitiesAnnotation>[1];
 
 const typeReferenceKind = 184;
 const parenthesizedTypeKind = 197;
 
 describe("DIY Capabilities annotations", () => {
 	it("accepts direct imports without checker declaration identity", () => {
-		const resolvedType = typeWithProperties(["data"]);
-		const checker = {
-			getPropertiesOfType: (type: unknown) => (type === resolvedType ? [{ name: "data" }] : []),
-			getTypeAtLocation: () => resolvedType,
-			getTypeFromTypeNode: () => typeWithProperties([]),
-		} as unknown as CheckerArg;
 		const source = sourceFile({
 			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
 		});
 		const annotation = typeReference("Capabilities", [typeReference("DataCapability")]);
 
 		expect(isDiyCapabilitiesAnnotation(source, annotation)).toBe(true);
-		expect(resolvedDiyCapabilitiesType(checker, source, annotation)).toBe(resolvedType);
 	});
 
 	it("accepts local aliases by following parsed type alias declarations", () => {
@@ -68,11 +62,6 @@ describe("DIY Capabilities annotations", () => {
 	});
 
 	it("rejects Capabilities imports from other packages without asking the checker", () => {
-		const checker = {
-			getPropertiesOfType: () => [{ name: "data" }],
-			getTypeAtLocation: () => typeWithProperties(["data"]),
-			getTypeFromTypeNode: () => typeWithProperties(["data"]),
-		} as unknown as CheckerArg;
 		const source = sourceFile({
 			imports: [
 				["Capabilities", { importedName: "Capabilities", source: "@example/capabilities" }],
@@ -81,7 +70,6 @@ describe("DIY Capabilities annotations", () => {
 		const annotation = typeReference("Capabilities", [typeReference("DataCapability")]);
 
 		expect(isDiyCapabilitiesAnnotation(source, annotation)).toBe(false);
-		expect(resolvedDiyCapabilitiesType(checker, source, annotation)).toBeUndefined();
 	});
 
 	it("rejects aliases that do not resolve syntactically to DIY Capabilities", () => {
@@ -104,12 +92,38 @@ describe("DIY Capabilities annotations", () => {
 	it("does not treat unrelated annotations as opaque Capabilities", () => {
 		const checker = {
 			getTypeFromTypeNode: () => undefined,
-		} as unknown as CheckerArg;
+		} as unknown as Parameters<typeof isOpaqueCapabilitiesType>[0];
 		const source = sourceFile({
 			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
 		});
 
 		expect(isOpaqueCapabilitiesType(checker, source, typeReference("Input"))).toBe(false);
+	});
+
+	it("reads declared types from parameter bindings instead of annotation locations", () => {
+		const declaredType = typeWithProperties(["access", "catalog"]);
+		const annotationLocationType = typeWithProperties(["then", "catch", "finally"]);
+		const parameterName = {} as ParameterNameArg;
+		const parameterSymbol = {} as ParameterSymbolArg;
+		const checker = {
+			getTypeAtLocation: () => annotationLocationType,
+			getTypeOfSymbolAtLocation: (symbol: unknown, location: unknown) =>
+				symbol === parameterSymbol && location === parameterName ? declaredType : undefined,
+		} as unknown as Parameters<typeof declaredParameterType>[0];
+
+		expect(declaredParameterType(checker, parameterName, parameterSymbol)).toBe(declaredType);
+	});
+
+	it("uses the parameter name type when the symbol location type is unavailable", () => {
+		const declaredType = typeWithProperties(["access"]);
+		const checker = {
+			getTypeAtLocation: () => declaredType,
+			getTypeOfSymbolAtLocation: () => undefined,
+		} as unknown as Parameters<typeof declaredParameterType>[0];
+
+		expect(declaredParameterType(checker, {} as ParameterNameArg, {} as ParameterSymbolArg)).toBe(
+			declaredType,
+		);
 	});
 });
 
