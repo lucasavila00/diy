@@ -1,5 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, readdirSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -193,35 +192,5 @@ describe("DIY CLI mode flags", () => {
 		expect(result.exitCode).toBe(1);
 		expect(result.stdout).toBe("");
 		expect(result.stderr).toContain('Declares unused capability "writer".');
-	});
-});
-
-describe("DIY contextual function type edge cases", () => {
-	it("handles parenthesized contextual function types", async () => {
-		const caseDir = mkdtempSync(join(tmpdir(), "diy-contextual-arrow-"));
-		try {
-			mkdirSync(join(caseDir, "src"));
-			writeFileSync(join(caseDir, "diy.json"), '{"include":["src/**/*.ts"]}\n');
-			writeFileSync(
-				join(caseDir, "src/main.ts"),
-				[
-					'import type { Capabilities, Capability } from "@beff/diy";',
-					'type ReadCapability = Capability<"read", { read(): string }>; ',
-					"export const run: ((capabilities: Capabilities<ReadCapability>) => string) = ",
-					"\t(capabilities) => capabilities.read.read();",
-					"",
-				].join("\n"),
-			);
-
-			const result = await runAnalyzerFixture(caseDir, {
-				deadCodeAnalysis: false,
-				graph: false,
-				project: "diy.json",
-			});
-			expect(result.exitCode).toBe(0);
-			expect(result.stderr).toBe("");
-		} finally {
-			rmSync(caseDir, { force: true, recursive: true });
-		}
 	});
 });

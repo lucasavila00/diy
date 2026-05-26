@@ -1,5 +1,11 @@
 # @beff/diy-cli
 
+## 0.0.28
+
+### Patch Changes
+
+- fix resolution bug
+
 ## 0.0.27
 
 ### Patch Changes

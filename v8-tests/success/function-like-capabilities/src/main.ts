@@ -1,13 +1,13 @@
 import type { Capabilities, Capability } from "@beff/diy";
 
-type MongoCapability = Capability<"mongo", unknown>;
+type DataCapability = Capability<"data", unknown>;
 type DateCapability = Capability<"date", unknown>;
 type LoggerCapability = Capability<"logger", unknown>;
 type RandomCapability = Capability<"random", unknown>;
 
-const migration = {
-	up: async (capabilities: Capabilities<MongoCapability | DateCapability>): Promise<void> => {
-		capabilities.mongo;
+const operation = {
+	up: async (capabilities: Capabilities<DataCapability | DateCapability>): Promise<void> => {
+		capabilities.data;
 		capabilities.date;
 	},
 };

@@ -110,7 +110,7 @@ src/main.ts:64:8 unused capability
 
 src/main.ts:69:6 unused capability
   67 |
-  68 | const migration = {
+  68 | const operation = {
 > 69 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
      | 	    ^ Declares unused capability "writer".
   70 | 		capabilities.reader;

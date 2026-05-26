@@ -1,5 +1,13 @@
 # @private/diy-e2e-renamed-capability-provide
 
+## 0.0.28
+
+### Patch Changes
+
+- Updated dependencies
+  - @beff/diy@0.0.28
+  - @beff/diy-cli@0.0.28
+
 ## 0.0.27
 
 ### Patch Changes

@@ -39,12 +39,12 @@ export function resolvedDiyCapabilitiesType(
 	checker: Checker,
 	typeNode: TypeNode,
 ): Type | undefined {
-	const type = checker.getTypeFromTypeNode(typeNode);
-	/* c8 ignore next -- tsgo resolves parsed type annotations in analyzer inputs. */
-	if (type == null) {
-		return undefined;
+	for (const type of capabilityTypeCandidates(checker, typeNode)) {
+		if (type != null && isDiyCapabilitiesResolvedType(type)) {
+			return type;
+		}
 	}
-	return isDiyCapabilitiesResolvedType(type) ? type : undefined;
+	return undefined;
 }
 
 function isPublicId(name: string): boolean {
@@ -87,6 +87,17 @@ export function isOpenCapabilityBagType(checker: Checker, typeNode: TypeNode): b
 
 function firstCapabilityTypeArgument(typeNode: TypeNode): TypeNode | undefined {
 	return typeReferenceArguments(typeNode)[0];
+}
+
+function capabilityTypeCandidates(
+	checker: Checker,
+	typeNode: TypeNode,
+): readonly (Type | undefined)[] {
+	// Type annotations can expose their imported alias from the TypeNode and
+	// their instantiated mapped type from the node location. Both are semantic
+	// checker results, and resolvedDiyCapabilitiesType validates the declaration
+	// path before accepting either candidate.
+	return [checker.getTypeFromTypeNode(typeNode), checker.getTypeAtLocation(typeNode)];
 }
 
 function isDiyCapabilitiesResolvedType(type: Type): boolean {

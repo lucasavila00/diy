@@ -65,10 +65,10 @@ export function arbitraryCallProvider(capabilities: Capabilities<ReadCapability>
 	Capabilities.extend(capabilities, makeEmptyFromObject({ reader: readerReplacement }));
 }
 
-const migration = {
+const operation = {
 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
 		capabilities.reader;
 	},
 };
 
-void migration;
+void operation;

@@ -1,8 +1,8 @@
 Module graph
 
 src/main.ts
-+-- migration.up
-|  +-- direct: date, mongo
++-- operation.up
+|  +-- direct: data, date
 |  `-- indirect: (none)
 |
 +-- methodContainer.run
