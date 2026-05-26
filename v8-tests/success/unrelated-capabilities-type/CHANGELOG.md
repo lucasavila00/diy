@@ -1,5 +1,12 @@
 # @private/diy-e2e-unrelated-capabilities-type
 
+## 0.0.29
+
+### Patch Changes
+
+- Updated dependencies
+  - @beff/diy-cli@0.0.29
+
 ## 0.0.28
 
 ### Patch Changes

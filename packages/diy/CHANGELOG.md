@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.29
+
+### Patch Changes
+
+- fix bug
+
 ## 0.0.28
 
 ### Patch Changes

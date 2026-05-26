@@ -96,8 +96,18 @@ function capabilityTypeCandidates(
 	// Type annotations can expose their imported alias from the TypeNode and
 	// their instantiated mapped type from the node location. Both are semantic
 	// checker results, and resolvedDiyCapabilitiesType validates the declaration
-	// path before accepting either candidate.
-	return [checker.getTypeFromTypeNode(typeNode), checker.getTypeAtLocation(typeNode)];
+	// path before accepting either candidate. The location type is only relevant
+	// for annotations that are syntactically `Capabilities<...>`; using it for
+	// unrelated annotations can read contextual function parameter state.
+	return isCapabilitiesTypeReference(typeNode)
+		? [checker.getTypeFromTypeNode(typeNode), checker.getTypeAtLocation(typeNode)]
+		: [checker.getTypeFromTypeNode(typeNode)];
+}
+
+function isCapabilitiesTypeReference(typeNode: TypeNode): boolean {
+	return (
+		staticName((typeNode as unknown as { readonly typeName?: unknown }).typeName) === "Capabilities"
+	);
 }
 
 function isDiyCapabilitiesResolvedType(type: Type): boolean {

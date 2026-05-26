@@ -16,9 +16,25 @@ describe("resolvedDiyCapabilitiesType", () => {
 			getTypeFromTypeNode: () => unresolvedType,
 		} as unknown as CheckerArg;
 
-		expect(resolvedDiyCapabilitiesType(checker, {} as TypeNodeArg)).toBe(resolvedType);
+		expect(resolvedDiyCapabilitiesType(checker, typeReference("Capabilities"))).toBe(resolvedType);
+	});
+
+	it("ignores location types for annotations that are not named Capabilities", () => {
+		const resolvedType = diyType([
+			"/tmp/project/node_modules/@beff/diy/dist/types/capabilities.d.ts",
+		]);
+		const checker = {
+			getTypeAtLocation: () => resolvedType,
+			getTypeFromTypeNode: () => diyType([]),
+		} as unknown as CheckerArg;
+
+		expect(resolvedDiyCapabilitiesType(checker, typeReference("InputCodec"))).toBeUndefined();
 	});
 });
+
+function typeReference(name: string): TypeNodeArg {
+	return { typeName: { text: name } } as unknown as TypeNodeArg;
+}
 
 function diyType(declarationPaths: readonly string[]): unknown {
 	return {
