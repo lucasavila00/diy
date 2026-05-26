@@ -182,7 +182,7 @@ function scanCall(
 	if (forwardedArguments.length === 0) {
 		return;
 	}
-	const signature = resolveCallSignature(project.checker, node);
+	const signature = resolveCallSignature(project.checker, analyzedFunction.sourceFile, node);
 	for (const { forwarded, index } of forwardedArguments) {
 		/* c8 ignore next -- forwarded calls without signatures are reported below as unresolved. */
 		const parameterType =
@@ -359,7 +359,7 @@ function providedCapabilityIds(
 		for (const id of objectLiteralCapabilityIds(sourceFile, expression)) {
 			provided.add(id);
 		}
-		const type = expressionType(checker, expression);
+		const type = expressionType(checker, sourceFile, expression);
 		/* c8 ignore next -- expressions passed to capability helpers have checker types. */
 		if (type == null) {
 			continue;

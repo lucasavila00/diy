@@ -19,7 +19,7 @@ import type {
 	Type,
 } from "@typescript/native-preview/unstable/sync";
 
-import { literalText, staticName, typeReferenceArguments } from "./ast-utils.ts";
+import { literalText, nodeTokenStart, staticName, typeReferenceArguments } from "./ast-utils.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
@@ -265,32 +265,62 @@ export function staticStringExpression(checker: Checker, expression: Expression)
 
 export function resolveCallSignature(
 	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
 	node: CallExpression,
 ): Signature | undefined {
 	const expression = unwrapExpression(node.expression);
-	const signature = callSignature(checker, expression);
-	if (signature != null || expression.kind !== SyntaxKind.PropertyAccessExpression) {
-		return signature;
+	return callSignature(checker, sourceFile, expression);
+}
+
+function callSignature(
+	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
+	expression: Expression,
+): Signature | undefined {
+	const type = callableExpressionType(checker, sourceFile, expression);
+	if (type == null) {
+		return undefined;
 	}
-	return callSignature(checker, (expression as PropertyAccessExpression).name);
+	return checker.getSignaturesOfType(type, SignatureKind.Call)[0];
 }
 
-function callSignature(checker: Checker, expression: Expression): Signature | undefined {
-	return checker.getSignaturesOfType(checker.getTypeAtLocation(expression)!, SignatureKind.Call)[0];
-}
-
-export function expressionType(checker: Checker, expression: Expression): Type | undefined {
+export function expressionType(
+	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
+	expression: Expression,
+): Type | undefined {
 	const unwrapped = unwrapExpression(expression);
 	if (unwrapped.kind === SyntaxKind.CallExpression) {
-		// WORKAROUND: see WORKAROUNDS.md. tsgo currently reports private call expressions
-		// as callable types, so use the signature return type for call expression values.
-		const signature = resolveCallSignature(checker, unwrapped as CallExpression);
+		const signature = resolveCallSignature(checker, sourceFile, unwrapped as CallExpression);
 		/* c8 ignore next -- call expressions used for capability values have signatures. */
 		if (signature != null) {
 			return checker.getReturnTypeOfSignature(signature);
 		}
 	}
 	return checker.getTypeAtLocation(unwrapped);
+}
+
+function callableExpressionType(
+	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
+	expression: Expression,
+): Type | undefined {
+	if (expression.kind === SyntaxKind.Identifier) {
+		const position = nodeTokenStart(sourceFile.sourceFile.text, expression);
+		return position == null ? undefined : checker.getTypeAtPosition(sourceFile.filePath, position);
+	}
+	if (expression.kind !== SyntaxKind.PropertyAccessExpression) {
+		return checker.getTypeAtLocation(expression);
+	}
+	const name = (expression as PropertyAccessExpression).name;
+	if (name.kind === SyntaxKind.PrivateIdentifier) {
+		return checker.getTypeAtLocation(expression);
+	}
+	// Named callees are queried at the selected name token. Full ranges include
+	// trivia and, for property accesses, can resolve to the object-side type
+	// instead of the callable symbol in native external-project analysis.
+	const position = nodeTokenStart(sourceFile.sourceFile.text, name);
+	return position == null ? undefined : checker.getTypeAtPosition(sourceFile.filePath, position);
 }
 
 export function isUnresolvedForwardingParameter(parameterType: Type | undefined): boolean {

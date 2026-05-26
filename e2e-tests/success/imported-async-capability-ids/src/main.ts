@@ -14,7 +14,9 @@ const resolveFilteredNames = async (
 	return names.filter((name) => allowed.includes(name));
 };
 
+const NameService = { resolveFilteredNames };
+
 export const loadNames = async (
 	capabilities: Capabilities<AccessCapability | CatalogCapability>,
 	sourceConfig: SourceConfig,
-): Promise<readonly string[]> => resolveFilteredNames(capabilities, sourceConfig);
+): Promise<readonly string[]> => NameService.resolveFilteredNames(capabilities, sourceConfig);

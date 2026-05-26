@@ -7,6 +7,7 @@ import {
 	locationForOffset,
 	nodeKey,
 	nodeName,
+	nodeTokenStart,
 	ownerNameForChild,
 	staticName,
 } from "./ast-utils.ts";
@@ -91,7 +92,7 @@ function readAnalyzedCapabilityFunction(
 	if (!isDiyCapabilitiesAnnotation(sourceFile, firstParam.type)) {
 		return null;
 	}
-	const parameterSymbol = project.checker.getSymbolAtLocation(firstParam.name);
+	const parameterSymbol = capabilityParameterSymbol(project, sourceFile, firstParam.name);
 	/* c8 ignore next -- tsgo provides symbols for declared parameters. */
 	if (parameterSymbol == null) {
 		return null;
@@ -142,6 +143,22 @@ function readAnalyzedCapabilityFunction(
 		sourceFile,
 		unsupportedReasons,
 	};
+}
+
+function capabilityParameterSymbol(
+	project: Project,
+	sourceFile: AnalyzedSourceFile,
+	parameterName: Node,
+) {
+	const position = nodeTokenStart(sourceFile.sourceFile.text, parameterName);
+	// tsgo parameter-name nodes use a full range whose pos includes leading
+	// trivia. getSymbolAtLocation resolves that full range through the native
+	// service and can return the preceding symbol; getSymbolAtPosition at the
+	// token start resolves the parameter binding.
+	/* c8 ignore next -- parsed parameter names always contain a token start. */
+	return position == null
+		? undefined
+		: project.checker.getSymbolAtPosition(sourceFile.filePath, position);
 }
 
 function functionName(

@@ -1,4 +1,4 @@
-import { SyntaxKind } from "@typescript/native-preview/unstable/ast";
+import { skipTrivia, SyntaxKind } from "@typescript/native-preview/unstable/ast";
 import type {
 	FunctionLikeDeclaration,
 	Node,
@@ -28,6 +28,11 @@ export function staticName(node: unknown): string | null {
 		return staticName(value.name);
 	}
 	return null;
+}
+
+export function nodeTokenStart(sourceText: string, node: Node): number | null {
+	const start = skipTrivia(sourceText, node.pos);
+	return start < node.end ? start : null;
 }
 
 export function nodeName(node: Node): string | null {
