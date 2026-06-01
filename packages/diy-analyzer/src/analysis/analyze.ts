@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { relative, resolve } from "node:path";
 
 import type { DiySourceConfig } from "../config/source-files.ts";
 import { expandSourceFiles } from "../config/source-files.ts";
@@ -20,18 +20,23 @@ export async function analyzeDiy(
 		throw new Error("Cannot combine --graph and --no-dead-code-analysis.");
 	}
 	if (options.deadCodeAnalysis === false) {
-		return analyzeDiySyntax(config, cwd);
+		return analyzeDiySyntax(config, cwd, options.verbose);
 	}
 
 	const coveredFiles = await timeDeadCodePhaseAsync("source expansion", () =>
 		expandSourceFiles(config, cwd),
 	);
+	options.verbose?.(`expanded ${coveredFiles.length} source files`);
+	for (const [index, filePath] of coveredFiles.entries()) {
+		options.verbose?.(
+			`covered file ${index + 1}/${coveredFiles.length}: ${relative(cwd, filePath)}`,
+		);
+	}
 	const middleEnd = await timeDeadCodePhaseAsync("tsgo dead-code analysis", () =>
-		analyzeNativeDeadCodeFromFiles(
-			coveredFiles,
-			cwd,
-			options.graph === true ? { graph: true } : {},
-		),
+		analyzeNativeDeadCodeFromFiles(coveredFiles, cwd, {
+			graph: options.graph === true,
+			verbose: options.verbose,
+		}),
 	);
 	const suppressed = timeDeadCodePhase("apply suppressions", () =>
 		applyDiagnosticSuppressions({
@@ -52,15 +57,19 @@ export async function analyzeDiy(
 	return middleEnd.graph == null ? analysis : { ...analysis, graph: middleEnd.graph };
 }
 
-async function analyzeDiySyntax(config: DiySourceConfig, cwd: string): Promise<DiyAnalysis> {
-	const program = await buildNativeSyntaxProgram(config, cwd);
+async function analyzeDiySyntax(
+	config: DiySourceConfig,
+	cwd: string,
+	verbose?: (message: string) => void,
+): Promise<DiyAnalysis> {
+	const program = await buildNativeSyntaxProgram(config, cwd, verbose);
 	try {
 		const suppressed = applyDiagnosticSuppressions({
 			findings: [],
 			suppressions: program.suppressions.suppressions,
-			unsupported: collectNativeParseErrors(program.project, program.sourceFiles),
+			unsupported: collectNativeParseErrors(program.project, program.sourceFiles, verbose),
 			violations: [
-				...analyzeNativeDiySyntax(program.project, program.sourceFiles),
+				...analyzeNativeDiySyntax(program.project, program.sourceFiles, verbose),
 				...program.suppressions.violations,
 			],
 		});

@@ -16,6 +16,7 @@ type DiyCliCommandOptions = {
 	readonly deadCodeAnalysis: boolean;
 	readonly graph: boolean;
 	readonly project: string;
+	readonly verbose?: boolean;
 };
 
 type DiyCliIo = {
@@ -36,6 +37,7 @@ function createCommand(io: DiyCliIo): Command {
 		.description("Analyze DIY capability usage")
 		.option("--no-dead-code-analysis", "Run syntax lint rules without dead-code analysis")
 		.option("--graph", "Print a capability module graph")
+		.option("--verbose", "Print analyzer progress and full runtime errors")
 		.requiredOption("-p, --project <path>", "Path to the diy.json project file")
 		.allowExcessArguments(false)
 		.configureOutput({
@@ -45,13 +47,37 @@ function createCommand(io: DiyCliIo): Command {
 		.exitOverride();
 }
 
-function formatError(error: unknown): string {
+function formatError(error: unknown, verbose = false): string {
 	/* c8 ignore next -- command/runtime failures in this CLI are Error objects. */
 	if (error instanceof Error) {
-		return error.message;
+		if (!verbose || error.stack == null) {
+			return error.message;
+		}
+		const cause = error.cause;
+		if (cause instanceof Error && cause.stack != null) {
+			return `${error.stack}\nCaused by: ${cause.stack}`;
+		}
+		return error.stack;
 	}
 	/* c8 ignore next -- command/runtime failures in this CLI are Error objects. */
 	return String(error);
+}
+
+function isStackOverflow(error: unknown): boolean {
+	return error instanceof RangeError && error.message.includes("Maximum call stack size exceeded");
+}
+
+function runtimeErrorContext(error: unknown, lastVerboseMessage: string | null): string | null {
+	if (!isStackOverflow(error)) {
+		return null;
+	}
+	return [
+		"DIY analyzer hit a JavaScript stack overflow while traversing the TypeScript AST.",
+		lastVerboseMessage == null ? null : `Last analyzer step: ${lastVerboseMessage}`,
+		"Generated or bundled files included by tsconfig.json are common triggers; exclude them from the TypeScript project or from diy.json ignore patterns.",
+	]
+		.filter((line) => line != null)
+		.join("\n");
 }
 
 function requireGraph(analysis: DiyAnalysis): DiyModuleGraph {
@@ -72,12 +98,21 @@ export async function executeDiyCli(
 	const project = await resolveDiyProject(commandOptions.project, options.cwd);
 	const projectCwd = project.cwd;
 	const originalCwd = process.cwd();
+	let lastVerboseMessage: string | null = null;
+	const verbose =
+		commandOptions.verbose === true
+			? (message: string) => {
+					lastVerboseMessage = message;
+					options.stderr(`[diy:verbose] ${message}\n`);
+				}
+			: undefined;
 	process.chdir(projectCwd);
 	try {
 		const analysisOptions = {
 			cwd: projectCwd,
 			deadCodeAnalysis: commandOptions.deadCodeAnalysis,
 			graph: commandOptions.graph,
+			...(verbose == null ? {} : { verbose }),
 		};
 		const analysis = await timeDeadCodePhaseAsync("analysis total", () =>
 			analyzeDiy(project.config, analysisOptions),
@@ -102,6 +137,12 @@ export async function executeDiyCli(
 			: `DIY analyzer passed: ${analysis.coveredFiles.length} files analyzed.\n`;
 		options.stdout(successOutput);
 		return 0;
+	} catch (error) {
+		const context = runtimeErrorContext(error, lastVerboseMessage);
+		if (context != null) {
+			throw new Error(context, { cause: error });
+		}
+		throw error;
 	} finally {
 		process.chdir(originalCwd);
 	}
@@ -123,6 +164,7 @@ export async function runDiyCli(options: RunDiyCliOptions = {}): Promise<number>
 			readonly deadCodeAnalysis?: boolean;
 			readonly graph?: boolean;
 			readonly project: string;
+			readonly verbose?: boolean;
 		}>();
 		if (parsed.graph === true && parsed.deadCodeAnalysis === false) {
 			throw new Error("Cannot combine --graph and --no-dead-code-analysis.");
@@ -131,6 +173,7 @@ export async function runDiyCli(options: RunDiyCliOptions = {}): Promise<number>
 			deadCodeAnalysis: parsed.deadCodeAnalysis !== false,
 			graph: parsed.graph === true,
 			project: parsed.project,
+			verbose: parsed.verbose === true,
 		};
 	} catch (error) {
 		/* c8 ignore next -- Commander parse errors use CommanderError. */
@@ -151,7 +194,7 @@ export async function runDiyCli(options: RunDiyCliOptions = {}): Promise<number>
 			stdout: io.stdout,
 		});
 	} catch (error) {
-		io.stderr(`${formatError(error)}\n`);
+		io.stderr(`${formatError(error, commandOptions.verbose === true)}\n`);
 		return 1;
 	}
 }

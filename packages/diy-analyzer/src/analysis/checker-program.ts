@@ -19,12 +19,13 @@ import { timeDeadCodePhase } from "./timing.ts";
 export async function buildCheckerAnalysisProgramFromFiles(
 	coveredFiles: readonly string[],
 	cwd: string,
+	verbose?: (message: string) => void,
 ): Promise<CheckerAnalysisProgram> {
-	const program = await buildNativeSyntaxProgramFromFiles(coveredFiles, cwd);
+	const program = await buildNativeSyntaxProgramFromFiles(coveredFiles, cwd, verbose);
 	return {
 		...program,
 		analyzedFunctions: timeDeadCodePhase("capability analysis", () =>
-			collectAnalyzedCapabilityFunctions(program.project, program.sourceFiles),
+			collectAnalyzedCapabilityFunctions(program.project, program.sourceFiles, verbose),
 		),
 	};
 }
@@ -32,17 +33,21 @@ export async function buildCheckerAnalysisProgramFromFiles(
 export async function buildNativeSyntaxProgram(
 	config: DiySourceConfig,
 	cwd: string,
+	verbose?: (message: string) => void,
 ): Promise<NativeSyntaxProgram> {
 	const coveredFiles = await expandSourceFiles(config, cwd);
-	return buildNativeSyntaxProgramFromFiles(coveredFiles, cwd);
+	verbose?.(`expanded ${coveredFiles.length} source files`);
+	return buildNativeSyntaxProgramFromFiles(coveredFiles, cwd, verbose);
 }
 
 async function buildNativeSyntaxProgramFromFiles(
 	coveredFiles: readonly string[],
 	cwd: string,
+	verbose?: (message: string) => void,
 ): Promise<NativeSyntaxProgram> {
 	const coveredSet = new Set(coveredFiles);
 	const configInfo = resolveProjectConfig(cwd, coveredFiles);
+	verbose?.(`using TypeScript project ${configInfo.configPath}`);
 	const api = new API({
 		cwd,
 		...(configInfo.configContent == null
@@ -57,9 +62,11 @@ async function buildNativeSyntaxProgramFromFiles(
 				}),
 	});
 	try {
+		verbose?.("building tsgo project");
 		const snapshot = timeDeadCodePhase("tsgo project build", () =>
 			api.updateSnapshot({ openProject: configInfo.configPath }),
 		);
+		verbose?.("looking up tsgo project");
 		const project = timeDeadCodePhase("tsgo project lookup", () =>
 			snapshot.getProject(configInfo.configPath),
 		);
@@ -67,17 +74,20 @@ async function buildNativeSyntaxProgramFromFiles(
 		if (project == null) {
 			throw new Error(`Failed to open TypeScript project ${configInfo.configPath}.`);
 		}
+		verbose?.("collecting source files");
 		const sourceFiles = timeDeadCodePhase("collect source files", () =>
-			collectAnalyzedSourceFiles(project, coveredSet, cwd),
+			collectAnalyzedSourceFiles(project, coveredSet, cwd, verbose),
 		);
+		verbose?.(`collected ${sourceFiles.length} source files`);
 		return {
 			api,
 			coveredFiles,
 			project,
 			sourceFiles,
-			suppressions: timeDeadCodePhase("collect suppressions", () =>
-				collectNativeSuppressions(sourceFiles.filter((sourceFile) => sourceFile.reportable)),
-			),
+			suppressions: timeDeadCodePhase("collect suppressions", () => {
+				verbose?.("collecting suppressions");
+				return collectNativeSuppressions(sourceFiles.filter((sourceFile) => sourceFile.reportable));
+			}),
 		};
 	} catch (error) {
 		/* c8 ignore next -- tsgo project-open failures are surfaced before analysis starts. */

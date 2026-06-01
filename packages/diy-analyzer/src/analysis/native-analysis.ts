@@ -24,7 +24,10 @@ import { timeDeadCodePhase } from "./timing.ts";
 export async function analyzeNativeDeadCodeFromFiles(
 	coveredFiles: readonly string[],
 	cwd: string,
-	options: { readonly graph?: boolean } = {},
+	options: {
+		readonly graph?: boolean;
+		readonly verbose?: ((message: string) => void) | undefined;
+	} = {},
 ): Promise<{
 	readonly coveredFiles: readonly string[];
 	readonly findings: readonly DiyUnusedCapabilityFinding[];
@@ -33,13 +36,16 @@ export async function analyzeNativeDeadCodeFromFiles(
 	readonly unsupported: readonly DiyAnalyzerUnsupported[];
 	readonly violations: readonly DiyAnalyzerViolation[];
 }> {
-	const program = await buildCheckerAnalysisProgramFromFiles(coveredFiles, cwd);
+	const program = await buildCheckerAnalysisProgramFromFiles(coveredFiles, cwd, options.verbose);
 	return analyzeNativeDeadCodeProgram(program, options);
 }
 
 function analyzeNativeDeadCodeProgram(
 	program: CheckerAnalysisProgram,
-	options: { readonly graph?: boolean },
+	options: {
+		readonly graph?: boolean;
+		readonly verbose?: ((message: string) => void) | undefined;
+	},
 ): {
 	readonly coveredFiles: readonly string[];
 	readonly findings: readonly DiyUnusedCapabilityFinding[];
@@ -49,9 +55,11 @@ function analyzeNativeDeadCodeProgram(
 	readonly violations: readonly DiyAnalyzerViolation[];
 } {
 	try {
+		options.verbose?.("computing required capabilities");
 		const required = timeDeadCodePhase("compute required capabilities", () =>
 			computeRequiredCapabilityIds(program.analyzedFunctions),
 		);
+		options.verbose?.("collecting unused capability findings");
 		return {
 			coveredFiles: program.coveredFiles,
 			findings: timeDeadCodePhase("collect unused findings", () =>
@@ -61,12 +69,14 @@ function analyzeNativeDeadCodeProgram(
 				? { graph: timeDeadCodePhase("module graph", () => moduleGraph(program, required)) }
 				: {}),
 			suppressions: program.suppressions,
+			// Keep these phase logs close to the calls because syntax diagnostics can
+			// traverse very large generated files.
 			unsupported: timeDeadCodePhase("collect unsupported analysis", () => [
-				...collectNativeParseErrors(program.project, program.sourceFiles),
+				...collectNativeParseErrors(program.project, program.sourceFiles, options.verbose),
 				...collectUnsupported(program.analyzedFunctions),
 			]),
 			violations: timeDeadCodePhase("collect violations", () => [
-				...analyzeNativeDiySyntax(program.project, program.sourceFiles),
+				...analyzeNativeDiySyntax(program.project, program.sourceFiles, options.verbose),
 				...collectProviderViolations(program.analyzedFunctions),
 			]),
 		};

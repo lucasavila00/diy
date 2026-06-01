@@ -18,22 +18,29 @@ export function collectAnalyzedSourceFiles(
 	project: Project,
 	coveredSet: ReadonlySet<string>,
 	cwd: string,
+	verbose?: (message: string) => void,
 ): readonly AnalyzedSourceFile[] {
 	const modules: AnalyzedSourceFile[] = [];
 	const seen = new Set<string>();
-	const queue = Array.from(new Set([...project.rootFiles, ...coveredSet])).sort();
+	const queue = Array.from(coveredSet).sort();
 	for (let index = 0; index < queue.length; index += 1) {
 		/* c8 ignore next -- loop bounds ensure the queue entry exists. */
 		const filePath = resolve(queue[index] ?? "");
 		if (seen.has(filePath) || shouldSkipSourceFile(filePath, cwd)) {
 			continue;
 		}
+		verbose?.(`loading source file ${relative(cwd, filePath)}`);
 		seen.add(filePath);
 		const sourceFile = project.program.getSourceFile(filePath);
 		/* c8 ignore next -- tsgo omits declaration roots from source-file lookup here. */
 		if (sourceFile == null || sourceFile.isDeclarationFile) {
 			continue;
 		}
+		verbose?.(`collecting imports in ${relative(cwd, filePath)}`);
+		const imports = collectImports(sourceFile);
+		verbose?.(`collecting type aliases in ${relative(cwd, filePath)}`);
+		const typeAliases = collectTypeAliases(sourceFile);
+		verbose?.(`resolving imports in ${relative(cwd, filePath)}`);
 		for (const importedPath of importedProjectFiles(project, sourceFile, cwd)) {
 			if (!seen.has(importedPath)) {
 				queue.push(importedPath);
@@ -41,11 +48,11 @@ export function collectAnalyzedSourceFiles(
 		}
 		modules.push({
 			filePath,
-			imports: collectImports(sourceFile),
+			imports,
 			lineStarts: lazyLineStarts(sourceFile.text),
 			reportable: coveredSet.has(filePath),
 			sourceFile,
-			typeAliases: collectTypeAliases(sourceFile),
+			typeAliases,
 		});
 	}
 	return modules.sort((left, right) => left.filePath.localeCompare(right.filePath));
@@ -59,6 +66,7 @@ function lazyLineStarts(text: string): () => readonly number[] {
 	};
 }
 
+/* c8 ignore start -- skip guards are defensive around checker-provided project imports. */
 function shouldSkipSourceFile(filePath: string, cwd: string): boolean {
 	return (
 		filePath.includes("/node_modules/") ||
@@ -66,6 +74,7 @@ function shouldSkipSourceFile(filePath: string, cwd: string): boolean {
 		(!filePath.startsWith(resolve(cwd)) && !filePath.includes("/packages/diy/src/"))
 	);
 }
+/* c8 ignore stop */
 
 function importedProjectFiles(
 	project: Project,

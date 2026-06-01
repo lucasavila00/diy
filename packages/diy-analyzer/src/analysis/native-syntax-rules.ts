@@ -32,12 +32,14 @@ type FunctionFrame = {
 export function analyzeNativeDiySyntax(
 	_project: Project,
 	sourceFiles: readonly AnalyzedSourceFile[],
+	verbose?: (message: string) => void,
 ): readonly DiyAnalyzerViolation[] {
 	const violations: DiyAnalyzerViolation[] = [];
-	for (const sourceFile of sourceFiles) {
+	for (const [index, sourceFile] of sourceFiles.entries()) {
 		if (!sourceFile.reportable) {
 			continue;
 		}
+		verbose?.(`analyzing syntax ${index + 1}/${sourceFiles.length}: ${sourceFile.filePath}`);
 		violations.push(...analyzeSourceFileSyntax(sourceFile));
 	}
 	return violations;
@@ -46,12 +48,14 @@ export function analyzeNativeDiySyntax(
 export function collectNativeParseErrors(
 	project: Project,
 	sourceFiles: readonly AnalyzedSourceFile[],
+	verbose?: (message: string) => void,
 ): readonly DiyAnalyzerUnsupported[] {
 	const unsupported: DiyAnalyzerUnsupported[] = [];
-	for (const sourceFile of sourceFiles) {
+	for (const [index, sourceFile] of sourceFiles.entries()) {
 		if (!sourceFile.reportable) {
 			continue;
 		}
+		verbose?.(`collecting parse errors ${index + 1}/${sourceFiles.length}: ${sourceFile.filePath}`);
 		for (const diagnostic of project.program.getSyntacticDiagnostics(sourceFile.filePath)) {
 			unsupported.push(parseError(sourceFile, diagnostic));
 		}

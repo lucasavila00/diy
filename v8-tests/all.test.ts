@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -151,6 +151,72 @@ describe("DIY CLI mode flags", () => {
 		expect(result.exitCode).toBe(0);
 		expect(result.stderr).toBe("");
 		expect(result.stdout).toMatch(/^DIY analyzer passed: \d+ files analyzed\.\n$/);
+	});
+
+	it("prints verbose analyzer progress", async () => {
+		const caseDir = join(v8TestsDir, "success", "typeof-capability");
+		const result = await runCliFixture(caseDir, ["--verbose", "-p", "diy.json"]);
+		expect(result.exitCode).toBe(0);
+		expect(result.stdout).toMatch(/^DIY analyzer passed: \d+ files analyzed\.\n$/);
+		expect(result.stderr).toContain("[diy:verbose] expanded ");
+		expect(result.stderr).toContain("[diy:verbose] collecting capability functions");
+	});
+
+	it("does not traverse tsconfig roots outside diy.json coverage", async () => {
+		const caseDir = mkdtempSync(join(v8TestsDir, "tmp-generated-roots-"));
+		try {
+			mkdirSync(join(caseDir, "generated"));
+			mkdirSync(join(caseDir, "src"));
+			writeFileSync(
+				join(caseDir, "diy.json"),
+				`${JSON.stringify(
+					{
+						ignore: ["generated/**"],
+						include: ["src/**/*.ts"],
+					},
+					null,
+					"\t",
+				)}\n`,
+			);
+			writeFileSync(
+				join(caseDir, "tsconfig.json"),
+				`${JSON.stringify(
+					{
+						compilerOptions: {
+							allowJs: true,
+							baseUrl: ".",
+							module: "NodeNext",
+							moduleResolution: "NodeNext",
+							noEmit: true,
+							paths: {
+								"@beff/diy": ["../../packages/diy/src/index.ts"],
+								"@beff/diy/capabilities": ["../../packages/diy/src/capabilities.ts"],
+							},
+							target: "ES2022",
+						},
+						include: ["src/**/*.ts", "generated/**/*.js"],
+					},
+					null,
+					"\t",
+				)}\n`,
+			);
+			writeFileSync(join(caseDir, "generated/root.js"), "export const generated = true;\n");
+			writeFileSync(
+				join(caseDir, "src/main.ts"),
+				`import type { Capabilities, Capability } from "@beff/diy";\n\n` +
+					`type ReaderCapability = Capability<"reader", { read(): string }>;\n\n` +
+					`export function run(capabilities: Capabilities<ReaderCapability>): string {\n` +
+					`\treturn capabilities.reader.read();\n` +
+					`}\n`,
+			);
+
+			const result = await runCliFixture(caseDir, ["--verbose", "-p", "diy.json"]);
+			expect(result.exitCode).toBe(0);
+			expect(result.stderr).not.toContain("generated/root.js");
+			expect(result.stdout).toMatch(/^DIY analyzer passed: 1 files analyzed\.\n$/);
+		} finally {
+			rmSync(caseDir, { force: true, recursive: true });
+		}
 	});
 
 	it("rejects the removed dead-code flag", async () => {

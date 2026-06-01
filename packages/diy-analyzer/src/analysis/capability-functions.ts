@@ -30,14 +30,21 @@ import { locationForNode, scanFunctionBody } from "./usage-scanner.ts";
 export function collectAnalyzedCapabilityFunctions(
 	project: Project,
 	sourceFiles: readonly AnalyzedSourceFile[],
+	verbose?: (message: string) => void,
 ): readonly AnalyzedCapabilityFunction[] {
 	const functions: AnalyzedCapabilityFunction[] = [];
-	for (const sourceFile of sourceFiles) {
+	for (const [index, sourceFile] of sourceFiles.entries()) {
+		verbose?.(
+			`collecting capability functions ${index + 1}/${sourceFiles.length}: ${sourceFile.filePath}`,
+		);
 		collectFunctionsFromSourceFile(project, sourceFile, functions);
 	}
 	recordDeadCodeMetric("source files", sourceFiles.length);
 	recordDeadCodeMetric("analyzed capability functions", functions.length);
-	for (const analyzedFunction of functions) {
+	for (const [index, analyzedFunction] of functions.entries()) {
+		verbose?.(
+			`scanning function ${index + 1}/${functions.length}: ${analyzedFunction.filePath}:${analyzedFunction.line}:${analyzedFunction.column} ${analyzedFunction.name}`,
+		);
 		scanFunctionBody(project, analyzedFunction);
 	}
 	return functions.sort(compareAnalyzedCapabilityFunctions);
