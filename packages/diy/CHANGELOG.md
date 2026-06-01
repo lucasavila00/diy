@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.33
+
+### Patch Changes
+
+- Fix ignore not ignoring
+
 ## 0.0.32
 
 ### Patch Changes

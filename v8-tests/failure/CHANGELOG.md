@@ -1,5 +1,12 @@
 # @private/diy-e2e-failure
 
+## 0.0.33
+
+### Patch Changes
+
+- Updated dependencies
+  - @beff/diy@0.0.33
+
 ## 0.0.32
 
 ### Patch Changes
