@@ -3,3 +3,11 @@ dist/
 coverage/
 .turbo/
 .cache/
+
+!e2e-tests/success/node-modules-capability-forwarding/node_modules/
+!e2e-tests/success/node-modules-capability-forwarding/node_modules/@beff/
+!e2e-tests/success/node-modules-capability-forwarding/node_modules/@beff/diy/
+!e2e-tests/success/node-modules-capability-forwarding/node_modules/@beff/diy/**
+!e2e-tests/success/node-modules-capability-forwarding/node_modules/@example/
+!e2e-tests/success/node-modules-capability-forwarding/node_modules/@example/services/
+!e2e-tests/success/node-modules-capability-forwarding/node_modules/@example/services/**

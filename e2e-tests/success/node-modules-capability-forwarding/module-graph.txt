@@ -1,0 +1,22 @@
+Module graph
+
+src/main.ts
++-- directRead
+|  +-- direct: access, catalog
+|  `-- indirect: (none)
+|
++-- resolveFilteredNames
+|  +-- direct: (none)
+|  `-- indirect: access, catalog
+|
++-- NameTasks.refresh
+|  +-- direct: (none)
+|  `-- indirect: access, catalog
+|
++-- loadNames
+|  +-- direct: (none)
+|  `-- indirect: access, catalog
+|
+`-- loadTaskNames
+   +-- direct: (none)
+   `-- indirect: access, catalog

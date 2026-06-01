@@ -1,0 +1,1 @@
+DIY analyzer passed: 1 files analyzed.
