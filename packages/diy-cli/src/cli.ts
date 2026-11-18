@@ -13,7 +13,6 @@ import { formatDiyModuleGraph } from "./reporting/module-graph-format.ts";
 type DiyCliWriter = (value: string) => void;
 
 type DiyCliCommandOptions = {
-	readonly deadCodeAnalysis: boolean;
 	readonly graph: boolean;
 	readonly project: string;
 	readonly verbose?: boolean;
@@ -35,7 +34,6 @@ function createCommand(io: DiyCliIo): Command {
 	return new Command()
 		.name("diy-cli")
 		.description("Analyze DIY capability usage")
-		.option("--no-dead-code-analysis", "Run syntax lint rules without dead-code analysis")
 		.option("--graph", "Print a capability module graph")
 		.option("--verbose", "Print analyzer progress and full runtime errors")
 		.requiredOption("-p, --project <path>", "Path to the diy.json project file")
@@ -110,7 +108,6 @@ export async function executeDiyCli(
 	try {
 		const analysisOptions = {
 			cwd: projectCwd,
-			deadCodeAnalysis: commandOptions.deadCodeAnalysis,
 			graph: commandOptions.graph,
 			...(verbose == null ? {} : { verbose }),
 		};
@@ -161,16 +158,11 @@ export async function runDiyCli(options: RunDiyCliOptions = {}): Promise<number>
 		/* c8 ignore next -- fixture command tests provide argv explicitly. */
 		command.parse(options.argv ?? process.argv.slice(2), { from: "user" });
 		const parsed = command.opts<{
-			readonly deadCodeAnalysis?: boolean;
 			readonly graph?: boolean;
 			readonly project: string;
 			readonly verbose?: boolean;
 		}>();
-		if (parsed.graph === true && parsed.deadCodeAnalysis === false) {
-			throw new Error("Cannot combine --graph and --no-dead-code-analysis.");
-		}
 		commandOptions = {
-			deadCodeAnalysis: parsed.deadCodeAnalysis !== false,
 			graph: parsed.graph === true,
 			project: parsed.project,
 			verbose: parsed.verbose === true,

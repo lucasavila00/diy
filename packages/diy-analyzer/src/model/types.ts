@@ -60,7 +60,6 @@ export type DiyModuleGraphFunction = {
 
 export type AnalyzeOptions = {
 	readonly cwd?: string;
-	readonly deadCodeAnalysis?: boolean;
 	readonly graph?: boolean;
 	readonly verbose?: (message: string) => void;
 };

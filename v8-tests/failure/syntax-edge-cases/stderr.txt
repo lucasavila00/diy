@@ -1,6 +1,61 @@
+src/main.ts:12:8 unused capability
+  Declares unused capability "read".
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:17:8 unused capability
+  Declares unused capability "read".
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:22:8 unused capability
+  Declares unused capability "read".
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:27:8 unused capability
+  Declares unused capability "read-id".
+  = help: remove "read-id" from `Capabilities<...>`, or add a real `capabilities["read-id"]` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:39:8 unused capability
+  Declares unused capability "read".
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:43:8 unused capability
+  Declares unused capability "read".
+  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:2:8 renamed diy import
   Do not rename imports from @beff/diy; import exported names directly.
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:13:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:18:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:23:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:28:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:34:3 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:44:17 invalid capabilities parameter

@@ -1,3 +1,18 @@
+src/main.ts:7:8 unused capability
+  Declares unused capability "reader".
+  = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:19:8 unused capability
+  Declares unused capability "queue".
+  = help: remove "queue" from `Capabilities<...>`, or add a real `capabilities.queue` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:41:8 unused capability
+  Declares unused capability "reader".
+  = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:1:29 renamed diy import
   Do not rename imports from @beff/diy; import exported names directly.
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
