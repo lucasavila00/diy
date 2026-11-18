@@ -1,0 +1,19 @@
+src/main.ts:6:22 invalid capabilities parameter
+  Capabilities parameters require a function body; overload signatures, `declare` functions, and abstract methods cannot be checked.
+  = help: declare `Capabilities<...>` only on a function with a body: use one implementation signature instead of overloads, and take capabilities in concrete methods instead of abstract ones
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:7:22 invalid capabilities parameter
+  Capabilities parameters require a function body; overload signatures, `declare` functions, and abstract methods cannot be checked.
+  = help: declare `Capabilities<...>` only on a function with a body: use one implementation signature instead of overloads, and take capabilities in concrete methods instead of abstract ones
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:12:34 invalid capabilities parameter
+  Capabilities parameters require a function body; overload signatures, `declare` functions, and abstract methods cannot be checked.
+  = help: declare `Capabilities<...>` only on a function with a body: use one implementation signature instead of overloads, and take capabilities in concrete methods instead of abstract ones
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:15:15 invalid capabilities parameter
+  Capabilities parameters require a function body; overload signatures, `declare` functions, and abstract methods cannot be checked.
+  = help: declare `Capabilities<...>` only on a function with a body: use one implementation signature instead of overloads, and take capabilities in concrete methods instead of abstract ones
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

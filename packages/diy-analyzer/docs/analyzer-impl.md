@@ -93,8 +93,8 @@ covered set.
 [`capability-functions.ts`](../src/analysis/capability-functions.ts) traverses every
 `AnalyzedSourceFile` and selects function-like declarations whose first parameter
 resolves to DIY `Capabilities<...>`. Declarations without a body (overload signatures,
-`declare function`, abstract methods) are skipped; syntax lint rules still check their
-parameters. Each selected function becomes an
+`declare function`, abstract methods) are skipped here; the syntax rules reject
+`Capabilities` parameters on them. Each selected function becomes an
 `AnalyzedCapabilityFunction` from [`native-types.ts`](../src/analysis/native-types.ts):
 
 ```ts
@@ -241,6 +241,8 @@ syntax violations such as:
 
 - capability parameters not named `capabilities` or `_capabilities`;
 - capability parameters not appearing first;
+- capability parameters on declarations without a body (overload signatures, `declare`
+  functions, abstract methods);
 - non-DIY annotations on parameters named `capabilities`;
 - intersected `Capabilities<A> & Capabilities<B>` bags;
 - renamed imports from `@beff/diy`.

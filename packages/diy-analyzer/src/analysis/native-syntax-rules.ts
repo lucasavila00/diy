@@ -171,6 +171,20 @@ function checkCapabilitiesParameters(
 				[capabilitiesParameterHelp()],
 			);
 		}
+		if (node.body == null && hasDiyCapabilitiesType) {
+			report(
+				param,
+				"invalid capabilities parameter",
+				"Capabilities parameters require a function body; overload signatures, `declare` functions, and abstract methods cannot be checked.",
+				[
+					{
+						kind: "help",
+						message:
+							"declare `Capabilities<...>` only on a function with a body: use one implementation signature instead of overloads, and take capabilities in concrete methods instead of abstract ones",
+					},
+				],
+			);
+		}
 	}
 }
 

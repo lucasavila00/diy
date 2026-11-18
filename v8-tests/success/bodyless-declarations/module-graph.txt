@@ -1,6 +1,0 @@
-Module graph
-
-src/main.ts
-`-- load
-   +-- direct: reader
-   `-- indirect: (none)

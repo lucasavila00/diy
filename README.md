@@ -239,6 +239,25 @@ export function loadViaAlias(capabilities: ReaderCaps): string {
 type ReaderCallback = (capabilities: Capabilities<ReaderCapability>) => string;
 ```
 
+Capability parameters require a function body. Overload signatures, `declare`
+functions, and abstract methods have nothing the analyzer can check, so a
+`Capabilities<...>` parameter on them is reported. Declare capabilities on the
+implementation instead:
+
+```ts
+// Not allowed: overload signatures without a body.
+export function load(capabilities: Capabilities<ReaderCapability>, id: string): string;
+export function load(capabilities: Capabilities<ReaderCapability>, id: number): string;
+export function load(capabilities: Capabilities<ReaderCapability>, id: string | number): string {
+	return capabilities.reader.read() + String(id);
+}
+
+// Not allowed: abstract methods have no body.
+export abstract class Job {
+	abstract run(capabilities: Capabilities<ReaderCapability>): void;
+}
+```
+
 If a parameter named `capabilities` or `_capabilities` has a type annotation, it
 must resolve to DIY `Capabilities<...>`. This prevents unrelated values from
 looking like DIY capability bags:
