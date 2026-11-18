@@ -1,0 +1,26 @@
+Module graph
+
+src/main.ts
++-- needBoth
+|  +-- direct: reader, writer
+|  `-- indirect: (none)
+|
++-- withOverrides
+|  +-- direct: (none)
+|  `-- indirect: reader, writer
+|
++-- mergeSecond
+|  +-- direct: (none)
+|  `-- indirect: reader
+|
++-- mergeSecondAlias
+|  +-- direct: (none)
+|  `-- indirect: reader
+|
++-- extendSecond
+|  +-- direct: (none)
+|  `-- indirect: reader
+|
+`-- nestedHelpers
+   +-- direct: (none)
+   `-- indirect: reader

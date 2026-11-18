@@ -25,6 +25,7 @@ import {
 } from "./ast-utils.ts";
 import {
 	capabilityIds,
+	definiteCapabilityIds,
 	expressionSymbol,
 	expressionType,
 	isCapabilitiesType,
@@ -360,22 +361,38 @@ async function forwardedExpression(
 	) {
 		return null;
 	}
-	const firstArgument = call.arguments[0];
-	/* c8 ignore next -- propagation helper calls used as forwarded values pass a source argument. */
-	const firstSource =
-		firstArgument == null
-			? null
-			: await capabilitiesSourceExpression(checker, analyzedFunction, firstArgument);
-	if (firstSource == null) {
+	// Helpers spread their arguments left to right, so the last argument that
+	// carries the capabilities parameter is the source. Later arguments shadow its
+	// capabilities; earlier ones only add capabilities the source does not carry.
+	let helperSource: {
+		readonly forwarded: ForwardedExpression;
+		readonly ids: ReadonlySet<string>;
+		readonly index: number;
+	} | null = null;
+	for (const [index, helperArgument] of call.arguments.entries()) {
+		const forwarded = await forwardedExpression(checker, analyzedFunction, helperArgument);
+		if (forwarded != null) {
+			const ids = await providedCapabilityIds(checker, analyzedFunction.sourceFile, [
+				helperArgument,
+			]);
+			helperSource = { forwarded, ids, index };
+		}
+	}
+	if (helperSource == null) {
 		return null;
 	}
-	const provided = new Set(firstSource.provided);
-	for (const id of await providedCapabilityIds(
-		checker,
-		analyzedFunction.sourceFile,
-		argumentsAfterFirst(call),
-	)) {
-		provided.add(id);
+	const provided = new Set(helperSource.forwarded.provided);
+	for (const [index, helperArgument] of call.arguments.entries()) {
+		if (index === helperSource.index) {
+			continue;
+		}
+		for (const id of await providedCapabilityIds(checker, analyzedFunction.sourceFile, [
+			helperArgument,
+		])) {
+			if (index > helperSource.index || !helperSource.ids.has(id)) {
+				provided.add(id);
+			}
+		}
 	}
 	return { provided };
 }
@@ -411,7 +428,7 @@ async function providedCapabilityIds(
 		if (type == null) {
 			continue;
 		}
-		for (const id of await capabilityIds(checker, type)) {
+		for (const id of await definiteCapabilityIds(checker, type)) {
 			provided.add(id);
 		}
 	}

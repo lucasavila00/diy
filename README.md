@@ -460,6 +460,34 @@ export function auditAndReplaceWriter(
 }
 ```
 
+Helpers combine their arguments left to right, like object spread, so later
+arguments win. A service from the parameter counts as replaced only when an
+argument after it definitely provides that ID. Optional keys, such as those of a
+`Partial<...>` override, may be missing at runtime, so they do not replace
+anything. The parameter can appear in any argument position, including inside a
+nested helper call:
+
+```ts
+declare function needBoth(
+	capabilities: Capabilities<ReaderCapability | WriterCapability>,
+): void;
+declare const overrides: Partial<Capabilities<ReaderCapability | WriterCapability>>;
+declare const writerCapabilities: Capabilities<WriterCapability>;
+
+// Allowed: `overrides` may leave out either key, so the original `reader` and
+// `writer` can still reach `needBoth`.
+export function overrideSome(
+	capabilities: Capabilities<ReaderCapability | WriterCapability>,
+): void {
+	needBoth(Capabilities.override(capabilities, overrides));
+}
+
+// Allowed: `reader` comes from the parameter, `writer` from `writerCapabilities`.
+export function readerFromParameter(capabilities: Capabilities<ReaderCapability>): void {
+	needBoth(Capabilities.merge(writerCapabilities, capabilities));
+}
+```
+
 Returning a capability bag also does not use the services inside it:
 
 ```ts
@@ -605,3 +633,6 @@ const databaseCapabilities = Capabilities.create<DatabaseCapability>({
 
 const appCapabilities = Capabilities.merge(nodeCapabilities, databaseCapabilities);
 ```
+
+When two containers provide the same ID, the later one wins. `extend` and
+`override` follow the same rule: later arguments replace earlier ones.

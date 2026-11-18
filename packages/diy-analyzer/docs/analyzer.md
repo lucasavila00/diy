@@ -76,7 +76,12 @@ function. Conceptually, this is a local transfer function:
   aliases for derived capability sources;
 - calls that pass a capability source to another parameter create forwarding edges;
 - helper calls such as `Capabilities.extend`, `merge`, and `override` update the set of
-  labels considered already provided by the forwarded value;
+  labels considered already provided by the forwarded value. Helpers spread their
+  arguments left to right, so the last argument carrying the capability source (in any
+  position, including a nested helper call) is the source: arguments after it provide
+  every label they definitely carry, and arguments before it only provide labels the
+  source does not carry. Optional members, such as the keys of a `Partial<...>`
+  override, are not counted as provided;
 - dynamic reads, unresolved declarations, and unresolved forwarding targets become
   unsupported-analysis facts.
 
