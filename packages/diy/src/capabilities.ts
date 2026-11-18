@@ -51,12 +51,23 @@ function create<Allowed extends Capability<string, unknown> = never>(
 	return serviceMap;
 }
 
+// TypeScript cannot infer capability IDs from a plain object literal such as `{ clock }`.
+// It falls back to `Capability<string, unknown>`, which would let the result pass as any
+// `Capabilities<...>`. Requiring concrete IDs turns that into an error at the call.
+type TypedCapabilities<Bag extends Capability<string, unknown>> =
+	string extends Bag[typeof capabilityId]
+		? "Give the services a capability type: Capabilities.create<YourCapability>({ ... })"
+		: Capabilities<Bag>;
+
 function extend<
 	Allowed extends Capability<string, unknown>,
 	Extra extends Capability<string, unknown>,
->(capabilities: Capabilities<Allowed>, extra: Capabilities<Extra>): Capabilities<Allowed | Extra> {
+>(
+	capabilities: Capabilities<Allowed>,
+	extra: TypedCapabilities<Extra>,
+): Capabilities<Allowed | Extra> {
 	// oxlint-disable-next-line local/no-type-assertion
-	return { ...capabilities, ...extra } as Capabilities<Allowed | Extra>;
+	return Object.assign({}, capabilities, extra) as Capabilities<Allowed | Extra>;
 }
 
 // `Pick` keeps every replaced service required, so `{ clock: undefined }` is rejected
@@ -72,20 +83,20 @@ function override<
 }
 
 function merge<First extends Capability<string, unknown>>(
-	first: Capabilities<First>,
+	first: TypedCapabilities<First>,
 ): Capabilities<First>;
 function merge<
 	First extends Capability<string, unknown>,
 	Second extends Capability<string, unknown>,
->(first: Capabilities<First>, second: Capabilities<Second>): Capabilities<First | Second>;
+>(first: TypedCapabilities<First>, second: TypedCapabilities<Second>): Capabilities<First | Second>;
 function merge<
 	First extends Capability<string, unknown>,
 	Second extends Capability<string, unknown>,
 	Third extends Capability<string, unknown>,
 >(
-	first: Capabilities<First>,
-	second: Capabilities<Second>,
-	third: Capabilities<Third>,
+	first: TypedCapabilities<First>,
+	second: TypedCapabilities<Second>,
+	third: TypedCapabilities<Third>,
 ): Capabilities<First | Second | Third>;
 function merge<
 	First extends Capability<string, unknown>,
@@ -93,10 +104,10 @@ function merge<
 	Third extends Capability<string, unknown>,
 	Fourth extends Capability<string, unknown>,
 >(
-	first: Capabilities<First>,
-	second: Capabilities<Second>,
-	third: Capabilities<Third>,
-	fourth: Capabilities<Fourth>,
+	first: TypedCapabilities<First>,
+	second: TypedCapabilities<Second>,
+	third: TypedCapabilities<Third>,
+	fourth: TypedCapabilities<Fourth>,
 ): Capabilities<First | Second | Third | Fourth>;
 function merge<
 	First extends Capability<string, unknown>,
@@ -105,11 +116,11 @@ function merge<
 	Fourth extends Capability<string, unknown>,
 	Fifth extends Capability<string, unknown>,
 >(
-	first: Capabilities<First>,
-	second: Capabilities<Second>,
-	third: Capabilities<Third>,
-	fourth: Capabilities<Fourth>,
-	fifth: Capabilities<Fifth>,
+	first: TypedCapabilities<First>,
+	second: TypedCapabilities<Second>,
+	third: TypedCapabilities<Third>,
+	fourth: TypedCapabilities<Fourth>,
+	fifth: TypedCapabilities<Fifth>,
 ): Capabilities<First | Second | Third | Fourth | Fifth>;
 function merge<
 	First extends Capability<string, unknown>,
@@ -119,15 +130,15 @@ function merge<
 	Fifth extends Capability<string, unknown>,
 	Sixth extends Capability<string, unknown>,
 >(
-	first: Capabilities<First>,
-	second: Capabilities<Second>,
-	third: Capabilities<Third>,
-	fourth: Capabilities<Fourth>,
-	fifth: Capabilities<Fifth>,
-	sixth: Capabilities<Sixth>,
+	first: TypedCapabilities<First>,
+	second: TypedCapabilities<Second>,
+	third: TypedCapabilities<Third>,
+	fourth: TypedCapabilities<Fourth>,
+	fifth: TypedCapabilities<Fifth>,
+	sixth: TypedCapabilities<Sixth>,
 ): Capabilities<First | Second | Third | Fourth | Fifth | Sixth>;
 function merge<Allowed extends Capability<string, unknown>>(
-	...capabilitiesList: readonly Capabilities<Allowed>[]
+	...capabilitiesList: readonly TypedCapabilities<Allowed>[]
 ): Capabilities<Allowed>;
 function merge(
 	...capabilitiesList: readonly Capabilities<never>[]

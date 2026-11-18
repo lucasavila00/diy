@@ -521,7 +521,10 @@ declare const writer: { write(value: string): void };
 
 // Allowed: `writer` is created here, then passed to `needWriter`.
 export function addWriter(_capabilities: Capabilities<never>): void {
-	const extended = Capabilities.extend(_capabilities, { writer });
+	const extended = Capabilities.extend(
+		_capabilities,
+		Capabilities.create<WriterCapability>({ writer }),
+	);
 	needWriter(extended);
 }
 
@@ -530,7 +533,10 @@ export function addWriter(_capabilities: Capabilities<never>): void {
 export function redundantProvider(
 	capabilities: Capabilities<ReaderCapability | WriterCapability>,
 ): void {
-	const extended = Capabilities.extend(capabilities, { writer });
+	const extended = Capabilities.extend(
+		capabilities,
+		Capabilities.create<WriterCapability>({ writer }),
+	);
 	needReader(extended);
 }
 ```
@@ -657,7 +663,10 @@ any diagnostic, are reported.
 
 ### Extend capabilities locally
 
-Use `Capabilities.extend(...)` to add services around a smaller dependency set:
+Use `Capabilities.extend(...)` to add services around a smaller dependency set.
+Build the added services with `Capabilities.create<YourCapability>(...)`. A plain
+object literal such as `{ progressLogger }` is a type error: TypeScript cannot infer
+capability IDs from it, and the result would otherwise pass as any `Capabilities<...>`.
 
 ```ts
 import { Capabilities, type Capability } from "@beff/diy/capabilities";
@@ -712,7 +721,9 @@ const testCapabilities = Capabilities.override(production, {
 
 ### Merge capability containers
 
-Use `Capabilities.merge(...)` to compose capability containers built by separate modules:
+Use `Capabilities.merge(...)` to compose capability containers built by separate modules.
+Like `extend`, every bag must have a capability type, so build each one with
+`Capabilities.create<YourCapability>(...)`:
 
 ```ts
 import * as fs from "node:fs/promises";
