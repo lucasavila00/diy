@@ -404,6 +404,30 @@ export function runDynamic(capabilities: Capabilities<ReaderCapability>): void {
 }
 ```
 
+Pass the capability bag to the callee directly, as its own argument. The analyzer
+does not follow the bag through other expressions, so these are reported as
+unsupported analysis:
+
+- a conditional expression: `run(flag ? capabilities : other)`;
+- `??` or `||`: `run(fallback ?? capabilities)`;
+- an object spread: `run({ ...capabilities })`;
+- a wrapper object: `const context = { capabilities }` or `{ bag: capabilities }`;
+- a function return: `const pick = () => capabilities` or `return capabilities`.
+
+```ts
+// Not allowed: the bag is copied with a spread.
+export function loadCopy(capabilities: Capabilities<ReaderCapability>): void {
+	needReader({ ...capabilities });
+}
+```
+
+```text
+src/main.ts:3:18 unsupported analysis
+  capabilities bag copied with an object spread; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as an argument: `run(capabilities)`; use `Capabilities.extend(capabilities, ...)` to add services
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+```
+
 ### Capability helpers and unused parameters
 
 `Capabilities.extend(...)`, `Capabilities.merge(...)`, and
