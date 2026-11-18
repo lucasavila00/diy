@@ -243,7 +243,3 @@ export async function expressionType(
 ): Promise<Type | undefined> {
 	return checker.getTypeAtLocation(unwrapExpression(expression));
 }
-
-export function isUnresolvedForwardingParameter(parameterType: Type | undefined): boolean {
-	return parameterType == null || (parameterType.flags & TypeFlags.Any) !== 0;
-}

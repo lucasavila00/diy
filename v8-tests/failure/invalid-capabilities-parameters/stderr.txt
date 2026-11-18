@@ -1,18 +1,3 @@
-src/main.ts:10:8 unused capability
-  Declares unused capability "fs".
-  = help: remove "fs" from `Capabilities<...>`, or add a real `capabilities.fs` read if it is required
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:19:8 unused capability
-  Declares unused capability "storage".
-  = help: remove "storage" from `Capabilities<...>`, or add a real `capabilities.storage` read if it is required
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:32:8 unused capability
-  Declares unused capability "fs".
-  = help: remove "fs" from `Capabilities<...>`, or add a real `capabilities.fs` read if it is required
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
 src/main.ts:10:25 invalid capabilities parameter
   Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
@@ -41,4 +26,19 @@ src/main.ts:28:29 invalid capabilities type
 src/main.ts:36:25 invalid capabilities parameter
   `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:11:6 unsupported analysis
+  capabilities bag passed to a parameter not typed `Capabilities<...>`; the analyzer cannot see which services it uses
+  = help: pass `capabilities` only to functions whose parameter is typed `Capabilities<...>`; read the services you need instead of inspecting the bag
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:20:6 unsupported analysis
+  capabilities bag passed to a parameter not typed `Capabilities<...>`; the analyzer cannot see which services it uses
+  = help: pass `capabilities` only to functions whose parameter is typed `Capabilities<...>`; read the services you need instead of inspecting the bag
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:33:6 unsupported analysis
+  capabilities bag passed to a parameter not typed `Capabilities<...>`; the analyzer cannot see which services it uses
+  = help: pass `capabilities` only to functions whose parameter is typed `Capabilities<...>`; read the services you need instead of inspecting the bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

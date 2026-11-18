@@ -72,7 +72,9 @@ export type UnsupportedAnalysisReason =
 			readonly kind: "unresolved-declaration";
 	  }
 	| {
+			readonly column: number;
 			readonly kind: "unresolved-forwarding";
+			readonly line: number;
 	  }
 	| {
 			readonly column: number;

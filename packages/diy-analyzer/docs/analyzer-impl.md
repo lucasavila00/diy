@@ -156,6 +156,10 @@ The scanner walks the function's AST and updates the function state:
 - assignments from capability helper expressions do the same for the assignment target;
 - calls that pass a capability source collect a forwarding constraint by comparing the
   argument to the callee parameter type at that call site;
+- if that parameter type is not a DIY `Capabilities<...>` type (`any`, `unknown`, a
+  structural object type, a union such as `Capabilities<X> | undefined`, or a library
+  parameter such as `Object.keys`), the call records `unresolved-forwarding` at the
+  argument location instead of a forwarding constraint;
 - `Capabilities.extend(capabilities, extra)` also records a provider check so redundant
   extension can become a violation;
 - a capability source used as a conditional branch, a `??` or `||` operand, an object
