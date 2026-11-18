@@ -1,0 +1,18 @@
+Module graph
+
+src/main.ts
++-- outer
+|  +-- direct: reader
+|  `-- indirect: (none)
+|
++-- <anonymous>@9:9
+|  +-- direct: (none)
+|  `-- indirect: (none)
+|
++-- shadowed
+|  +-- direct: reader
+|  `-- indirect: (none)
+|
+`-- <anonymous>@16:9
+   +-- direct: writer
+   `-- indirect: (none)
