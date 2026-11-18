@@ -5,7 +5,3 @@ src/main.ts:6:2 unused diagnostic suppression
 src/main.ts:10:1 unused diagnostic suppression
   `diy-ignore-next-line` did not suppress any DIY diagnostic.
   = help: remove this directive or move it to the line before the diagnostic
-
-src/main.ts:5:8 unsupported analysis
-  capabilities declaration could not be resolved
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
