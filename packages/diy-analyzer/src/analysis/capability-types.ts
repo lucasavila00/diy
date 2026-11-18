@@ -12,7 +12,7 @@ import type {
 	Node,
 	TypeNode,
 } from "typescript/unstable/ast";
-import { SignatureKind, TypeFlags } from "typescript/unstable/async";
+import { TypeFlags } from "typescript/unstable/async";
 import type {
 	Checker,
 	Signature,
@@ -231,12 +231,7 @@ export async function resolveCallSignature(
 	checker: Checker,
 	node: CallExpression,
 ): Promise<Signature | undefined> {
-	const type = await checker.getTypeAtLocation(unwrapExpression(node.expression));
-	/* c8 ignore next -- the checker returns a type for parsed call expression callees. */
-	if (type == null) {
-		return undefined;
-	}
-	return (await checker.getSignaturesOfType(type, SignatureKind.Call))[0];
+	return checker.getResolvedSignature(node);
 }
 
 export async function expressionType(
