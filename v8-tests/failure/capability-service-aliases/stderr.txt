@@ -1,0 +1,44 @@
+src/main.ts:10:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:15:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:20:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:27:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:33:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:39:2 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:49:3 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:55:9 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:33:10 unsupported analysis
+  dynamic capability access
+  = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

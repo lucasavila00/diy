@@ -1,0 +1,10 @@
+Module graph
+
+src/main.ts
++-- needClock
+|  +-- direct: clock
+|  `-- indirect: (none)
+|
+`-- inlineReads
+   +-- direct: clock, progressLogger
+   `-- indirect: (none)
