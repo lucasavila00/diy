@@ -105,7 +105,7 @@ async function readAnalyzedCapabilityFunction(
 	if (firstParam == null || firstParam.type == null) {
 		return null;
 	}
-	if (!isDiyCapabilitiesAnnotation(sourceFile, firstParam.type)) {
+	if (!(await isDiyCapabilitiesAnnotation(project.checker, firstParam.type))) {
 		return null;
 	}
 	const parameterSymbol = await project.checker.getSymbolAtLocation(firstParam.name);
@@ -123,11 +123,7 @@ async function readAnalyzedCapabilityFunction(
 		return null;
 	}
 	const declaredCapabilityIds = await capabilityIds(project.checker, declaredType);
-	const isGenericDeclaration = await isOpaqueCapabilitiesType(
-		project.checker,
-		sourceFile,
-		firstParam.type,
-	);
+	const isGenericDeclaration = await isOpaqueCapabilitiesType(project.checker, firstParam.type);
 	const location = functionLocation(sourceFile, node);
 	const localName = functionName(sourceFile, node, ownerName);
 	const name = namespaceStack.length === 0 ? localName : `${namespaceStack.join(".")}.${localName}`;
@@ -135,10 +131,10 @@ async function readAnalyzedCapabilityFunction(
 	if (
 		declaredCapabilityIds.size === 0 &&
 		!isGenericDeclaration &&
-		!isNeverCapabilitiesType(sourceFile, firstParam.type)
+		!(await isNeverCapabilitiesType(project.checker, firstParam.type))
 	) {
 		unsupportedReasons.push({
-			kind: (await isOpenCapabilityBagType(project.checker, sourceFile, firstParam.type))
+			kind: (await isOpenCapabilityBagType(project.checker, firstParam.type))
 				? "open-capability-bag"
 				: "unresolved-declaration",
 		});

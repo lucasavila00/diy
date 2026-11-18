@@ -1,0 +1,23 @@
+Module graph
+
+src/main.ts
++-- viaImportedAlias
+|  +-- direct: reader
+|  `-- indirect: (none)
+|
++-- viaNamespace
+|  +-- direct: reader
+|  `-- indirect: (none)
+|
++-- viaBarrel
+|  +-- direct: reader, writer
+|  `-- indirect: (none)
+|
+`-- viaImportType
+   +-- direct: reader
+   `-- indirect: (none)
+
+src/scoped.ts
+`-- run
+   +-- direct: reader
+   `-- indirect: (none)

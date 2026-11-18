@@ -69,7 +69,7 @@ async function analyzeDiySyntax(
 			suppressions: program.suppressions.suppressions,
 			unsupported: await collectNativeParseErrors(program.project, program.sourceFiles, verbose),
 			violations: [
-				...analyzeNativeDiySyntax(program.project, program.sourceFiles, verbose),
+				...(await analyzeNativeDiySyntax(program.project, program.sourceFiles, verbose)),
 				...program.suppressions.violations,
 			],
 		});

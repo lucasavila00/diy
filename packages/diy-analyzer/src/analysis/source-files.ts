@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 
-import { SyntaxKind, isTypeAliasDeclaration } from "typescript/unstable/ast";
-import type { ImportDeclaration, Node, SourceFile, TypeNode } from "typescript/unstable/ast";
+import { SyntaxKind } from "typescript/unstable/ast";
+import type { ImportDeclaration, SourceFile } from "typescript/unstable/ast";
 import type { Project } from "typescript/unstable/async";
 
 import { lineStarts, literalText } from "./ast-utils.ts";
@@ -33,8 +33,6 @@ export async function collectAnalyzedSourceFiles(
 		}
 		verbose?.(`collecting imports in ${relative(cwd, filePath)}`);
 		const imports = collectImports(sourceFile);
-		verbose?.(`collecting type aliases in ${relative(cwd, filePath)}`);
-		const typeAliases = collectTypeAliases(sourceFile);
 		verbose?.(`resolving imports in ${relative(cwd, filePath)}`);
 		for (const importedPath of await importedProjectFiles(project, sourceFile, cwd)) {
 			if (!seen.has(importedPath)) {
@@ -47,7 +45,6 @@ export async function collectAnalyzedSourceFiles(
 			lineStarts: lazyLineStarts(sourceFile.text),
 			reportable: coveredSet.has(filePath),
 			sourceFile,
-			typeAliases,
 		});
 	}
 	return modules.sort((left, right) => left.filePath.localeCompare(right.filePath));
@@ -141,18 +138,6 @@ function collectImports(sourceFile: SourceFile): ReadonlyMap<string, ImportBindi
 		}
 	}
 	return imports;
-}
-
-function collectTypeAliases(sourceFile: SourceFile): ReadonlyMap<string, TypeNode> {
-	const aliases = new Map<string, TypeNode>();
-	const visit = (node: Node): void => {
-		if (isTypeAliasDeclaration(node)) {
-			aliases.set(node.name.text, node.type);
-		}
-		node.forEachChild(visit);
-	};
-	visit(sourceFile);
-	return aliases;
 }
 
 export function localDiyPaths(cwd: string): Record<string, readonly string[]> {

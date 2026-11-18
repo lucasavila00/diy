@@ -75,8 +75,8 @@ async function analyzeNativeDeadCodeProgram(
 				...(await collectNativeParseErrors(program.project, program.sourceFiles, options.verbose)),
 				...collectUnsupported(program.analyzedFunctions),
 			]),
-			violations: timeDeadCodePhase("collect violations", () => [
-				...analyzeNativeDiySyntax(program.project, program.sourceFiles, options.verbose),
+			violations: await timeDeadCodePhaseAsync("collect violations", async () => [
+				...(await analyzeNativeDiySyntax(program.project, program.sourceFiles, options.verbose)),
 				...collectProviderViolations(program.analyzedFunctions),
 			]),
 		};

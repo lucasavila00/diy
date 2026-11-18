@@ -6,7 +6,7 @@ import type {
 	Node,
 	TypeNode,
 } from "typescript/unstable/ast";
-import type { Diagnostic, Project } from "typescript/unstable/async";
+import type { Checker, Diagnostic, Project } from "typescript/unstable/async";
 
 import type {
 	DiyAnalyzerNote,
@@ -14,6 +14,7 @@ import type {
 	DiyAnalyzerViolation,
 } from "../model/types.ts";
 import {
+	childNodes,
 	intersectionTypes,
 	isFunctionLike,
 	literalText,
@@ -29,18 +30,18 @@ type FunctionFrame = {
 	readonly name: string | null;
 };
 
-export function analyzeNativeDiySyntax(
-	_project: Project,
+export async function analyzeNativeDiySyntax(
+	project: Project,
 	sourceFiles: readonly AnalyzedSourceFile[],
 	verbose?: (message: string) => void,
-): readonly DiyAnalyzerViolation[] {
+): Promise<readonly DiyAnalyzerViolation[]> {
 	const violations: DiyAnalyzerViolation[] = [];
 	for (const [index, sourceFile] of sourceFiles.entries()) {
 		if (!sourceFile.reportable) {
 			continue;
 		}
 		verbose?.(`analyzing syntax ${index + 1}/${sourceFiles.length}: ${sourceFile.filePath}`);
-		violations.push(...analyzeSourceFileSyntax(sourceFile));
+		violations.push(...(await analyzeSourceFileSyntax(project.checker, sourceFile)));
 	}
 	return violations;
 }
@@ -63,7 +64,10 @@ export async function collectNativeParseErrors(
 	return unsupported;
 }
 
-function analyzeSourceFileSyntax(sourceFile: AnalyzedSourceFile): readonly DiyAnalyzerViolation[] {
+async function analyzeSourceFileSyntax(
+	checker: Checker,
+	sourceFile: AnalyzedSourceFile,
+): Promise<readonly DiyAnalyzerViolation[]> {
 	const violations: DiyAnalyzerViolation[] = [];
 	const functionStack: FunctionFrame[] = [];
 
@@ -92,39 +96,41 @@ function analyzeSourceFileSyntax(sourceFile: AnalyzedSourceFile): readonly DiyAn
 		});
 	};
 
-	const visit = (node: Node, parent: Node | null): void => {
+	const visit = async (node: Node, parent: Node | null): Promise<void> => {
 		const isFunction = isFunctionLike(node);
 		if (isFunction) {
 			functionStack.push({
 				name: nativeFunctionName(node, parent),
 			});
-			checkCapabilitiesParameters(sourceFile, node, report);
+			await checkCapabilitiesParameters(checker, node, report);
 		}
 		if (node.kind === SyntaxKind.ImportDeclaration) {
 			checkNoRenamedDiyImport(node as ImportDeclaration, report);
 		}
 
-		node.forEachChild((child) => visit(child, node));
+		for (const child of childNodes(node)) {
+			await visit(child, node);
+		}
 		if (isFunction) {
 			functionStack.pop();
 		}
 	};
-	visit(sourceFile.sourceFile, null);
+	await visit(sourceFile.sourceFile, null);
 	return violations;
 }
 
-function checkCapabilitiesParameters(
-	sourceFile: AnalyzedSourceFile,
+async function checkCapabilitiesParameters(
+	checker: Checker,
 	node: FunctionLikeDeclaration,
 	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
-): void {
+): Promise<void> {
 	for (const [index, param] of node.parameters.entries()) {
 		const name = staticName(param.name);
 		const isCapabilitiesName = name === "capabilities" || name === "_capabilities";
 		const hasIntersectedDiyCapabilitiesType =
-			param.type != null && hasDiyCapabilitiesIntersection(sourceFile, param.type);
+			param.type != null && (await hasDiyCapabilitiesIntersection(checker, param.type));
 		const hasDiyCapabilitiesType =
-			param.type != null && isDiyCapabilitiesAnnotation(sourceFile, param.type);
+			param.type != null && (await isDiyCapabilitiesAnnotation(checker, param.type));
 		const hasNonDiyCapabilitiesAnnotation =
 			isCapabilitiesName &&
 			param.type != null &&
@@ -188,16 +194,17 @@ function checkCapabilitiesParameters(
 	}
 }
 
-function hasDiyCapabilitiesIntersection(
-	sourceFile: AnalyzedSourceFile,
+async function hasDiyCapabilitiesIntersection(
+	checker: Checker,
 	typeNode: TypeNode,
-): boolean {
+): Promise<boolean> {
 	if (typeNode.kind !== SyntaxKind.IntersectionType) {
 		return false;
 	}
-	return intersectionTypes(typeNode).some((member) =>
-		isDiyCapabilitiesAnnotation(sourceFile, member),
+	const members = await Promise.all(
+		intersectionTypes(typeNode).map((member) => isDiyCapabilitiesAnnotation(checker, member)),
 	);
+	return members.includes(true);
 }
 
 function checkNoRenamedDiyImport(

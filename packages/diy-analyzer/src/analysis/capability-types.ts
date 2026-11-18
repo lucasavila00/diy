@@ -1,7 +1,10 @@
 import {
 	SyntaxKind,
 	isExpression,
+	isImportTypeNode,
 	isParenthesizedTypeNode,
+	isQualifiedName,
+	isTypeAliasDeclaration,
 	isTypeReferenceNode,
 	skipOuterExpressions,
 } from "typescript/unstable/ast";
@@ -12,7 +15,7 @@ import type {
 	Node,
 	TypeNode,
 } from "typescript/unstable/ast";
-import { SignatureKind, TypeFlags } from "typescript/unstable/async";
+import { SignatureKind, SymbolFlags, TypeFlags } from "typescript/unstable/async";
 import type {
 	Checker,
 	Signature,
@@ -34,18 +37,18 @@ export async function isCapabilitiesType(checker: Checker, type: Type): Promise<
 	return hasDiyCapabilitiesDeclaration(type);
 }
 
-export function isDiyCapabilitiesAnnotation(
-	sourceFile: AnalyzedSourceFile,
+export async function isDiyCapabilitiesAnnotation(
+	checker: Checker,
 	typeNode: TypeNode,
-): boolean {
-	return capabilitiesAnnotationTypeNode(sourceFile, typeNode) != null;
+): Promise<boolean> {
+	return (await capabilitiesAnnotationTypeNode(checker, typeNode)) != null;
 }
 
-function capabilitiesAnnotationTypeNode(
-	sourceFile: AnalyzedSourceFile,
+async function capabilitiesAnnotationTypeNode(
+	checker: Checker,
 	typeNode: TypeNode,
-): TypeNode | undefined {
-	const resolved = resolveCapabilitiesAnnotationTypeNode(sourceFile, typeNode, new Set());
+): Promise<TypeNode | undefined> {
+	const resolved = await resolveCapabilitiesAnnotationTypeNode(checker, typeNode, new Set());
 	return resolved != null && typeReferenceArguments(resolved).length > 0 ? resolved : undefined;
 }
 
@@ -67,19 +70,18 @@ function isPublicId(name: string): boolean {
 	return !name.includes("@") && name !== "__type";
 }
 
-export function isNeverCapabilitiesType(
-	sourceFile: AnalyzedSourceFile,
+export async function isNeverCapabilitiesType(
+	checker: Checker,
 	typeNode: TypeNode,
-): boolean {
-	return firstCapabilityTypeArgument(sourceFile, typeNode)?.kind === SyntaxKind.NeverKeyword;
+): Promise<boolean> {
+	return (await firstCapabilityTypeArgument(checker, typeNode))?.kind === SyntaxKind.NeverKeyword;
 }
 
 export async function isOpaqueCapabilitiesType(
 	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
 	typeNode: TypeNode,
 ): Promise<boolean> {
-	const firstTypeArgument = firstCapabilityTypeArgument(sourceFile, typeNode);
+	const firstTypeArgument = await firstCapabilityTypeArgument(checker, typeNode);
 	if (firstTypeArgument == null) {
 		return false;
 	}
@@ -89,10 +91,9 @@ export async function isOpaqueCapabilitiesType(
 
 export async function isOpenCapabilityBagType(
 	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
 	typeNode: TypeNode,
 ): Promise<boolean> {
-	const firstTypeArgument = firstCapabilityTypeArgument(sourceFile, typeNode);
+	const firstTypeArgument = await firstCapabilityTypeArgument(checker, typeNode);
 	/* c8 ignore next -- parsed Capabilities declarations have a type argument here. */
 	if (firstTypeArgument == null) {
 		return false;
@@ -115,67 +116,80 @@ export async function isOpenCapabilityBagType(
 	return false;
 }
 
-function firstCapabilityTypeArgument(
-	sourceFile: AnalyzedSourceFile,
+async function firstCapabilityTypeArgument(
+	checker: Checker,
 	typeNode: TypeNode,
-): TypeNode | undefined {
-	const directCapabilitiesNode = capabilitiesAnnotationTypeNode(sourceFile, typeNode);
+): Promise<TypeNode | undefined> {
+	const directCapabilitiesNode = await capabilitiesAnnotationTypeNode(checker, typeNode);
 	return directCapabilitiesNode == null
 		? undefined
 		: typeReferenceArguments(directCapabilitiesNode)[0];
 }
 
-function resolveCapabilitiesAnnotationTypeNode(
-	sourceFile: AnalyzedSourceFile,
+// Follow the annotation through the checker: imports, re-exports, `import("...")` types,
+// and type aliases resolve by symbol, so scoping and cross-module aliases match TypeScript.
+async function resolveCapabilitiesAnnotationTypeNode(
+	checker: Checker,
 	typeNode: TypeNode,
-	seenAliases: Set<string>,
-): TypeNode | undefined {
+	seenAliases: Set<number>,
+): Promise<TypeNode | undefined> {
 	const unwrapped = unwrapTypeNode(typeNode);
-	if (isImportedDiyCapabilitiesTypeReference(sourceFile, unwrapped)) {
+	const nameNode = typeReferenceNameNode(unwrapped);
+	const symbol = nameNode == null ? undefined : await checker.getSymbolAtLocation(nameNode);
+	if (symbol == null) {
+		return undefined;
+	}
+	const target =
+		(symbol.flags & SymbolFlags.Alias) === 0 ? symbol : await checker.getAliasedSymbol(symbol);
+	if (target.name === "Capabilities" && isDiyCapabilitiesDeclaration(target)) {
 		return unwrapped;
 	}
-	const aliasName = typeReferenceName(unwrapped);
-	if (aliasName == null || seenAliases.has(aliasName)) {
+	const declaration = target.declarations[0];
+	if (
+		declaration == null ||
+		declaration.kind !== SyntaxKind.TypeAliasDeclaration ||
+		seenAliases.has(target.id)
+	) {
 		return undefined;
 	}
-	const aliasType = sourceFile.typeAliases.get(aliasName);
-	if (aliasType == null) {
+	seenAliases.add(target.id);
+	const aliasDeclaration = await declaration.resolve();
+	/* c8 ignore next -- type alias symbol declarations resolve to type alias nodes. */
+	if (aliasDeclaration == null || !isTypeAliasDeclaration(aliasDeclaration)) {
 		return undefined;
 	}
-	seenAliases.add(aliasName);
-	return resolveCapabilitiesAnnotationTypeNode(sourceFile, aliasType, seenAliases);
+	return resolveCapabilitiesAnnotationTypeNode(checker, aliasDeclaration.type, seenAliases);
 }
 
 function unwrapTypeNode(typeNode: TypeNode): TypeNode {
 	return isParenthesizedTypeNode(typeNode) ? unwrapTypeNode(typeNode.type) : typeNode;
 }
 
-function typeReferenceName(typeNode: TypeNode): string | null {
-	return isTypeReferenceNode(typeNode) ? staticName(typeNode.typeName) : null;
+function typeReferenceNameNode(typeNode: TypeNode): Node | undefined {
+	const name = isTypeReferenceNode(typeNode)
+		? typeNode.typeName
+		: isImportTypeNode(typeNode)
+			? typeNode.qualifier
+			: undefined;
+	return name != null && isQualifiedName(name) ? name.right : name;
 }
 
-function isImportedDiyCapabilitiesTypeReference(
-	sourceFile: AnalyzedSourceFile,
-	typeNode: TypeNode,
-): boolean {
-	const name = typeReferenceName(typeNode);
-	const imported = name == null ? null : sourceFile.imports.get(name);
-	return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
+function isDiyCapabilitiesDeclaration(symbol: TsgoSymbol): boolean {
+	return symbol.declarations.some((declaration) => {
+		const normalized = declaration.path.replaceAll("\\", "/");
+		const isCapabilitiesFile =
+			normalized.endsWith("/capabilities.ts") || normalized.endsWith("/capabilities.d.ts");
+		/* c8 ignore next -- fixtures resolve DIY through the local packages path. */
+		return (
+			isCapabilitiesFile &&
+			(normalized.includes("/packages/diy/") || normalized.includes("/node_modules/@beff/diy/"))
+		);
+	});
 }
 
 async function hasDiyCapabilitiesDeclaration(type: Type): Promise<boolean> {
-	return (
-		(await type.getSymbol())?.declarations.some((declaration) => {
-			const normalized = declaration.path.replaceAll("\\", "/");
-			const isCapabilitiesFile =
-				normalized.endsWith("/capabilities.ts") || normalized.endsWith("/capabilities.d.ts");
-			/* c8 ignore next -- fixtures resolve DIY through the local packages path. */
-			return (
-				isCapabilitiesFile &&
-				(normalized.includes("/packages/diy/") || normalized.includes("/node_modules/@beff/diy/"))
-			);
-		}) ?? false
-	);
+	const symbol = await type.getSymbol();
+	return symbol != null && isDiyCapabilitiesDeclaration(symbol);
 }
 
 export function isImportedCapabilitiesValue(

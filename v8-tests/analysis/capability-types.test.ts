@@ -8,96 +8,28 @@ import {
 
 type ParameterNameArg = Parameters<typeof declaredParameterType>[1];
 type ParameterSymbolArg = Parameters<typeof declaredParameterType>[2];
-type SourceFileArg = Parameters<typeof isDiyCapabilitiesAnnotation>[0];
+type CheckerArg = Parameters<typeof isDiyCapabilitiesAnnotation>[0];
 type TypeNodeArg = Parameters<typeof isDiyCapabilitiesAnnotation>[1];
 
 const typeReferenceKind = 184;
 const parenthesizedTypeKind = 197;
 
 describe("DIY Capabilities annotations", () => {
-	it("accepts direct imports without checker declaration identity", () => {
-		const source = sourceFile({
-			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
-		});
+	it("accepts parenthesized DIY Capabilities references", async () => {
 		const annotation = typeReference("Capabilities", [typeReference("DataCapability")]);
-
-		expect(isDiyCapabilitiesAnnotation(source, annotation)).toBe(true);
-	});
-
-	it("accepts local aliases by following parsed type alias declarations", () => {
-		const source = sourceFile({
-			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
-			typeAliases: [
-				["AppCapabilities", typeReference("Capabilities", [typeReference("DataCapability")])],
-			],
+		const checker = checkerWithSymbol({
+			declarations: [{ path: "/repo/packages/diy/src/capabilities.ts" }],
+			flags: 0,
+			name: "Capabilities",
 		});
 
-		expect(isDiyCapabilitiesAnnotation(source, typeReference("AppCapabilities"))).toBe(true);
-	});
-
-	it("accepts parenthesized local aliases", () => {
-		const source = sourceFile({
-			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
-			typeAliases: [
-				[
-					"AppCapabilities",
-					parenthesized(typeReference("Capabilities", [typeReference("DataCapability")])),
-				],
-			],
-		});
-
-		expect(isDiyCapabilitiesAnnotation(source, typeReference("AppCapabilities"))).toBe(true);
-	});
-
-	it("rejects cyclic aliases", () => {
-		const source = sourceFile({
-			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
-			typeAliases: [
-				["FirstCapabilities", typeReference("SecondCapabilities")],
-				["SecondCapabilities", typeReference("FirstCapabilities")],
-			],
-		});
-
-		expect(isDiyCapabilitiesAnnotation(source, typeReference("FirstCapabilities"))).toBe(false);
-	});
-
-	it("rejects Capabilities imports from other packages without asking the checker", () => {
-		const source = sourceFile({
-			imports: [
-				["Capabilities", { importedName: "Capabilities", source: "@example/capabilities" }],
-			],
-		});
-		const annotation = typeReference("Capabilities", [typeReference("DataCapability")]);
-
-		expect(isDiyCapabilitiesAnnotation(source, annotation)).toBe(false);
-	});
-
-	it("rejects aliases that do not resolve syntactically to DIY Capabilities", () => {
-		const source = sourceFile({
-			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
-			typeAliases: [["Input", typeReference("InputCodec")]],
-		});
-
-		expect(isDiyCapabilitiesAnnotation(source, typeReference("Input"))).toBe(false);
-	});
-
-	it("rejects Capabilities without a type argument", () => {
-		const source = sourceFile({
-			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
-		});
-
-		expect(isDiyCapabilitiesAnnotation(source, typeReference("Capabilities"))).toBe(false);
+		expect(await isDiyCapabilitiesAnnotation(checker, parenthesized(annotation))).toBe(true);
 	});
 
 	it("does not treat unrelated annotations as opaque Capabilities", async () => {
-		const checker = {
-			getTypeFromTypeNode: async () => undefined,
-		} as unknown as Parameters<typeof isOpaqueCapabilitiesType>[0];
-		const source = sourceFile({
-			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
-		});
+		const checker = checkerWithSymbol(undefined);
 
-		expect(await isOpaqueCapabilitiesType(checker, source, typeReference("Input"))).toBe(false);
+		expect(await isOpaqueCapabilitiesType(checker, typeReference("Input"))).toBe(false);
 	});
 
 	it("reads declared types from parameter bindings instead of annotation locations", async () => {
@@ -142,26 +74,10 @@ function parenthesized(type: TypeNodeArg): TypeNodeArg {
 	} as unknown as TypeNodeArg;
 }
 
-function sourceFile({
-	filePath = "/source.ts",
-	imports = [],
-	sourceText = "",
-	typeAliases = [],
-}: {
-	readonly filePath?: string;
-	readonly imports?: readonly [
-		string,
-		{ readonly importedName: string; readonly source: string },
-	][];
-	readonly sourceText?: string;
-	readonly typeAliases?: readonly [string, TypeNodeArg][];
-}): SourceFileArg {
+function checkerWithSymbol(symbol: unknown): CheckerArg {
 	return {
-		filePath,
-		imports: new Map(imports.map(([name, imported]) => [name, { kind: "named", ...imported }])),
-		sourceFile: { text: sourceText },
-		typeAliases: new Map(typeAliases),
-	} as unknown as SourceFileArg;
+		getSymbolAtLocation: async () => symbol,
+	} as unknown as CheckerArg;
 }
 
 function typeWithProperties(names: readonly string[]): unknown {

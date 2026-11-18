@@ -1,5 +1,6 @@
 import {
 	SyntaxKind,
+	isImportTypeNode,
 	isIntersectionTypeNode,
 	isNoSubstitutionTemplateLiteral,
 	isObjectLiteralExpression,
@@ -31,8 +32,10 @@ export function nodeName(node: Node): string | null {
 }
 
 export function typeReferenceArguments(typeNode: TypeNode): readonly TypeNode[] {
-	/* c8 ignore next -- callers pass TypeReference nodes when type arguments are expected. */
-	return isTypeReferenceNode(typeNode) ? (typeNode.typeArguments ?? []) : [];
+	/* c8 ignore next -- callers pass TypeReference or ImportType nodes when type arguments are expected. */
+	return isTypeReferenceNode(typeNode) || isImportTypeNode(typeNode)
+		? (typeNode.typeArguments ?? [])
+		: [];
 }
 
 export function intersectionTypes(typeNode: TypeNode): readonly TypeNode[] {

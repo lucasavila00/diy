@@ -57,7 +57,7 @@ export async function scanFunctionBody(
 		if (
 			node !== analyzedFunction.node &&
 			isFunctionLike(node) &&
-			hasOwnCapabilitiesBinding(analyzedFunction.sourceFile, node)
+			(await hasOwnCapabilitiesBinding(project.checker, node))
 		) {
 			return;
 		}
@@ -444,12 +444,12 @@ async function capabilitiesSourceExpression(
 	return provided == null ? null : { provided };
 }
 
-function hasOwnCapabilitiesBinding(
-	sourceFile: AnalyzedSourceFile,
+async function hasOwnCapabilitiesBinding(
+	checker: Checker,
 	node: FunctionLikeDeclaration,
-): boolean {
+): Promise<boolean> {
 	const firstParam = node.parameters[0];
-	if (firstParam?.type != null && isDiyCapabilitiesAnnotation(sourceFile, firstParam.type)) {
+	if (firstParam?.type != null && (await isDiyCapabilitiesAnnotation(checker, firstParam.type))) {
 		return true;
 	}
 	return node.parameters.some((param) => {

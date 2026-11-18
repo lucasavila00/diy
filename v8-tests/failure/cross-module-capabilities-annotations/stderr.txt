@@ -1,0 +1,34 @@
+src/main.ts:4:8 unused capability
+  Declares unused capability "writer".
+  = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:8:8 unused capability
+  Declares unused capability "writer".
+  = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:20:8 unused capability
+  Declares unused capability "writer".
+  = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:28:15 unused capability
+  Declares unused capability "writer".
+  = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:15:2 invalid capabilities parameter
+  Capabilities parameters must be named `capabilities` or `_capabilities`.
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:15:2 invalid capabilities parameter
+  Capabilities parameters must be the first parameter.
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:37:24 invalid capabilities parameter
+  `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
+  = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
