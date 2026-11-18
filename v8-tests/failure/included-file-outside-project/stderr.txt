@@ -1,0 +1,7 @@
+../app2/over-declared.ts unanalyzed file
+  Matched by diy.json `include`, but outside the diy.json directory, so it was not analyzed.
+  = help: move diy.json to a directory that contains every included file, or remove this file from diy.json `include`
+
+../lib/over-declared.ts unanalyzed file
+  Matched by diy.json `include`, but outside the diy.json directory, so it was not analyzed.
+  = help: move diy.json to a directory that contains every included file, or remove this file from diy.json `include`

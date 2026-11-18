@@ -1,10 +1,12 @@
 import { existsSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 import { SyntaxKind, isTypeAliasDeclaration } from "typescript/unstable/ast";
 import type { ImportDeclaration, Node, SourceFile, TypeNode } from "typescript/unstable/ast";
 import type { Project } from "typescript/unstable/async";
 
+import type { DiyAnalyzerViolation } from "../model/types.ts";
+import { normalizePath } from "../shared/path.ts";
 import { lineStarts, literalText } from "./ast-utils.ts";
 import type { AnalyzedSourceFile, ImportBinding } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
@@ -13,22 +15,37 @@ export async function collectAnalyzedSourceFiles(
 	project: Project,
 	coveredSet: ReadonlySet<string>,
 	cwd: string,
+	configPath: string,
 	verbose?: (message: string) => void,
-): Promise<readonly AnalyzedSourceFile[]> {
+): Promise<{
+	readonly sourceFiles: readonly AnalyzedSourceFile[];
+	readonly unanalyzedFiles: readonly DiyAnalyzerViolation[];
+}> {
 	const modules: AnalyzedSourceFile[] = [];
+	const unanalyzedFiles: DiyAnalyzerViolation[] = [];
 	const seen = new Set<string>();
 	const queue = Array.from(coveredSet).sort();
 	for (let index = 0; index < queue.length; index += 1) {
 		/* c8 ignore next -- loop bounds ensure the queue entry exists. */
 		const filePath = resolve(queue[index] ?? "");
-		if (seen.has(filePath) || shouldSkipSourceFile(filePath, cwd)) {
+		if (seen.has(filePath) || shouldSkipSourceFile(filePath)) {
+			continue;
+		}
+		seen.add(filePath);
+		// Only covered files reach this point outside cwd: imports are filtered by importedProjectFiles.
+		if (!isInsideDirectory(filePath, cwd) && !filePath.includes("/packages/diy/src/")) {
+			unanalyzedFiles.push(outsideProjectViolation(filePath));
 			continue;
 		}
 		verbose?.(`loading source file ${relative(cwd, filePath)}`);
-		seen.add(filePath);
 		const sourceFile = await project.program.getSourceFile(filePath);
-		/* c8 ignore next -- tsgo omits declaration roots from source-file lookup here. */
-		if (sourceFile == null || sourceFile.isDeclarationFile) {
+		// Only covered files can be missing: imports are queued after a successful lookup.
+		if (sourceFile == null) {
+			unanalyzedFiles.push(outsideTsconfigViolation(filePath, cwd, configPath));
+			continue;
+		}
+		/* c8 ignore next -- declaration files are skipped before lookup. */
+		if (sourceFile.isDeclarationFile) {
 			continue;
 		}
 		verbose?.(`collecting imports in ${relative(cwd, filePath)}`);
@@ -50,7 +67,55 @@ export async function collectAnalyzedSourceFiles(
 			typeAliases,
 		});
 	}
-	return modules.sort((left, right) => left.filePath.localeCompare(right.filePath));
+	return {
+		sourceFiles: modules.sort((left, right) => left.filePath.localeCompare(right.filePath)),
+		unanalyzedFiles,
+	};
+}
+
+function isInsideDirectory(filePath: string, directory: string): boolean {
+	const relativePath = relative(directory, filePath);
+	return !relativePath.startsWith(`..${sep}`) && !isAbsolute(relativePath);
+}
+
+function outsideProjectViolation(filePath: string): DiyAnalyzerViolation {
+	return {
+		filePath,
+		name: "unanalyzed file",
+		notes: [
+			{
+				kind: "help",
+				message:
+					"move diy.json to a directory that contains every included file, or remove this file from diy.json `include`",
+			},
+		],
+		reason:
+			"Matched by diy.json `include`, but outside the diy.json directory, so it was not analyzed.",
+	};
+}
+
+function outsideTsconfigViolation(
+	filePath: string,
+	cwd: string,
+	configPath: string,
+): DiyAnalyzerViolation {
+	const tsconfig = normalizePath(relative(cwd, configPath));
+	return {
+		filePath,
+		name: "unanalyzed file",
+		notes: [
+			{
+				kind: "help",
+				message: `add this file to \`include\` or \`files\` in ${tsconfig}, or exclude it with diy.json \`ignore\``,
+			},
+			{
+				kind: "note",
+				message:
+					"DIY uses the nearest tsconfig.json at or above the diy.json directory as-is and does not follow project `references`",
+			},
+		],
+		reason: `Matched by diy.json \`include\`, but not part of the TypeScript project ${tsconfig}, so it was not analyzed.`,
+	};
 }
 
 function lazyLineStarts(text: string): () => readonly number[] {
@@ -62,12 +127,8 @@ function lazyLineStarts(text: string): () => readonly number[] {
 }
 
 /* c8 ignore start -- skip guards are defensive around checker-provided project imports. */
-function shouldSkipSourceFile(filePath: string, cwd: string): boolean {
-	return (
-		filePath.includes("/node_modules/") ||
-		filePath.endsWith(".d.ts") ||
-		(!filePath.startsWith(resolve(cwd)) && !filePath.includes("/packages/diy/src/"))
-	);
+function shouldSkipSourceFile(filePath: string): boolean {
+	return filePath.includes("/node_modules/") || filePath.endsWith(".d.ts");
 }
 /* c8 ignore stop */
 
@@ -87,7 +148,7 @@ async function importedProjectFiles(
 		}
 		for (const candidate of importCandidates(sourceFile.fileName, source)) {
 			const filePath = resolve(candidate);
-			if (!filePath.startsWith(resolve(cwd))) {
+			if (!isInsideDirectory(filePath, cwd)) {
 				continue;
 			}
 			if ((await project.program.getSourceFile(filePath)) != null) {

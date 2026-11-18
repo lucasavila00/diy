@@ -35,7 +35,11 @@ function notesWithSuppressionHelp(
 	name: string,
 	notes: readonly DiyAnalyzerNote[] | undefined,
 ): readonly DiyAnalyzerNote[] {
-	if (name === "invalid diagnostic suppression" || name === "unused diagnostic suppression") {
+	if (
+		name === "invalid diagnostic suppression" ||
+		name === "unused diagnostic suppression" ||
+		name === "unanalyzed file"
+	) {
 		return notes ?? [];
 	}
 	return [

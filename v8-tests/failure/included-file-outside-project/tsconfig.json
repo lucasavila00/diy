@@ -1,0 +1,7 @@
+{
+	"extends": "../../../tsconfig.packages.json",
+	"compilerOptions": {
+		"types": []
+	},
+	"include": ["app/src", "app2", "lib"]
+}
