@@ -150,7 +150,7 @@ function collectNativeSuppressions(modules: readonly AnalyzedSourceFile[]): {
 		let lineStart = 0;
 		for (const [index, lineText] of lines.entries()) {
 			const start = lineStart;
-			lineStart += lineText.length + (text.startsWith("\r\n", start + lineText.length) ? 2 : 1);
+			lineStart = text.indexOf("\n", start) + 1;
 			const match = directivePattern.exec(lineText);
 			if (match == null) {
 				continue;
