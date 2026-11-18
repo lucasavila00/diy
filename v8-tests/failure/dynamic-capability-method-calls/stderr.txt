@@ -1,54 +1,19 @@
-src/main.ts:11:6 unsupported analysis
-   9 |
-  10 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 11 | 	use(capabilities[id]);
-     | 	    ^ dynamic capability access
-  12 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  13 | 	use(capabilities[`fs${id}`]);
-  14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
+src/main.ts:11:6 unsupported analysis dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:13:6 unsupported analysis
-  11 | 	use(capabilities[id]);
-  12 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 13 | 	use(capabilities[`fs${id}`]);
-     | 	    ^ dynamic capability access
-  14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  15 | 	use(capabilities[dynamicId]);
-  16 | 	use(capabilities?.fs);
+src/main.ts:13:6 unsupported analysis dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:15:6 unsupported analysis
-  13 | 	use(capabilities[`fs${id}`]);
-  14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-> 15 | 	use(capabilities[dynamicId]);
-     | 	    ^ dynamic capability access
-  16 | 	use(capabilities?.fs);
-  17 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  18 | 	const { [dynamicId]: fs } = capabilities;
+src/main.ts:15:6 unsupported analysis dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:16:6 unsupported analysis
-  14 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  15 | 	use(capabilities[dynamicId]);
-> 16 | 	use(capabilities?.fs);
-     | 	    ^ dynamic capability access
-  17 | 	// @ts-expect-error intentionally invalid for analyzer coverage
-  18 | 	const { [dynamicId]: fs } = capabilities;
-  19 | 	use(fs);
+src/main.ts:16:6 unsupported analysis dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:30:7 unsupported analysis
-  28 | 	check(capabilities: Capabilities<FsCapability>): void {
-  29 | 		// @ts-expect-error intentionally invalid for analyzer coverage
-> 30 | 		use(capabilities.#fs);
-     | 		    ^ dynamic capability access
-  31 | 	}
-  32 | }
-  33 |
+src/main.ts:30:7 unsupported analysis dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

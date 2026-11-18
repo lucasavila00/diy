@@ -94,6 +94,8 @@ The codebase is TypeScript ESM. Keep imports explicit and include `.ts` extensio
 
 Do not commit generated `dist/` churn unless the change intentionally updates package output. Keep analyzer output deterministic by sorting paths, rules, and messages consistently.
 
+DIY diagnostics are written for coding agents, not humans. When adding or changing a diagnostic, keep it plain text and greppable: one location line per problem that names the violated rule and why, followed by an actionable fix or hint note when the analyzer knows one. Do not add code frames, colors, or other decoration. See `docs/adr/0007-agent-oriented-diagnostics.md`.
+
 ## Testing Guidelines
 
 Run the `npm run all`

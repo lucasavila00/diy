@@ -1,120 +1,43 @@
-src/main.ts:11:8 unused capability
-   9 | declare const readerReplacement: unknown;
-  10 |
-> 11 | export function load(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
-     |        ^ Declares unused capability "writer".
-  12 | 	capabilities.reader;
-  13 | }
-  14 |
+src/main.ts:11:8 unused capability Declares unused capability "writer".
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:15:8 unused capability
-  13 | }
-  14 |
-> 15 | export function save(capabilities: Capabilities<ReadCapability | WriteCapability>): void {
-     |        ^ Declares unused capability "reader".
-  16 | 	capabilities.writer;
-  17 | }
-  18 |
+src/main.ts:15:8 unused capability Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:19:8 unused capability
-  17 | }
-  18 |
-> 19 | export function aliased(capabilities: ReadWriteCapabilities): void {
-     |        ^ Declares unused capability "writer".
-  20 | 	capabilities.reader;
-  21 | }
-  22 |
+src/main.ts:19:8 unused capability Declares unused capability "writer".
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:23:8 unused capability
-  21 | }
-  22 |
-> 23 | export function hyphenated(capabilities: Capabilities<ReadCapability | HyphenCapability>): void {
-     |        ^ Declares unused capability "reader-id".
-  24 | 	capabilities.reader;
-  25 | }
-  26 |
+src/main.ts:23:8 unused capability Declares unused capability "reader-id".
   = help: remove "reader-id" from `Capabilities<...>`, or add a real `capabilities["reader-id"]` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:27:8 unused capability
-  25 | }
-  26 |
-> 27 | export function grouped(
-     |        ^ Declares unused capabilities: "extra", "writer".
-  28 | 	capabilities: Capabilities<ExtraCapability | ReadCapability | WriteCapability>,
-  29 | ): void {
-  30 | 	capabilities.reader;
+src/main.ts:27:8 unused capability Declares unused capabilities: "extra", "writer".
   = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:46:8 unused capability
-  44 | }
-  45 |
-> 46 | export function passDirectToEmpty(capabilities: Capabilities<ReadCapability>): void {
-     |        ^ Declares unused capability "reader".
-  47 | 	needEmpty(capabilities);
-  48 | }
-  49 |
+src/main.ts:46:8 unused capability Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:50:8 unused capability
-  48 | }
-  49 |
-> 50 | export function passMergedToEmpty(capabilities: Capabilities<ReadCapability>): void {
-     |        ^ Declares unused capability "reader".
-  51 | 	needEmpty(Capabilities.merge(capabilities));
-  52 | }
-  53 |
+src/main.ts:50:8 unused capability Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:54:8 unused capability
-  52 | }
-  53 |
-> 54 | export function returnMerged(
-     |        ^ Declares unused capability "reader".
-  55 | 	capabilities: Capabilities<ReadCapability>,
-  56 | ): Capabilities<ReadCapability> {
-  57 | 	return Capabilities.merge(capabilities);
+src/main.ts:54:8 unused capability Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:60:8 unused capability
-  58 | }
-  59 |
-> 60 | export function overrideThenForward(capabilities: Capabilities<ReadCapability>): void {
-     |        ^ Declares unused capability "reader".
-  61 | 	needReader(Capabilities.override(capabilities, { reader: readerReplacement }));
-  62 | }
-  63 |
+src/main.ts:60:8 unused capability Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:64:8 unused capability
-  62 | }
-  63 |
-> 64 | export function arbitraryCallProvider(capabilities: Capabilities<ReadCapability>): void {
-     |        ^ Declares unused capability "reader".
-  65 | 	Capabilities.extend(capabilities, makeEmptyFromObject({ reader: readerReplacement }));
-  66 | }
-  67 |
+src/main.ts:64:8 unused capability Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:69:6 unused capability
-  67 |
-  68 | const operation = {
-> 69 | 	up: async (capabilities: Capabilities<ReadCapability | WriteCapability>): Promise<void> => {
-     | 	    ^ Declares unused capability "writer".
-  70 | 		capabilities.reader;
-  71 | 	},
-  72 | };
+src/main.ts:69:6 unused capability Declares unused capability "writer".
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
