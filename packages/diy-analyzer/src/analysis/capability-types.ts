@@ -175,11 +175,7 @@ function isDiyCapabilitiesResolvedType(type: Type): boolean {
 }
 
 function targetType(type: Type): Type | undefined {
-	try {
-		return (type as Type & { readonly getTarget?: () => Type }).getTarget?.();
-	} catch {
-		return undefined;
-	}
+	return (type as Type & { readonly getTarget?: () => Type }).getTarget?.();
 }
 
 function hasDiyCapabilitiesDeclaration(type: Type | undefined): boolean {
@@ -289,15 +285,7 @@ export function expressionType(
 	sourceFile: AnalyzedSourceFile,
 	expression: Expression,
 ): Type | undefined {
-	const unwrapped = unwrapExpression(expression);
-	if (unwrapped.kind === SyntaxKind.CallExpression) {
-		const signature = resolveCallSignature(checker, sourceFile, unwrapped as CallExpression);
-		/* c8 ignore next -- call expressions used for capability values have signatures. */
-		if (signature != null) {
-			return checker.getReturnTypeOfSignature(signature);
-		}
-	}
-	return checker.getTypeAtLocation(unwrapped);
+	return checker.getTypeAtLocation(unwrapExpression(expression));
 }
 
 function callableExpressionType(
