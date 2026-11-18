@@ -52,8 +52,11 @@ type ForwardedCapabilityUse = {
 type CapabilityProviderCheck = {
 	readonly column: number;
 	readonly extra: ReadonlySet<string>;
+	readonly helper: PropagationHelperName;
 	readonly line: number;
 };
+
+export type PropagationHelperName = "extend" | "merge" | "override";
 
 export type ForwardedExpression = {
 	readonly provided: ReadonlySet<string>;
@@ -61,12 +64,25 @@ export type ForwardedExpression = {
 
 export type UnsupportedAnalysisReason =
 	| {
+			readonly column: number;
+			readonly helper: PropagationHelperName;
+			readonly kind: "capabilities-not-first-helper-argument";
+			readonly line: number;
+	  }
+	| {
 			readonly column?: number;
 			readonly kind: "dynamic-capability-access";
 			readonly line?: number;
 	  }
 	| {
 			readonly kind: "generic-direct-read";
+	  }
+	| {
+			readonly column: number;
+			readonly inner: PropagationHelperName;
+			readonly kind: "nested-capabilities-helper";
+			readonly line: number;
+			readonly outer: PropagationHelperName;
 	  }
 	| {
 			readonly kind: "open-capability-bag";

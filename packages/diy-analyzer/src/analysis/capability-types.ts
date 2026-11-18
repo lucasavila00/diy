@@ -12,7 +12,7 @@ import type {
 	Node,
 	TypeNode,
 } from "typescript/unstable/ast";
-import { SymbolFlags, TypeFlags } from "typescript/unstable/async";
+import { TypeFlags } from "typescript/unstable/async";
 import type {
 	Checker,
 	Signature,
@@ -28,20 +28,6 @@ import { diyImportSources } from "./native-types.ts";
 export async function capabilityIds(checker: Checker, type: Type): Promise<ReadonlySet<string>> {
 	const properties = await checker.getPropertiesOfType(type);
 	return new Set(properties.filter(isPublicId).map((property) => property.name));
-}
-
-// An optional member (for example, a key of a `Partial<...>` value) can be missing
-// at runtime. Thus it does not always give a capability.
-export async function definiteCapabilityIds(
-	checker: Checker,
-	type: Type,
-): Promise<ReadonlySet<string>> {
-	const properties = await checker.getPropertiesOfType(type);
-	return new Set(
-		properties
-			.filter((property) => isPublicId(property) && (property.flags & SymbolFlags.Optional) === 0)
-			.map((property) => property.name),
-	);
 }
 
 export async function isCapabilitiesType(checker: Checker, type: Type): Promise<boolean> {

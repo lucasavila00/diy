@@ -52,3 +52,9 @@ src/main.ts:69:6 unused capability
   Declares unused capability "writer".
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:61:13 replaced capabilities bag
+  Capabilities.override replaces all capabilities of capabilities: reader
+  = note: no service from `capabilities` gets to the result
+  = help: give only the services that change in later arguments; a later argument with a capability type that is too wide also causes this
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
