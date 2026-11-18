@@ -3,21 +3,6 @@ src/main.ts:12:8 unused capability
   = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:17:8 unused capability
-  Declares unused capability "read".
-  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:22:8 unused capability
-  Declares unused capability "read".
-  = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
-src/main.ts:27:8 unused capability
-  Declares unused capability "read-id".
-  = help: remove "read-id" from `Capabilities<...>`, or add a real `capabilities["read-id"]` read if it is required
-  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
-
 src/main.ts:39:8 unused capability
   Declares unused capability "read".
   = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
