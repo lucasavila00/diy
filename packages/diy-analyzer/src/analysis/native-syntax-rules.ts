@@ -6,7 +6,7 @@ import type {
 	Node,
 	TypeNode,
 } from "typescript/unstable/ast";
-import type { Diagnostic, Project } from "typescript/unstable/sync";
+import type { Diagnostic, Project } from "typescript/unstable/async";
 
 import type {
 	DiyAnalyzerNote,
@@ -45,18 +45,18 @@ export function analyzeNativeDiySyntax(
 	return violations;
 }
 
-export function collectNativeParseErrors(
+export async function collectNativeParseErrors(
 	project: Project,
 	sourceFiles: readonly AnalyzedSourceFile[],
 	verbose?: (message: string) => void,
-): readonly DiyAnalyzerUnsupported[] {
+): Promise<readonly DiyAnalyzerUnsupported[]> {
 	const unsupported: DiyAnalyzerUnsupported[] = [];
 	for (const [index, sourceFile] of sourceFiles.entries()) {
 		if (!sourceFile.reportable) {
 			continue;
 		}
 		verbose?.(`collecting parse errors ${index + 1}/${sourceFiles.length}: ${sourceFile.filePath}`);
-		for (const diagnostic of project.program.getSyntacticDiagnostics(sourceFile.filePath)) {
+		for (const diagnostic of await project.program.getSyntacticDiagnostics(sourceFile.filePath)) {
 			unsupported.push(parseError(sourceFile, diagnostic));
 		}
 	}

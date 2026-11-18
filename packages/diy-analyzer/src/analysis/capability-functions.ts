@@ -1,8 +1,9 @@
 import { SyntaxKind } from "typescript/unstable/ast";
 import type { FunctionLikeDeclaration, Node } from "typescript/unstable/ast";
-import type { Project } from "typescript/unstable/sync";
+import type { Project } from "typescript/unstable/async";
 
 import {
+	childNodes,
 	isFunctionLike,
 	locationForOffset,
 	nodeKey,
@@ -26,17 +27,17 @@ import type {
 import { recordDeadCodeMetric } from "./timing.ts";
 import { locationForNode, scanFunctionBody } from "./usage-scanner.ts";
 
-export function collectAnalyzedCapabilityFunctions(
+export async function collectAnalyzedCapabilityFunctions(
 	project: Project,
 	sourceFiles: readonly AnalyzedSourceFile[],
 	verbose?: (message: string) => void,
-): readonly AnalyzedCapabilityFunction[] {
+): Promise<readonly AnalyzedCapabilityFunction[]> {
 	const functions: AnalyzedCapabilityFunction[] = [];
 	for (const [index, sourceFile] of sourceFiles.entries()) {
 		verbose?.(
 			`collecting capability functions ${index + 1}/${sourceFiles.length}: ${sourceFile.filePath}`,
 		);
-		collectFunctionsFromSourceFile(project, sourceFile, functions);
+		await collectFunctionsFromSourceFile(project, sourceFile, functions);
 	}
 	recordDeadCodeMetric("source files", sourceFiles.length);
 	recordDeadCodeMetric("analyzed capability functions", functions.length);
@@ -44,31 +45,33 @@ export function collectAnalyzedCapabilityFunctions(
 		verbose?.(
 			`scanning function ${index + 1}/${functions.length}: ${analyzedFunction.filePath}:${analyzedFunction.line}:${analyzedFunction.column} ${analyzedFunction.name}`,
 		);
-		scanFunctionBody(project, analyzedFunction);
+		await scanFunctionBody(project, analyzedFunction);
 	}
 	return functions.sort(compareAnalyzedCapabilityFunctions);
 }
 
-function collectFunctionsFromSourceFile(
+async function collectFunctionsFromSourceFile(
 	project: Project,
 	sourceFile: AnalyzedSourceFile,
 	functions: AnalyzedCapabilityFunction[],
-): void {
+): Promise<void> {
 	const namespaceStack: string[] = [];
-	const visit = (node: Node, ownerName: string | null): void => {
+	const visit = async (node: Node, ownerName: string | null): Promise<void> => {
 		if (node.kind === SyntaxKind.ModuleDeclaration) {
 			const name = nodeName(node);
 			/* c8 ignore next -- parsed namespace declarations have a static name. */
 			if (name != null) {
 				namespaceStack.push(name);
-				node.forEachChild((child) => visit(child, ownerName));
+				for (const child of childNodes(node)) {
+					await visit(child, ownerName);
+				}
 				namespaceStack.pop();
 				return;
 			}
 		}
 		const nextOwnerName = ownerNameForChild(node, ownerName);
 		if (isFunctionLike(node)) {
-			const analyzedFunction = readAnalyzedCapabilityFunction(
+			const analyzedFunction = await readAnalyzedCapabilityFunction(
 				project,
 				sourceFile,
 				node,
@@ -79,18 +82,20 @@ function collectFunctionsFromSourceFile(
 				functions.push(analyzedFunction);
 			}
 		}
-		node.forEachChild((child) => visit(child, nextOwnerName));
+		for (const child of childNodes(node)) {
+			await visit(child, nextOwnerName);
+		}
 	};
-	visit(sourceFile.sourceFile, null);
+	await visit(sourceFile.sourceFile, null);
 }
 
-function readAnalyzedCapabilityFunction(
+async function readAnalyzedCapabilityFunction(
 	project: Project,
 	sourceFile: AnalyzedSourceFile,
 	node: FunctionLikeDeclaration,
 	ownerName: string | null,
 	namespaceStack: readonly string[],
-): AnalyzedCapabilityFunction | null {
+): Promise<AnalyzedCapabilityFunction | null> {
 	const firstParam = node.parameters[0];
 	if (firstParam == null || firstParam.type == null) {
 		return null;
@@ -98,18 +103,22 @@ function readAnalyzedCapabilityFunction(
 	if (!isDiyCapabilitiesAnnotation(sourceFile, firstParam.type)) {
 		return null;
 	}
-	const parameterSymbol = project.checker.getSymbolAtLocation(firstParam.name);
+	const parameterSymbol = await project.checker.getSymbolAtLocation(firstParam.name);
 	/* c8 ignore next -- tsgo provides symbols for declared parameters. */
 	if (parameterSymbol == null) {
 		return null;
 	}
-	const declaredType = declaredParameterType(project.checker, firstParam.name, parameterSymbol);
+	const declaredType = await declaredParameterType(
+		project.checker,
+		firstParam.name,
+		parameterSymbol,
+	);
 	/* c8 ignore next -- tsgo provides a type for parsed DIY Capabilities parameters. */
 	if (declaredType == null) {
 		return null;
 	}
-	const declaredCapabilityIds = capabilityIds(project.checker, declaredType);
-	const isGenericDeclaration = isOpaqueCapabilitiesType(
+	const declaredCapabilityIds = await capabilityIds(project.checker, declaredType);
+	const isGenericDeclaration = await isOpaqueCapabilitiesType(
 		project.checker,
 		sourceFile,
 		firstParam.type,
@@ -124,7 +133,7 @@ function readAnalyzedCapabilityFunction(
 		!isNeverCapabilitiesType(sourceFile, firstParam.type)
 	) {
 		unsupportedReasons.push({
-			kind: isOpenCapabilityBagType(project.checker, sourceFile, firstParam.type)
+			kind: (await isOpenCapabilityBagType(project.checker, sourceFile, firstParam.type))
 				? "open-capability-bag"
 				: "unresolved-declaration",
 		});

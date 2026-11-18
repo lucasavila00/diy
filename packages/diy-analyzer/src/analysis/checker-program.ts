@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
-import { API } from "typescript/unstable/sync";
+import { API } from "typescript/unstable/async";
 
 import { expandSourceFiles } from "../config/source-files.ts";
 import type { DiySourceConfig } from "../config/source-files.ts";
@@ -14,7 +14,7 @@ import type {
 	NativeSyntaxProgram,
 } from "./native-types.ts";
 import { collectAnalyzedSourceFiles, localDiyPaths } from "./source-files.ts";
-import { timeDeadCodePhase } from "./timing.ts";
+import { timeDeadCodePhase, timeDeadCodePhaseAsync } from "./timing.ts";
 
 export async function buildCheckerAnalysisProgramFromFiles(
 	coveredFiles: readonly string[],
@@ -24,7 +24,7 @@ export async function buildCheckerAnalysisProgramFromFiles(
 	const program = await buildNativeSyntaxProgramFromFiles(coveredFiles, cwd, verbose);
 	return {
 		...program,
-		analyzedFunctions: timeDeadCodePhase("capability analysis", () =>
+		analyzedFunctions: await timeDeadCodePhaseAsync("capability analysis", () =>
 			collectAnalyzedCapabilityFunctions(program.project, program.sourceFiles, verbose),
 		),
 	};
@@ -63,7 +63,7 @@ async function buildNativeSyntaxProgramFromFiles(
 	});
 	try {
 		verbose?.("building tsgo project");
-		const snapshot = timeDeadCodePhase("tsgo project build", () =>
+		const snapshot = await timeDeadCodePhaseAsync("tsgo project build", () =>
 			api.updateSnapshot({ openProject: configInfo.configPath }),
 		);
 		verbose?.("looking up tsgo project");
@@ -75,7 +75,7 @@ async function buildNativeSyntaxProgramFromFiles(
 			throw new Error(`Failed to open TypeScript project ${configInfo.configPath}.`);
 		}
 		verbose?.("collecting source files");
-		const sourceFiles = timeDeadCodePhase("collect source files", () =>
+		const sourceFiles = await timeDeadCodePhaseAsync("collect source files", () =>
 			collectAnalyzedSourceFiles(project, coveredSet, cwd, verbose),
 		);
 		verbose?.(`collected ${sourceFiles.length} source files`);
@@ -91,18 +91,18 @@ async function buildNativeSyntaxProgramFromFiles(
 		};
 	} catch (error) {
 		/* c8 ignore next -- tsgo project-open failures are surfaced before analysis starts. */
-		api.close();
+		await api.close();
 		/* c8 ignore next -- tsgo project-open failures are surfaced before analysis starts. */
 		throw error;
 	}
 }
 
-export function closeNativeSyntaxProgram(program: NativeSyntaxProgram): void {
-	program.api.close();
+export async function closeNativeSyntaxProgram(program: NativeSyntaxProgram): Promise<void> {
+	await program.api.close();
 }
 
-export function closeCheckerAnalysisProgram(program: CheckerAnalysisProgram): void {
-	program.api.close();
+export async function closeCheckerAnalysisProgram(program: CheckerAnalysisProgram): Promise<void> {
+	await program.api.close();
 }
 
 function resolveProjectConfig(

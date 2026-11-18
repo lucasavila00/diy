@@ -45,6 +45,15 @@ export function objectLiteralProperties(node: Node): readonly Node[] {
 	return isObjectLiteralExpression(node) ? node.properties : [];
 }
 
+/** Direct children in source order, for traversals that await between nodes. */
+export function childNodes(node: Node): readonly Node[] {
+	const children: Node[] = [];
+	node.forEachChild((child) => {
+		children.push(child);
+	});
+	return children;
+}
+
 export function isFunctionLike(node: Node): node is FunctionLikeDeclaration {
 	return (
 		node.kind === SyntaxKind.FunctionDeclaration ||

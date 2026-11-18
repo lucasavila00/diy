@@ -12,29 +12,25 @@ import type {
 	Node,
 	TypeNode,
 } from "typescript/unstable/ast";
-import { SignatureKind, TypeFlags } from "typescript/unstable/sync";
+import { SignatureKind, TypeFlags } from "typescript/unstable/async";
 import type {
 	Checker,
 	Signature,
 	StringLiteralType,
 	Symbol as TsgoSymbol,
 	Type,
-} from "typescript/unstable/sync";
+} from "typescript/unstable/async";
 
 import { literalText, staticName, typeReferenceArguments } from "./ast-utils.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
-export function capabilityIds(checker: Checker, type: Type): ReadonlySet<string> {
-	return new Set(
-		checker
-			.getPropertiesOfType(type)
-			.map((property) => property.name)
-			.filter(isPublicId),
-	);
+export async function capabilityIds(checker: Checker, type: Type): Promise<ReadonlySet<string>> {
+	const properties = await checker.getPropertiesOfType(type);
+	return new Set(properties.map((property) => property.name).filter(isPublicId));
 }
 
-export function isCapabilitiesType(checker: Checker, type: Type): boolean {
+export async function isCapabilitiesType(checker: Checker, type: Type): Promise<boolean> {
 	return hasDiyCapabilitiesDeclaration(type);
 }
 
@@ -53,17 +49,17 @@ function capabilitiesAnnotationTypeNode(
 	return resolved != null && typeReferenceArguments(resolved).length > 0 ? resolved : undefined;
 }
 
-export function declaredParameterType(
+export async function declaredParameterType(
 	checker: Checker,
 	parameterName: Node,
 	parameterSymbol: TsgoSymbol,
-): Type | undefined {
+): Promise<Type | undefined> {
 	// For declared parameter types, ask the checker for the binding's type. In
 	// external-project states, type-node locations can report contextual value
 	// types such as Promise instead of the annotation's declared type.
 	return (
-		checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterName) ??
-		checker.getTypeAtLocation(parameterName)
+		(await checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterName)) ??
+		(await checker.getTypeAtLocation(parameterName))
 	);
 }
 
@@ -78,42 +74,45 @@ export function isNeverCapabilitiesType(
 	return firstCapabilityTypeArgument(sourceFile, typeNode)?.kind === SyntaxKind.NeverKeyword;
 }
 
-export function isOpaqueCapabilitiesType(
+export async function isOpaqueCapabilitiesType(
 	checker: Checker,
 	sourceFile: AnalyzedSourceFile,
 	typeNode: TypeNode,
-): boolean {
+): Promise<boolean> {
 	const firstTypeArgument = firstCapabilityTypeArgument(sourceFile, typeNode);
 	if (firstTypeArgument == null) {
 		return false;
 	}
-	const type = checker.getTypeFromTypeNode(firstTypeArgument);
+	const type = await checker.getTypeFromTypeNode(firstTypeArgument);
 	return type != null && (type.flags & TypeFlags.TypeParameter) !== 0;
 }
 
-export function isOpenCapabilityBagType(
+export async function isOpenCapabilityBagType(
 	checker: Checker,
 	sourceFile: AnalyzedSourceFile,
 	typeNode: TypeNode,
-): boolean {
+): Promise<boolean> {
 	const firstTypeArgument = firstCapabilityTypeArgument(sourceFile, typeNode);
 	/* c8 ignore next -- parsed Capabilities declarations have a type argument here. */
 	if (firstTypeArgument == null) {
 		return false;
 	}
-	const type = checker.getTypeFromTypeNode(firstTypeArgument);
+	const type = await checker.getTypeFromTypeNode(firstTypeArgument);
 	/* c8 ignore next -- tsgo resolves type arguments for parsed Capabilities declarations. */
 	if (type == null) {
 		return false;
 	}
-	return checker.getPropertiesOfType(type).some((property) => {
-		const propertyType = checker.getTypeOfSymbolAtLocation(property, firstTypeArgument);
-		return (
-			property.name.includes("capabilityId") &&
-			propertyType != null &&
-			checker.typeToString(propertyType) === "string"
-		);
-	});
+	for (const property of await checker.getPropertiesOfType(type)) {
+		if (!property.name.includes("capabilityId")) {
+			continue;
+		}
+		const propertyType = await checker.getTypeOfSymbolAtLocation(property, firstTypeArgument);
+		/* c8 ignore next -- capabilityId members of unresolved capability bags are typed as string. */
+		if (propertyType != null && (await checker.typeToString(propertyType)) === "string") {
+			return true;
+		}
+	}
+	return false;
 }
 
 function firstCapabilityTypeArgument(
@@ -164,9 +163,9 @@ function isImportedDiyCapabilitiesTypeReference(
 	return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
 }
 
-function hasDiyCapabilitiesDeclaration(type: Type): boolean {
+async function hasDiyCapabilitiesDeclaration(type: Type): Promise<boolean> {
 	return (
-		type.getSymbol()?.declarations.some((declaration) => {
+		(await type.getSymbol())?.declarations.some((declaration) => {
 			const normalized = declaration.path.replaceAll("\\", "/");
 			const isCapabilitiesFile =
 				normalized.endsWith("/capabilities.ts") || normalized.endsWith("/capabilities.d.ts");
@@ -188,7 +187,10 @@ export function isImportedCapabilitiesValue(
 	return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
 }
 
-export function expressionSymbol(checker: Checker, expression: Expression): TsgoSymbol | undefined {
+export async function expressionSymbol(
+	checker: Checker,
+	expression: Expression,
+): Promise<TsgoSymbol | undefined> {
 	const unwrapped = unwrapExpression(expression);
 	if (unwrapped.kind === SyntaxKind.Identifier) {
 		return checker.getResolvedSymbol(unwrapped as Identifier);
@@ -210,31 +212,37 @@ export function unwrapExpression(expression: Expression): Expression {
 	return isExpression(unwrapped) ? unwrapped : expression;
 }
 
-export function staticStringExpression(checker: Checker, expression: Expression): string | null {
+export async function staticStringExpression(
+	checker: Checker,
+	expression: Expression,
+): Promise<string | null> {
 	const literal = literalText(expression);
 	if (literal != null) {
 		return literal;
 	}
-	const type = checker.getTypeAtLocation(expression);
+	const type = await checker.getTypeAtLocation(expression);
 	if (type != null && (type.flags & TypeFlags.StringLiteral) !== 0) {
 		return (type as StringLiteralType).value;
 	}
 	return null;
 }
 
-export function resolveCallSignature(
+export async function resolveCallSignature(
 	checker: Checker,
 	node: CallExpression,
-): Signature | undefined {
-	const type = checker.getTypeAtLocation(unwrapExpression(node.expression));
+): Promise<Signature | undefined> {
+	const type = await checker.getTypeAtLocation(unwrapExpression(node.expression));
 	/* c8 ignore next -- the checker returns a type for parsed call expression callees. */
 	if (type == null) {
 		return undefined;
 	}
-	return checker.getSignaturesOfType(type, SignatureKind.Call)[0];
+	return (await checker.getSignaturesOfType(type, SignatureKind.Call))[0];
 }
 
-export function expressionType(checker: Checker, expression: Expression): Type | undefined {
+export async function expressionType(
+	checker: Checker,
+	expression: Expression,
+): Promise<Type | undefined> {
 	return checker.getTypeAtLocation(unwrapExpression(expression));
 }
 

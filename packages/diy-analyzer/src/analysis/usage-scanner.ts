@@ -9,9 +9,10 @@ import type {
 	PropertyAccessExpression,
 	VariableDeclaration,
 } from "typescript/unstable/ast";
-import type { Checker, Project, Type } from "typescript/unstable/sync";
+import type { Checker, Project, Type } from "typescript/unstable/async";
 
 import {
+	childNodes,
 	isFunctionLike,
 	locationForOffset,
 	nodeName,
@@ -44,12 +45,14 @@ type ForwardedArgument = {
 	readonly index: number;
 };
 
-export function scanFunctionBody(
+export async function scanFunctionBody(
 	project: Project,
 	analyzedFunction: AnalyzedCapabilityFunction,
-): void {
+): Promise<void> {
 	let scannedNodes = 0;
-	const visit = (node: Node): void => {
+	// Sequential depth-first walk: declarations register propagated capability
+	// sources that later nodes in the same body look up.
+	const visit = async (node: Node): Promise<void> => {
 		scannedNodes += 1;
 		if (
 			node !== analyzedFunction.node &&
@@ -59,31 +62,33 @@ export function scanFunctionBody(
 			return;
 		}
 		if (isVariableDeclaration(node)) {
-			scanPropagatedVariable(project.checker, analyzedFunction, node);
+			await scanPropagatedVariable(project.checker, analyzedFunction, node);
 		} else if (isBinaryExpression(node)) {
-			scanPropagatedAssignment(project.checker, analyzedFunction, node);
+			await scanPropagatedAssignment(project.checker, analyzedFunction, node);
 		} else if (node.kind === SyntaxKind.PropertyAccessExpression) {
-			scanPropertyAccess(project, analyzedFunction, node as PropertyAccessExpression);
+			await scanPropertyAccess(project, analyzedFunction, node as PropertyAccessExpression);
 		} else if (node.kind === SyntaxKind.ElementAccessExpression) {
-			scanElementAccess(project, analyzedFunction, node as ElementAccessExpression);
+			await scanElementAccess(project, analyzedFunction, node as ElementAccessExpression);
 		} else if (node.kind === SyntaxKind.CallExpression) {
-			scanCall(project, analyzedFunction, node as CallExpression);
+			await scanCall(project, analyzedFunction, node as CallExpression);
 		}
-		node.forEachChild(visit);
+		for (const child of childNodes(node)) {
+			await visit(child);
+		}
 	};
-	visit(analyzedFunction.node);
+	await visit(analyzedFunction.node);
 	if (analyzedFunction.isGenericDeclaration && analyzedFunction.directCapabilityIds.size > 0) {
 		analyzedFunction.unsupportedReasons.push({ kind: "generic-direct-read" });
 	}
 	recordDeadCodeMetric("scanned AST nodes", scannedNodes);
 }
 
-function scanPropertyAccess(
+async function scanPropertyAccess(
 	project: Project,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: PropertyAccessExpression,
-): void {
-	const access = capabilityAccess(project.checker, analyzedFunction, node);
+): Promise<void> {
+	const access = await capabilityAccess(project.checker, analyzedFunction, node);
 	if (access == null) {
 		return;
 	}
@@ -99,12 +104,12 @@ function scanPropertyAccess(
 	analyzedFunction.directCapabilityIds.add(access.id);
 }
 
-function scanElementAccess(
+async function scanElementAccess(
 	project: Project,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: ElementAccessExpression,
-): void {
-	const access = capabilityAccess(project.checker, analyzedFunction, node);
+): Promise<void> {
+	const access = await capabilityAccess(project.checker, analyzedFunction, node);
 	if (access == null) {
 		return;
 	}
@@ -120,11 +125,11 @@ function scanElementAccess(
 	analyzedFunction.directCapabilityIds.add(access.id);
 }
 
-function capabilityAccess(
+async function capabilityAccess(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: PropertyAccessExpression | ElementAccessExpression,
-): { readonly id: string | null } | null {
+): Promise<{ readonly id: string | null } | null> {
 	let firstAccess: PropertyAccessExpression | ElementAccessExpression = node;
 	let current = unwrapExpression(accessExpression(node));
 	while (
@@ -134,7 +139,7 @@ function capabilityAccess(
 		firstAccess = current as PropertyAccessExpression | ElementAccessExpression;
 		current = unwrapExpression(accessExpression(firstAccess));
 	}
-	if (capabilitiesSourceExpression(checker, analyzedFunction, current) == null) {
+	if ((await capabilitiesSourceExpression(checker, analyzedFunction, current)) == null) {
 		return null;
 	}
 	if (firstAccess.kind === SyntaxKind.PropertyAccessExpression) {
@@ -148,19 +153,19 @@ function capabilityAccess(
 	if (access.questionDotToken != null) {
 		return { id: null };
 	}
-	return { id: staticStringExpression(checker, access.argumentExpression) };
+	return { id: await staticStringExpression(checker, access.argumentExpression) };
 }
 
 function accessExpression(node: PropertyAccessExpression | ElementAccessExpression): Expression {
 	return node.expression;
 }
 
-function scanCall(
+async function scanCall(
 	project: Project,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: CallExpression,
-): void {
-	const extendInfo = readCapabilitiesExtend(project.checker, analyzedFunction, node);
+): Promise<void> {
+	const extendInfo = await readCapabilitiesExtend(project.checker, analyzedFunction, node);
 	if (extendInfo != null) {
 		analyzedFunction.providerChecks.push({
 			column: locationForNode(analyzedFunction.sourceFile, node).column,
@@ -173,7 +178,7 @@ function scanCall(
 	}
 	const forwardedArguments: ForwardedArgument[] = [];
 	for (const [index, argument] of node.arguments.entries()) {
-		const forwarded = forwardedExpression(project.checker, analyzedFunction, argument);
+		const forwarded = await forwardedExpression(project.checker, analyzedFunction, argument);
 		if (forwarded == null) {
 			continue;
 		}
@@ -182,12 +187,12 @@ function scanCall(
 	if (forwardedArguments.length === 0) {
 		return;
 	}
-	const signature = resolveCallSignature(project.checker, node);
+	const signature = await resolveCallSignature(project.checker, node);
 	for (const { forwarded, index } of forwardedArguments) {
 		/* c8 ignore next -- forwarded calls without signatures are reported below as unresolved. */
 		const parameterType =
-			signature == null ? undefined : project.checker.getParameterType(signature, index);
-		const requiredFromCallType = forwardedRequiredCapabilities(
+			signature == null ? undefined : await project.checker.getParameterType(signature, index);
+		const requiredFromCallType = await forwardedRequiredCapabilities(
 			project.checker,
 			analyzedFunction,
 			forwarded,
@@ -209,34 +214,34 @@ function scanCall(
 	}
 }
 
-function scanPropagatedVariable(
+async function scanPropagatedVariable(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: VariableDeclaration,
-): void {
+): Promise<void> {
 	if (node.initializer == null) {
 		return;
 	}
-	const forwarded = forwardedExpression(checker, analyzedFunction, node.initializer);
+	const forwarded = await forwardedExpression(checker, analyzedFunction, node.initializer);
 	if (forwarded == null) {
 		return;
 	}
-	addPropagatedSource(checker, analyzedFunction, node.name, forwarded.provided);
+	await addPropagatedSource(checker, analyzedFunction, node.name, forwarded.provided);
 }
 
-function scanPropagatedAssignment(
+async function scanPropagatedAssignment(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: BinaryExpression,
-): void {
+): Promise<void> {
 	if (node.operatorToken.kind !== SyntaxKind.EqualsToken) {
 		return;
 	}
-	const forwarded = forwardedExpression(checker, analyzedFunction, node.right);
+	const forwarded = await forwardedExpression(checker, analyzedFunction, node.right);
 	if (forwarded == null) {
 		return;
 	}
-	addPropagatedSource(checker, analyzedFunction, node.left, forwarded.provided);
+	await addPropagatedSource(checker, analyzedFunction, node.left, forwarded.provided);
 }
 
 function isCapabilitiesHelperCall(sourceFile: AnalyzedSourceFile, node: CallExpression): boolean {
@@ -247,11 +252,11 @@ function isCapabilitiesHelperCall(sourceFile: AnalyzedSourceFile, node: CallExpr
 	);
 }
 
-function readCapabilitiesExtend(
+async function readCapabilitiesExtend(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: CallExpression,
-): { readonly extra: ReadonlySet<string> } | null {
+): Promise<{ readonly extra: ReadonlySet<string> } | null> {
 	const expression = node.expression;
 	if (expression.kind !== SyntaxKind.PropertyAccessExpression) {
 		return null;
@@ -266,22 +271,26 @@ function readCapabilitiesExtend(
 	const firstArgument = node.arguments[0];
 	if (
 		firstArgument == null ||
-		capabilitiesSourceExpression(checker, analyzedFunction, firstArgument) == null
+		(await capabilitiesSourceExpression(checker, analyzedFunction, firstArgument)) == null
 	) {
 		return null;
 	}
 	return {
-		extra: providedCapabilityIds(checker, analyzedFunction.sourceFile, argumentsAfterFirst(node)),
+		extra: await providedCapabilityIds(
+			checker,
+			analyzedFunction.sourceFile,
+			argumentsAfterFirst(node),
+		),
 	};
 }
 
-function forwardedExpression(
+async function forwardedExpression(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	argument: Expression,
-): ForwardedExpression | null {
+): Promise<ForwardedExpression | null> {
 	const expression = unwrapExpression(argument);
-	const source = capabilitiesSourceExpression(checker, analyzedFunction, expression);
+	const source = await capabilitiesSourceExpression(checker, analyzedFunction, expression);
 	if (source != null) {
 		return source;
 	}
@@ -306,12 +315,12 @@ function forwardedExpression(
 	const firstSource =
 		firstArgument == null
 			? null
-			: capabilitiesSourceExpression(checker, analyzedFunction, firstArgument);
+			: await capabilitiesSourceExpression(checker, analyzedFunction, firstArgument);
 	if (firstSource == null) {
 		return null;
 	}
 	const provided = new Set(firstSource.provided);
-	for (const id of providedCapabilityIds(
+	for (const id of await providedCapabilityIds(
 		checker,
 		analyzedFunction.sourceFile,
 		argumentsAfterFirst(call),
@@ -321,15 +330,15 @@ function forwardedExpression(
 	return { provided };
 }
 
-function forwardedRequiredCapabilities(
+async function forwardedRequiredCapabilities(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	forwarded: ForwardedExpression,
 	parameterType: Type | undefined,
-): ReadonlySet<string> | null {
+): Promise<ReadonlySet<string> | null> {
 	const parameterIds =
-		parameterType != null && isCapabilitiesType(checker, parameterType)
-			? capabilityIds(checker, parameterType)
+		parameterType != null && (await isCapabilitiesType(checker, parameterType))
+			? await capabilityIds(checker, parameterType)
 			: null;
 	if (parameterIds != null && parameterIds.size > 0) {
 		return parameterIds;
@@ -337,22 +346,22 @@ function forwardedRequiredCapabilities(
 	return null;
 }
 
-function providedCapabilityIds(
+async function providedCapabilityIds(
 	checker: Checker,
 	sourceFile: AnalyzedSourceFile,
 	expressions: readonly Expression[],
-): ReadonlySet<string> {
+): Promise<ReadonlySet<string>> {
 	const provided = new Set<string>();
 	for (const expression of expressions) {
 		for (const id of objectLiteralCapabilityIds(sourceFile, expression)) {
 			provided.add(id);
 		}
-		const type = expressionType(checker, expression);
+		const type = await expressionType(checker, expression);
 		/* c8 ignore next -- expressions passed to capability helpers have checker types. */
 		if (type == null) {
 			continue;
 		}
-		for (const id of capabilityIds(checker, type)) {
+		for (const id of await capabilityIds(checker, type)) {
 			provided.add(id);
 		}
 	}
@@ -409,24 +418,24 @@ function isPropagationHelperName(name: string | null): boolean {
 	return name === "extend" || name === "merge" || name === "override";
 }
 
-function addPropagatedSource(
+async function addPropagatedSource(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: Node,
 	provided: ReadonlySet<string>,
-): void {
-	const id = symbolId(checker.getSymbolAtLocation(node));
+): Promise<void> {
+	const id = symbolId(await checker.getSymbolAtLocation(node));
 	if (id != null) {
 		analyzedFunction.propagatedCapabilitySources.set(id, new Set(provided));
 	}
 }
 
-function capabilitiesSourceExpression(
+async function capabilitiesSourceExpression(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
 	expression: Expression,
-): ForwardedExpression | null {
-	const symbol = expressionSymbol(checker, expression);
+): Promise<ForwardedExpression | null> {
+	const symbol = await expressionSymbol(checker, expression);
 	if (sameSymbol(symbol, analyzedFunction.parameterSymbol)) {
 		return { provided: new Set() };
 	}

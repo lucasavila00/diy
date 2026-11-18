@@ -3,18 +3,18 @@ import { dirname, join, relative, resolve } from "node:path";
 
 import { SyntaxKind, isTypeAliasDeclaration } from "typescript/unstable/ast";
 import type { ImportDeclaration, Node, SourceFile, TypeNode } from "typescript/unstable/ast";
-import type { Project } from "typescript/unstable/sync";
+import type { Project } from "typescript/unstable/async";
 
 import { lineStarts, literalText } from "./ast-utils.ts";
 import type { AnalyzedSourceFile, ImportBinding } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
-export function collectAnalyzedSourceFiles(
+export async function collectAnalyzedSourceFiles(
 	project: Project,
 	coveredSet: ReadonlySet<string>,
 	cwd: string,
 	verbose?: (message: string) => void,
-): readonly AnalyzedSourceFile[] {
+): Promise<readonly AnalyzedSourceFile[]> {
 	const modules: AnalyzedSourceFile[] = [];
 	const seen = new Set<string>();
 	const queue = Array.from(coveredSet).sort();
@@ -26,7 +26,7 @@ export function collectAnalyzedSourceFiles(
 		}
 		verbose?.(`loading source file ${relative(cwd, filePath)}`);
 		seen.add(filePath);
-		const sourceFile = project.program.getSourceFile(filePath);
+		const sourceFile = await project.program.getSourceFile(filePath);
 		/* c8 ignore next -- tsgo omits declaration roots from source-file lookup here. */
 		if (sourceFile == null || sourceFile.isDeclarationFile) {
 			continue;
@@ -36,7 +36,7 @@ export function collectAnalyzedSourceFiles(
 		verbose?.(`collecting type aliases in ${relative(cwd, filePath)}`);
 		const typeAliases = collectTypeAliases(sourceFile);
 		verbose?.(`resolving imports in ${relative(cwd, filePath)}`);
-		for (const importedPath of importedProjectFiles(project, sourceFile, cwd)) {
+		for (const importedPath of await importedProjectFiles(project, sourceFile, cwd)) {
 			if (!seen.has(importedPath)) {
 				queue.push(importedPath);
 			}
@@ -71,11 +71,11 @@ function shouldSkipSourceFile(filePath: string, cwd: string): boolean {
 }
 /* c8 ignore stop */
 
-function importedProjectFiles(
+async function importedProjectFiles(
 	project: Project,
 	sourceFile: SourceFile,
 	cwd: string,
-): readonly string[] {
+): Promise<readonly string[]> {
 	const result: string[] = [];
 	for (const statement of sourceFile.statements) {
 		if (statement.kind !== SyntaxKind.ImportDeclaration) {
@@ -90,7 +90,7 @@ function importedProjectFiles(
 			if (!filePath.startsWith(resolve(cwd))) {
 				continue;
 			}
-			if (project.program.getSourceFile(filePath) != null) {
+			if ((await project.program.getSourceFile(filePath)) != null) {
 				result.push(filePath);
 				break;
 			}
