@@ -29,7 +29,7 @@ export type DiyAnalyzerViolation = {
 	readonly filePath: string;
 	readonly functionName?: string;
 	readonly column?: number;
-	readonly line: number;
+	readonly line?: number;
 	readonly name: string;
 	readonly notes?: readonly DiyAnalyzerNote[];
 	readonly reason: string;

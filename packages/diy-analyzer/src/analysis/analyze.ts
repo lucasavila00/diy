@@ -71,6 +71,7 @@ async function analyzeDiySyntax(
 			violations: [
 				...analyzeNativeDiySyntax(program.project, program.sourceFiles, verbose),
 				...program.suppressions.violations,
+				...program.unanalyzedFiles,
 			],
 		});
 		return finalizeAnalysis({
