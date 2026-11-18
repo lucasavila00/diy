@@ -1,5 +1,14 @@
 # @beff/diy
 
+## 0.0.36
+
+### Patch Changes
+
+- Breaking changes:
+  
+  - `Capabilities.override` rejects `undefined` and `Partial<...>` values as replacements. Every key that you give must be a real service.
+  - `Capabilities.extend` and `Capabilities.merge` reject plain object literals without a capability type, such as `{ clock }`. Use `Capabilities.create<ClockCapability>({ clock })`.
+
 ## 0.0.35
 
 ### Patch Changes
