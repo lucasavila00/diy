@@ -78,7 +78,10 @@ function. Conceptually, this is a local transfer function:
 - helper calls such as `Capabilities.extend`, `merge`, and `override` update the set of
   labels considered already provided by the forwarded value;
 - dynamic reads, unresolved declarations, and unresolved forwarding targets become
-  unsupported-analysis facts.
+  unsupported-analysis facts;
+- a capability source used as a conditional branch, a `??` or `||` operand, an object
+  spread, an object property value, or a returned value is not followed; it becomes an
+  unsupported-analysis fact instead of silently dropping the forwarding edge.
 
 Useful examples of this fact extraction live in
 [`capability-functions.ts`](../src/analysis/capability-functions.ts) and
@@ -146,7 +149,8 @@ The analyzer produces three user-facing categories:
 - violations: DIY syntax or convention errors, such as invalid capability parameter
   placement or redundant provider extension;
 - unsupported analysis: code shapes where the analyzer refuses to infer, such as dynamic
-  capability access or unresolved forwarding.
+  capability access, unresolved forwarding, or a capability bag passed through an
+  untracked expression.
 
 Suppression comments are applied after analysis facts are produced and before final
 sorting. Finalization keeps output deterministic by sorting paths, locations, function

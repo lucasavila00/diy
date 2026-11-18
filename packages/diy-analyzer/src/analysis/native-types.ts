@@ -76,7 +76,22 @@ export type UnsupportedAnalysisReason =
 	  }
 	| {
 			readonly kind: "unresolved-forwarding";
+	  }
+	| {
+			readonly column: number;
+			readonly kind: "untracked-capabilities-flow";
+			readonly line: number;
+			readonly pattern: UntrackedCapabilitiesPattern;
 	  };
+
+// Expression positions where the capabilities bag stops being followed.
+export type UntrackedCapabilitiesPattern =
+	| "??"
+	| "||"
+	| "conditional"
+	| "object-spread"
+	| "return"
+	| "wrapper-object";
 
 export type NativeSyntaxProgram = {
 	readonly api: API;

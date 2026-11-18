@@ -6,7 +6,11 @@ import type {
 	DiyUnusedCapabilityFinding,
 } from "../model/types.ts";
 import { sorted } from "./ast-utils.ts";
-import type { AnalyzedCapabilityFunction, UnsupportedAnalysisReason } from "./native-types.ts";
+import type {
+	AnalyzedCapabilityFunction,
+	UnsupportedAnalysisReason,
+	UntrackedCapabilitiesPattern,
+} from "./native-types.ts";
 
 export function computeRequiredCapabilityIds(
 	functions: readonly AnalyzedCapabilityFunction[],
@@ -210,6 +214,48 @@ function makeUnsupported(
 				],
 				reason: "unresolved capabilities forwarding callee",
 			};
+		case "untracked-capabilities-flow":
+			return {
+				column: reason.column,
+				filePath: analyzedFunction.filePath,
+				functionName: analyzedFunction.name,
+				line: reason.line,
+				notes: [{ kind: "help", message: untrackedFlowHelp(reason.pattern) }],
+				reason: `${untrackedFlowReason(reason.pattern)}; the analyzer cannot tell which capabilities are used`,
+			};
+	}
+}
+
+function untrackedFlowReason(pattern: UntrackedCapabilitiesPattern): string {
+	switch (pattern) {
+		case "??":
+		case "||":
+			return `capabilities bag passed through \`${pattern}\``;
+		case "conditional":
+			return "capabilities bag passed through a conditional expression";
+		case "object-spread":
+			return "capabilities bag copied with an object spread";
+		case "return":
+			return "capabilities bag returned from a function";
+		case "wrapper-object":
+			return "capabilities bag stored in an object property";
+	}
+}
+
+function untrackedFlowHelp(pattern: UntrackedCapabilitiesPattern): string {
+	const direct = "pass `capabilities` directly as an argument: `run(capabilities)`";
+	switch (pattern) {
+		case "??":
+		case "||":
+			return `${direct}; do not pick a capabilities bag with \`${pattern}\``;
+		case "conditional":
+			return `${direct}; branch around the calls instead, like \`flag ? run(capabilities) : other(capabilities)\``;
+		case "object-spread":
+			return `${direct}; use \`Capabilities.extend(capabilities, ...)\` to add services`;
+		case "return":
+			return `${direct}, instead of returning it from a function`;
+		case "wrapper-object":
+			return "pass `capabilities` directly as its own argument: `run(capabilities, options)`, not inside an object";
 	}
 }
 

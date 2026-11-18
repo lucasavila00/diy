@@ -1,6 +1,7 @@
 import {
 	SyntaxKind,
 	isBinaryExpression,
+	isConstructorDeclaration,
 	isElementAccessExpression,
 	isIdentifier,
 	isImportTypeNode,
@@ -8,6 +9,7 @@ import {
 	isVariableDeclaration,
 } from "typescript/unstable/ast";
 import type {
+	ConstructorDeclaration,
 	Expression,
 	FunctionLikeDeclaration,
 	ImportDeclaration,
@@ -121,6 +123,9 @@ function analyzeSourceFileSyntax(sourceFile: AnalyzedSourceFile): readonly DiyAn
 				name: nativeFunctionName(node, parent),
 			});
 			checkCapabilitiesParameters(sourceFile, node, report);
+		}
+		if (isConstructorDeclaration(node)) {
+			checkNoConstructorCapabilities(sourceFile, node, report);
 		}
 		if (node.kind === SyntaxKind.ImportDeclaration) {
 			checkNoRenamedDiyImport(node as ImportDeclaration, report);
@@ -253,6 +258,37 @@ function unsupportedCapabilitiesAnnotation(
 		reason:
 			"`capabilities` parameters with a type annotation must use `Capabilities<...>` imported from `@beff/diy`, written directly or through a non-generic type alias declared at the top level of the same file.",
 	};
+}
+
+function checkNoConstructorCapabilities(
+	sourceFile: AnalyzedSourceFile,
+	node: ConstructorDeclaration,
+	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
+): void {
+	for (const param of node.parameters) {
+		const name = staticName(param.name);
+		const isCapabilitiesParameter =
+			name === "capabilities" ||
+			name === "_capabilities" ||
+			(param.type != null &&
+				(isDiyCapabilitiesAnnotation(sourceFile, param.type) ||
+					hasDiyCapabilitiesIntersection(sourceFile, param.type)));
+		if (!isCapabilitiesParameter) {
+			continue;
+		}
+		report(
+			param,
+			"invalid capabilities parameter",
+			"Constructors cannot take `Capabilities`. A constructor would store the capabilities bag on the object, which hides which services each method uses, and constructors cannot be async.",
+			[
+				{
+					kind: "help",
+					message:
+						"use a function instead, e.g. `async function createService(capabilities: Capabilities<AppCapability>)`, and pass `capabilities` to each function that needs services",
+				},
+			],
+		);
+	}
 }
 
 function capabilitiesParameterNames(node: FunctionLikeDeclaration): ReadonlySet<string> {
