@@ -80,7 +80,12 @@ function. Conceptually, this is a local transfer function:
   call such as `Object.keys`) is unsupported, because the analyzer cannot see which
   services the callee uses;
 - helper calls such as `Capabilities.extend`, `merge`, and `override` update the set of
-  labels considered already provided by the forwarded value;
+  labels considered already provided by the forwarded value. Helpers combine their
+  arguments from left to right. The source is the last argument that carries the
+  capabilities parameter, in any position or in a nested helper call. An argument
+  after the source gives each label that it always carries. An argument before the
+  source gives only the labels that the source does not carry. Optional members (for
+  example, the keys of a `Partial<...>` value) do not give a label;
 - dynamic reads, unresolved declarations, and unresolved forwarding targets become
   unsupported-analysis facts;
 - a capability source used as a conditional branch, a `??` or `||` operand, an object
