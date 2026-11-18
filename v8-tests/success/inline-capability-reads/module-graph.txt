@@ -5,6 +5,10 @@ src/main.ts
 |  +-- direct: clock
 |  `-- indirect: (none)
 |
-`-- inlineReads
-   +-- direct: clock, progressLogger
++-- inlineReads
+|  +-- direct: clock, progressLogger
+|  `-- indirect: (none)
+|
+`-- storeWholeBag
+   +-- direct: clock
    `-- indirect: (none)

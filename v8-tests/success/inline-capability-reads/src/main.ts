@@ -20,3 +20,12 @@ export function inlineReads(
 	logger.progress("started");
 	needClock(capabilities);
 }
+
+export function storeWholeBag(
+	capabilities: Capabilities<ClockCapability>,
+	holder: Record<string, Capabilities<ClockCapability>>,
+	key: string,
+): void {
+	holder[key] = capabilities;
+	capabilities.clock.now();
+}
