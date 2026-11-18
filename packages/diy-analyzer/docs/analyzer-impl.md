@@ -247,7 +247,8 @@ syntax violations such as:
 `// diy-ignore-next-line -- reason` directives from reportable files. After analysis,
 [`diagnostic-suppressions.ts`](../src/analysis/diagnostic-suppressions.ts) removes
 findings, violations, or unsupported cases on the target line and reports any unused
-suppression as a violation.
+suppression as a violation. The `--no-dead-code-analysis` path skips the unused check
+because it never computes the unused-capability findings a suppression may target.
 
 [`finalize.ts`](../src/analysis/finalize.ts) performs the final deterministic sorting of
 findings, unsupported cases, and violations. Graph output is attached after finalization

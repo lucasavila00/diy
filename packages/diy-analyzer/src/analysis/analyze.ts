@@ -41,6 +41,7 @@ export async function analyzeDiy(
 	const suppressed = timeDeadCodePhase("apply suppressions", () =>
 		applyDiagnosticSuppressions({
 			findings: middleEnd.findings,
+			reportUnused: true,
 			suppressions: middleEnd.suppressions.suppressions,
 			unsupported: middleEnd.unsupported,
 			violations: [...middleEnd.violations, ...middleEnd.suppressions.violations],
@@ -66,6 +67,7 @@ async function analyzeDiySyntax(
 	try {
 		const suppressed = applyDiagnosticSuppressions({
 			findings: [],
+			reportUnused: false,
 			suppressions: program.suppressions.suppressions,
 			unsupported: await collectNativeParseErrors(program.project, program.sourceFiles, verbose),
 			violations: [

@@ -470,7 +470,9 @@ export function readGeneric<Allowed extends ReaderCapability>(
 
 Suppressions must include a reason after `--` and must sit on the line before the
 diagnostic. Suppressions without a reason, or stale suppressions that do not hide
-any diagnostic, are reported.
+any diagnostic, are reported. Stale suppressions are only reported by the default
+analysis: `--no-dead-code-analysis` cannot tell whether a suppression hides an
+unused-capability finding.
 
 ## Capability Helpers
 

@@ -18,6 +18,9 @@ type SuppressibleDiagnostic = {
 
 type SuppressionInput = {
 	readonly findings: readonly DiyUnusedCapabilityFinding[];
+	// Lint-only runs cannot see dead-code findings, so they cannot tell a stale suppression
+	// from one that targets an unused-capability finding.
+	readonly reportUnused: boolean;
 	readonly suppressions: readonly DiagnosticSuppression[];
 	readonly unsupported: readonly DiyAnalyzerUnsupported[];
 	readonly violations: readonly DiyAnalyzerViolation[];
@@ -61,6 +64,9 @@ export function applyDiagnosticSuppressions(input: SuppressionInput): Suppressio
 	const unsupported = input.unsupported.filter((item) => !suppresses(item));
 	const findings = input.findings.filter((finding) => !suppresses(finding));
 
+	if (!input.reportUnused) {
+		return { findings, unsupported, violations };
+	}
 	return {
 		findings,
 		unsupported,

@@ -1,0 +1,6 @@
+Module graph
+
+src/main.ts
+`-- overDeclared
+   +-- direct: reader
+   `-- indirect: (none)
