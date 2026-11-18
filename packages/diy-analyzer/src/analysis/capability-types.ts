@@ -27,7 +27,7 @@ import { diyImportSources } from "./native-types.ts";
 
 export async function capabilityIds(checker: Checker, type: Type): Promise<ReadonlySet<string>> {
 	const properties = await checker.getPropertiesOfType(type);
-	return new Set(properties.map((property) => property.name).filter(isPublicId));
+	return new Set(properties.filter(isPublicId).map((property) => property.name));
 }
 
 export async function isCapabilitiesType(checker: Checker, type: Type): Promise<boolean> {
@@ -63,8 +63,11 @@ export async function declaredParameterType(
 	);
 }
 
-function isPublicId(name: string): boolean {
-	return !name.includes("@") && name !== "__type";
+// TypeScript escapes user names that start with "__" by adding another "_", so an
+// escaped name that starts with exactly "__" is internal: symbol-keyed members
+// ("__@capabilityId@10"), private members ("__#1@#name"), and names like "__type".
+function isPublicId(property: TsgoSymbol): boolean {
+	return !property.escapedName.startsWith("__") || property.escapedName.startsWith("___");
 }
 
 export function isNeverCapabilitiesType(
