@@ -1,48 +1,61 @@
-src/main.ts:43:8 unused capability Declares unused capability "namespacedReader".
+src/main.ts:43:8 unused capability
+  Declares unused capability "namespacedReader".
   = help: remove "namespacedReader" from `Capabilities<...>`, or add a real `capabilities.namespacedReader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:76:8 unused capability Declares unused capability "read".
+src/main.ts:76:8 unused capability
+  Declares unused capability "read".
   = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:80:8 unused capability Declares unused capability "read".
+src/main.ts:80:8 unused capability
+  Declares unused capability "read".
   = help: remove "read" from `Capabilities<...>`, or add a real `capabilities.read` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:25:37 invalid capabilities parameter `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
+src/main.ts:25:37 invalid capabilities parameter
+  `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:31:2 invalid capabilities parameter `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
+src/main.ts:31:2 invalid capabilities parameter
+  `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:77:6 redundant capability provider Capabilities.extend adds capabilities already present on capabilities: read
+src/main.ts:77:6 redundant capability provider
+  Capabilities.extend adds capabilities already present on capabilities: read
   = note: `read` is already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:81:6 redundant capability provider Capabilities.extend adds capabilities already present on capabilities: read
+src/main.ts:81:6 redundant capability provider
+  Capabilities.extend adds capabilities already present on capabilities: read
   = note: `read` is already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:36:8 unsupported analysis capabilities declaration could not be resolved
+src/main.ts:36:8 unsupported analysis
+  capabilities declaration could not be resolved
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:47:8 unsupported analysis capabilities declaration could not be resolved
+src/main.ts:47:8 unsupported analysis
+  capabilities declaration could not be resolved
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:54:8 unsupported analysis capabilities declaration could not be resolved
+src/main.ts:54:8 unsupported analysis
+  capabilities declaration could not be resolved
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:58:8 unsupported analysis capabilities declaration could not be resolved
+src/main.ts:58:8 unsupported analysis
+  capabilities declaration could not be resolved
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:65:8 unsupported analysis open-ended capability bag cannot be checked for unused capabilities
+src/main.ts:65:8 unsupported analysis
+  open-ended capability bag cannot be checked for unused capabilities
   = help: use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:69:8 unsupported analysis capabilities declaration could not be resolved
+src/main.ts:69:8 unsupported analysis
+  capabilities declaration could not be resolved
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

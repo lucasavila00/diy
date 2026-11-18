@@ -129,10 +129,11 @@ Then run the analyzer:
 npm run diy:check
 ```
 
-When the analyzer passes, it prints the number of files analyzed. When it finds a problem, it prints one diagnostic per problem for unsupported patterns, rule violations, unused capabilities, or redundant providers. Diagnostics are plain text written for coding agents: a `path:line:column` location, the violated rule, the reason, and any known fix as indented notes.
+When the analyzer passes, it prints the number of files analyzed. When it finds a problem, it prints one diagnostic per problem for unsupported patterns, rule violations, unused capabilities, or redundant providers. Diagnostics are plain text written for coding agents: a `path:line:column` location and the violated rule, then the reason and any known fix on indented lines.
 
 ```text
-src/main.ts:7:8 unused capability Declares unused capability "writer".
+src/main.ts:7:8 unused capability
+  Declares unused capability "writer".
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 ```

@@ -100,7 +100,7 @@ function formatDiagnostic(
 		item.line == null
 			? displayPath
 			: `${displayPath}:${item.line}${item.column == null ? "" : `:${item.column}`}`;
-	return `${lineColumn} ${name} ${message}${formatNotes(notes)}`;
+	return `${lineColumn} ${name}\n  ${message}${formatNotes(notes)}`;
 }
 
 export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions = {}): string {

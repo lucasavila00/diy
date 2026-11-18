@@ -1,23 +1,29 @@
-src/main.ts:10:25 invalid capabilities parameter Capabilities parameters must be named `capabilities` or `_capabilities`.
+src/main.ts:10:25 invalid capabilities parameter
+  Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:14:38 invalid capabilities parameter Capabilities parameters must be the first parameter.
+src/main.ts:14:38 invalid capabilities parameter
+  Capabilities parameters must be the first parameter.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:19:30 invalid capabilities parameter Capabilities parameters must be named `capabilities` or `_capabilities`.
+src/main.ts:19:30 invalid capabilities parameter
+  Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:23:43 invalid capabilities parameter Capabilities parameters must be the first parameter.
+src/main.ts:23:43 invalid capabilities parameter
+  Capabilities parameters must be the first parameter.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:28:29 invalid capabilities type Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
+src/main.ts:28:29 invalid capabilities type
+  Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
   = help: write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:36:25 invalid capabilities parameter `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
+src/main.ts:36:25 invalid capabilities parameter
+  `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

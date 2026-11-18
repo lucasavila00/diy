@@ -1,29 +1,37 @@
-src/main.ts:1:29 renamed diy import Do not rename imports from @beff/diy; import exported names directly.
+src/main.ts:1:29 renamed diy import
+  Do not rename imports from @beff/diy; import exported names directly.
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:7:34 invalid capabilities parameter Capabilities parameters must be named `capabilities` or `_capabilities`.
+src/main.ts:7:34 invalid capabilities parameter
+  Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:13:2 invalid capabilities parameter Capabilities parameters must be the first parameter.
+src/main.ts:13:2 invalid capabilities parameter
+  Capabilities parameters must be the first parameter.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:19:41 invalid capabilities parameter Capabilities parameters must be named `capabilities` or `_capabilities`.
+src/main.ts:19:41 invalid capabilities parameter
+  Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:23:58 invalid capabilities parameter Capabilities parameters must be the first parameter.
+src/main.ts:23:58 invalid capabilities parameter
+  Capabilities parameters must be the first parameter.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:29:2 invalid capabilities type Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
+src/main.ts:29:2 invalid capabilities type
+  Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
   = help: write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:35:2 invalid capabilities type Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
+src/main.ts:35:2 invalid capabilities type
+  Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
   = help: write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:40:1 invalid diagnostic suppression `diy-ignore-next-line` requires a non-empty reason after `--`.
+src/main.ts:40:1 invalid diagnostic suppression
+  `diy-ignore-next-line` requires a non-empty reason after `--`.

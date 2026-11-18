@@ -1,7 +1,9 @@
-src/main.ts:6:8 unsupported analysis generic capabilities parameter reads services directly
+src/main.ts:6:8 unsupported analysis
+  generic capabilities parameter reads services directly
   = help: use a concrete `Capabilities<...>` type for functions that read services directly
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:13:8 unsupported analysis generic capabilities parameter reads services directly
+src/main.ts:13:8 unsupported analysis
+  generic capabilities parameter reads services directly
   = help: use a concrete `Capabilities<...>` type for functions that read services directly
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

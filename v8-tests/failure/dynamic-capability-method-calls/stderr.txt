@@ -1,19 +1,24 @@
-src/main.ts:11:6 unsupported analysis dynamic capability access
+src/main.ts:11:6 unsupported analysis
+  dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:13:6 unsupported analysis dynamic capability access
+src/main.ts:13:6 unsupported analysis
+  dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:15:6 unsupported analysis dynamic capability access
+src/main.ts:15:6 unsupported analysis
+  dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:16:6 unsupported analysis dynamic capability access
+src/main.ts:16:6 unsupported analysis
+  dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:30:7 unsupported analysis dynamic capability access
+src/main.ts:30:7 unsupported analysis
+  dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

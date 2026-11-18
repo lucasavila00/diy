@@ -1,5 +1,7 @@
-src/main.ts:6:2 unused diagnostic suppression `diy-ignore-next-line` did not suppress any DIY diagnostic.
+src/main.ts:6:2 unused diagnostic suppression
+  `diy-ignore-next-line` did not suppress any DIY diagnostic.
   = help: remove this directive or move it to the line before the diagnostic
 
-src/main.ts:10:1 unused diagnostic suppression `diy-ignore-next-line` did not suppress any DIY diagnostic.
+src/main.ts:10:1 unused diagnostic suppression
+  `diy-ignore-next-line` did not suppress any DIY diagnostic.
   = help: remove this directive or move it to the line before the diagnostic

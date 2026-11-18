@@ -1,3 +1,4 @@
-src/main.ts:7:7 unsupported analysis dynamic capability access
+src/main.ts:7:7 unsupported analysis
+  dynamic capability access
   = help: use direct property access like `capabilities.reader`, or bracket access with a const string key
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

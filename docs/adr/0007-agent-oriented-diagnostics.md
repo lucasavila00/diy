@@ -18,11 +18,12 @@ line. The CLI also had to re-read every source file only to draw the frame.
 
 ## Decision
 
-Remove the code frame. Every diagnostic is a single compact header line with the
-location, the violated rule, and the message, followed by the existing indented notes:
+Remove the code frame. Every diagnostic starts with a header line holding the location
+and the violated rule, followed by the message and the existing notes on indented lines:
 
 ```text
-src/main.ts:7:8 unused capability Declares unused capability "writer".
+src/main.ts:7:8 unused capability
+  Declares unused capability "writer".
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
 ```
 
@@ -30,7 +31,8 @@ DIY error output is designed for coding agents, not humans. Diagnostics should:
 
 - be plain text and machine-greppable, with no code frames, carets, colors, or other
   decoration;
-- use one header line per problem, starting with the `path:line:column` location;
+- start each problem with one `path:line:column rule` header line, and put the message
+  and notes on their own indented lines below it;
 - state which rule was violated and why;
 - give an actionable fix or hint note where the analyzer knows one, without inventing
   guesses where it does not;

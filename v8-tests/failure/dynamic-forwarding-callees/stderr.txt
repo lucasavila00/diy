@@ -1,3 +1,4 @@
-src/main.ts:16:8 unsupported analysis unresolved capabilities forwarding callee
+src/main.ts:16:8 unsupported analysis
+  unresolved capabilities forwarding callee
   = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

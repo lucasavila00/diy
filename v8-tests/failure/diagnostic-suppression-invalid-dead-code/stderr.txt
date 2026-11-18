@@ -1,3 +1,5 @@
-src/main.ts:6:2 invalid diagnostic suppression `diy-ignore-next-line` requires a non-empty reason after `--`.
+src/main.ts:6:2 invalid diagnostic suppression
+  `diy-ignore-next-line` requires a non-empty reason after `--`.
 
-src/main.ts:11:2 invalid diagnostic suppression `diy-ignore-next-line` requires a non-empty reason after `--`.
+src/main.ts:11:2 invalid diagnostic suppression
+  `diy-ignore-next-line` requires a non-empty reason after `--`.

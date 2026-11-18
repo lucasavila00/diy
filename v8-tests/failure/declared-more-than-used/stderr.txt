@@ -1,43 +1,54 @@
-src/main.ts:11:8 unused capability Declares unused capability "writer".
+src/main.ts:11:8 unused capability
+  Declares unused capability "writer".
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:15:8 unused capability Declares unused capability "reader".
+src/main.ts:15:8 unused capability
+  Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:19:8 unused capability Declares unused capability "writer".
+src/main.ts:19:8 unused capability
+  Declares unused capability "writer".
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:23:8 unused capability Declares unused capability "reader-id".
+src/main.ts:23:8 unused capability
+  Declares unused capability "reader-id".
   = help: remove "reader-id" from `Capabilities<...>`, or add a real `capabilities["reader-id"]` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:27:8 unused capability Declares unused capabilities: "extra", "writer".
+src/main.ts:27:8 unused capability
+  Declares unused capabilities: "extra", "writer".
   = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:46:8 unused capability Declares unused capability "reader".
+src/main.ts:46:8 unused capability
+  Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:50:8 unused capability Declares unused capability "reader".
+src/main.ts:50:8 unused capability
+  Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:54:8 unused capability Declares unused capability "reader".
+src/main.ts:54:8 unused capability
+  Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:60:8 unused capability Declares unused capability "reader".
+src/main.ts:60:8 unused capability
+  Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:64:8 unused capability Declares unused capability "reader".
+src/main.ts:64:8 unused capability
+  Declares unused capability "reader".
   = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:69:6 unused capability Declares unused capability "writer".
+src/main.ts:69:6 unused capability
+  Declares unused capability "writer".
   = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

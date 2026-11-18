@@ -1,17 +1,21 @@
-src/main.ts:6:8 unused capability Declares unused capabilities: "read", "write".
+src/main.ts:6:8 unused capability
+  Declares unused capabilities: "read", "write".
   = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:12:8 unused capability Declares unused capabilities: "read", "write".
+src/main.ts:12:8 unused capability
+  Declares unused capabilities: "read", "write".
   = help: remove these IDs from `Capabilities<...>`, or add real capability reads if they are required
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:9:9 redundant capability provider Capabilities.extend adds capabilities already present on capabilities: write
+src/main.ts:9:9 redundant capability provider
+  Capabilities.extend adds capabilities already present on capabilities: write
   = note: `write` is already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
-src/main.ts:15:9 redundant capability provider Capabilities.extend adds capabilities already present on capabilities: read, write
+src/main.ts:15:9 redundant capability provider
+  Capabilities.extend adds capabilities already present on capabilities: read, write
   = note: `read`, `write` are already allowed by this function's `capabilities` parameter
   = help: use `Capabilities.override(...)` when replacing an existing capability is intentional
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

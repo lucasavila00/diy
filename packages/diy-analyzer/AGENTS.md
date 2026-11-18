@@ -17,13 +17,13 @@
 - Put tsgo AST helpers, source loading, native syntax rules, checker-backed dead-code analysis, default syntax lint behavior, and graph analysis in `src/analysis/`: `native-analysis.ts` should orchestrate, `checker-program.ts` and `source-files.ts` should load tsgo inputs, `native-syntax-rules.ts` should contain shared lint syntax rules, `capability-functions.ts` should collect functions whose first parameter resolves to DIY `Capabilities<...>`, `usage-scanner.ts` should scan function bodies, `capability-types.ts` should contain checker helpers, and `results.ts` should project diagnostics and graph output.
 - Put layer-neutral public result contracts in `src/model/`, and shared cross-layer utilities in `src/shared/`.
 - Graph passes should reuse checker-resolved function analysis from `src/analysis/`; do not reintroduce the old AST-only arena.
-- Keep CLI parsing, project config loading, compact human-output diagnostic formatting, and graph-output formatting in `../diy-cli/src/`.
+- Keep CLI parsing, project config loading, agent-oriented diagnostic formatting, and graph-output formatting in `../diy-cli/src/`.
 
 ## Rule Authoring
 
 - Prefer reporting a deterministic violation or unsupported-analysis reason over guessing.
 - Keep output order stable by path, line, function/rule, and message.
-- Write diagnostics for coding agents, not humans: one plain-text location line per problem that states the violated rule and the reason, plus a concrete `help` note when the fix is known. No code frames, colors, or decoration.
+- Write diagnostics for coding agents, not humans: one `path:line:column rule` header line per problem, then the reason and a concrete `help` note (when the fix is known) on their own indented lines. No code frames, colors, or decoration.
 - Reuse centralized AST helpers instead of open-coding node-shape checks in multiple files.
 - Keep rule IDs stable once introduced; tests and model-facing output use them.
 - Do not add performance-oriented complexity unless profiling shows the analyzer is too slow.
