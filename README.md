@@ -371,8 +371,11 @@ export function optionalRead(capabilities: Capabilities<ReaderCapability>): unkn
 ```
 
 Passing the capability bag to another function is allowed. If that call requires
-capabilities that the current function did not declare, TypeScript and the
-analyzer will report the mismatch:
+capabilities that the current function did not declare, TypeScript reports the
+mismatch as a type error (`Capabilities<ReaderCapability>` is not assignable to
+`Capabilities<WriterCapability>`). The analyzer does not repeat this check, so run
+`tsc` alongside `diy-cli`. The analyzer uses forwarded calls to decide which declared
+capabilities are used:
 
 ```ts
 function needWriter(capabilities: Capabilities<WriterCapability>): void {
@@ -426,6 +429,30 @@ src/main.ts:LINE:COLUMN unsupported analysis
 
 Type the callee's parameter as `Capabilities<...>`, or read the services you need
 directly instead of inspecting the bag.
+
+Pass the capability bag to the callee directly, as its own argument. The analyzer
+does not follow the bag through other expressions, so these are reported as
+unsupported analysis:
+
+- a conditional expression: `run(flag ? capabilities : other)`;
+- `??` or `||`: `run(fallback ?? capabilities)`;
+- an object spread: `run({ ...capabilities })`;
+- a wrapper object: `const context = { capabilities }` or `{ bag: capabilities }`;
+- a function return: `const pick = () => capabilities` or `return capabilities`.
+
+```ts
+// Not allowed: the bag is copied with a spread.
+export function loadCopy(capabilities: Capabilities<ReaderCapability>): void {
+	needReader({ ...capabilities });
+}
+```
+
+```text
+src/main.ts:3:18 unsupported analysis
+  capabilities bag copied with an object spread; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as an argument: `run(capabilities)`; use `Capabilities.extend(capabilities, ...)` to add services
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+```
 
 ### Capability helpers and unused parameters
 

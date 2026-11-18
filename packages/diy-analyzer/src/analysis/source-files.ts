@@ -6,6 +6,7 @@ import type { ImportDeclaration, Node, SourceFile, TypeNode } from "typescript/u
 import type { Project } from "typescript/unstable/async";
 
 import type { DiyAnalyzerViolation } from "../model/types.ts";
+import { compareStrings } from "../shared/compare.ts";
 import { normalizePath } from "../shared/path.ts";
 import { lineStarts, literalText } from "./ast-utils.ts";
 import type { AnalyzedSourceFile, ImportBinding } from "./native-types.ts";
@@ -68,7 +69,7 @@ export async function collectAnalyzedSourceFiles(
 		});
 	}
 	return {
-		sourceFiles: modules.sort((left, right) => left.filePath.localeCompare(right.filePath)),
+		sourceFiles: modules.sort((left, right) => compareStrings(left.filePath, right.filePath)),
 		unanalyzedFiles,
 	};
 }

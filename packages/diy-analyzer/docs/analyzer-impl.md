@@ -113,7 +113,7 @@ The key fields are the mutable abstract state for one function:
 - `providerChecks`: `Capabilities.extend(...)` calls that may redundantly provide
   capabilities already declared by the function;
 - `unsupportedReasons`: proof blockers such as dynamic access, unresolved declarations,
-  open bags, generic direct reads, and unresolved forwarding.
+  open bags, generic direct reads, unresolved forwarding, and untracked capability flow.
 
 The collector also computes stable names and locations, handles namespace-qualified
 names, keeps the parameter symbol for later identity checks, and sorts functions
@@ -162,6 +162,11 @@ The scanner walks the function's AST and updates the function state:
   argument location instead of a forwarding constraint;
 - `Capabilities.extend(capabilities, extra)` also records a provider check so redundant
   extension can become a violation;
+- a capability source used as a conditional branch, a `??` or `||` operand, an object
+  spread, an object property value (including `{ capabilities }`), a `return` value, or
+  an arrow function's expression body becomes `untracked-capabilities-flow`. The scanner
+  does not follow the bag through these positions, so it reports them instead of
+  dropping the forwarding edge and producing a false unused capability;
 - nested functions with their own capability binding are treated as new analysis units;
   reads are attributed by the parameter symbol they resolve to, so reads of the nested
   binding are not charged to the outer function, while closure reads of the outer binding
