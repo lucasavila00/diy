@@ -1,9 +1,7 @@
 {
 	"compilerOptions": {
-		"baseUrl": ".",
-		"ignoreDeprecations": "6.0",
 		"paths": {
-			"@caps": ["src/caps.ts"]
+			"@caps": ["./src/caps.ts"]
 		}
 	}
 }

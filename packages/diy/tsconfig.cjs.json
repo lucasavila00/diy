@@ -3,9 +3,8 @@
 	"compilerOptions": {
 		"declaration": false,
 		"declarationMap": false,
-		"ignoreDeprecations": "6.0",
 		"module": "commonjs",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"outDir": "./dist/cjs",
 		"verbatimModuleSyntax": false
 	}

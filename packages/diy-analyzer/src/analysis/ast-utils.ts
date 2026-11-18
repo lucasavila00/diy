@@ -1,19 +1,15 @@
-import { skipTrivia, SyntaxKind } from "@typescript/native-preview/unstable/ast";
-import type {
-	FunctionLikeDeclaration,
-	Node,
-	TypeNode,
-} from "@typescript/native-preview/unstable/ast";
+import {
+	SyntaxKind,
+	isIntersectionTypeNode,
+	isNoSubstitutionTemplateLiteral,
+	isObjectLiteralExpression,
+	isStringLiteral,
+	isTypeReferenceNode,
+} from "typescript/unstable/ast";
+import type { FunctionLikeDeclaration, Node, TypeNode } from "typescript/unstable/ast";
 
 export function literalText(node: Node): string | null {
-	if (
-		node.kind === SyntaxKind.StringLiteral ||
-		node.kind === SyntaxKind.NoSubstitutionTemplateLiteral
-	) {
-		/* c8 ignore next -- tsgo literal nodes expose text for these literal kinds. */
-		return (node as unknown as Record<string, string | undefined>).text ?? null;
-	}
-	return null;
+	return isStringLiteral(node) || isNoSubstitutionTemplateLiteral(node) ? node.text : null;
 }
 
 export function staticName(node: unknown): string | null {
@@ -30,44 +26,23 @@ export function staticName(node: unknown): string | null {
 	return null;
 }
 
-export function nodeTokenStart(sourceText: string, node: Node): number | null {
-	const start = skipTrivia(sourceText, node.pos);
-	return start < node.end ? start : null;
-}
-
 export function nodeName(node: Node): string | null {
 	return staticName((node as unknown as { readonly name?: unknown }).name);
 }
 
-export function nodeNameNode(node: Node): Node | undefined {
-	return (node as unknown as { readonly name?: Node }).name;
-}
-
-export function nodeInitializer(node: Node): Node | undefined {
-	return (node as unknown as { readonly initializer?: Node }).initializer;
-}
-
 export function typeReferenceArguments(typeNode: TypeNode): readonly TypeNode[] {
 	/* c8 ignore next -- callers pass TypeReference nodes when type arguments are expected. */
-	if (typeNode.kind !== SyntaxKind.TypeReference) {
-		return [];
-	}
-	return (
-		(typeNode as unknown as { readonly typeArguments?: readonly TypeNode[] }).typeArguments ?? []
-	);
+	return isTypeReferenceNode(typeNode) ? (typeNode.typeArguments ?? []) : [];
 }
 
 export function intersectionTypes(typeNode: TypeNode): readonly TypeNode[] {
 	/* c8 ignore next -- callers pass IntersectionType nodes when intersection members are expected. */
-	if (typeNode.kind !== SyntaxKind.IntersectionType) {
-		return [];
-	}
-	return (typeNode as unknown as { readonly types: readonly TypeNode[] }).types;
+	return isIntersectionTypeNode(typeNode) ? typeNode.types : [];
 }
 
 export function objectLiteralProperties(node: Node): readonly Node[] {
-	/* c8 ignore next -- object literal expressions expose a properties array. */
-	return (node as unknown as { readonly properties?: readonly Node[] }).properties ?? [];
+	/* c8 ignore next -- callers pass object literal expressions. */
+	return isObjectLiteralExpression(node) ? node.properties : [];
 }
 
 export function isFunctionLike(node: Node): node is FunctionLikeDeclaration {

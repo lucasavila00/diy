@@ -1,25 +1,27 @@
 import {
 	SyntaxKind,
 	isExpression,
+	isParenthesizedTypeNode,
+	isTypeReferenceNode,
 	skipOuterExpressions,
-} from "@typescript/native-preview/unstable/ast";
+} from "typescript/unstable/ast";
 import type {
 	CallExpression,
 	Expression,
 	Identifier,
 	Node,
-	PropertyAccessExpression,
 	TypeNode,
-} from "@typescript/native-preview/unstable/ast";
-import { SignatureKind, TypeFlags } from "@typescript/native-preview/unstable/sync";
+} from "typescript/unstable/ast";
+import { SignatureKind, TypeFlags } from "typescript/unstable/sync";
 import type {
 	Checker,
 	Signature,
+	StringLiteralType,
 	Symbol as TsgoSymbol,
 	Type,
-} from "@typescript/native-preview/unstable/sync";
+} from "typescript/unstable/sync";
 
-import { literalText, nodeTokenStart, staticName, typeReferenceArguments } from "./ast-utils.ts";
+import { literalText, staticName, typeReferenceArguments } from "./ast-utils.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
@@ -33,7 +35,7 @@ export function capabilityIds(checker: Checker, type: Type): ReadonlySet<string>
 }
 
 export function isCapabilitiesType(checker: Checker, type: Type): boolean {
-	return isDiyCapabilitiesResolvedType(type);
+	return hasDiyCapabilitiesDeclaration(type);
 }
 
 export function isDiyCapabilitiesAnnotation(
@@ -146,19 +148,11 @@ function resolveCapabilitiesAnnotationTypeNode(
 }
 
 function unwrapTypeNode(typeNode: TypeNode): TypeNode {
-	if (typeNode.kind === SyntaxKind.ParenthesizedType) {
-		const inner = (typeNode as unknown as { readonly type?: TypeNode }).type;
-		/* c8 ignore next -- parsed parenthesized type nodes expose their inner type. */
-		return inner == null ? typeNode : unwrapTypeNode(inner);
-	}
-	return typeNode;
+	return isParenthesizedTypeNode(typeNode) ? unwrapTypeNode(typeNode.type) : typeNode;
 }
 
 function typeReferenceName(typeNode: TypeNode): string | null {
-	if (typeNode.kind !== SyntaxKind.TypeReference) {
-		return null;
-	}
-	return staticName((typeNode as unknown as { readonly typeName?: unknown }).typeName);
+	return isTypeReferenceNode(typeNode) ? staticName(typeNode.typeName) : null;
 }
 
 function isImportedDiyCapabilitiesTypeReference(
@@ -170,30 +164,10 @@ function isImportedDiyCapabilitiesTypeReference(
 	return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
 }
 
-function isDiyCapabilitiesResolvedType(type: Type): boolean {
-	return hasDiyCapabilitiesDeclaration(type) || hasDiyCapabilitiesDeclaration(targetType(type));
-}
-
-function targetType(type: Type): Type | undefined {
-	try {
-		return (type as Type & { readonly getTarget?: () => Type }).getTarget?.();
-	} catch {
-		return undefined;
-	}
-}
-
-function hasDiyCapabilitiesDeclaration(type: Type | undefined): boolean {
-	const symbol = (
-		type as (Type & { readonly getSymbol?: () => TsgoSymbol | undefined }) | undefined
-	)?.getSymbol?.();
+function hasDiyCapabilitiesDeclaration(type: Type): boolean {
 	return (
-		symbol?.declarations?.some((declaration) => {
-			const filePath = declarationFilePath(declaration);
-			/* c8 ignore next -- tsgo symbol declarations expose source paths. */
-			if (filePath == null) {
-				return false;
-			}
-			const normalized = filePath.replaceAll("\\", "/");
+		type.getSymbol()?.declarations.some((declaration) => {
+			const normalized = declaration.path.replaceAll("\\", "/");
 			const isCapabilitiesFile =
 				normalized.endsWith("/capabilities.ts") || normalized.endsWith("/capabilities.d.ts");
 			/* c8 ignore next -- fixtures resolve DIY through the local packages path. */
@@ -203,20 +177,6 @@ function hasDiyCapabilitiesDeclaration(type: Type | undefined): boolean {
 			);
 		}) ?? false
 	);
-}
-
-function declarationFilePath(declaration: unknown): string | null {
-	/* c8 ignore next -- callers pass tsgo declaration objects. */
-	if (declaration == null || typeof declaration !== "object") {
-		return null;
-	}
-	const path = (declaration as { readonly path?: unknown }).path;
-	/* c8 ignore next -- tsgo symbol declarations expose source paths. */
-	if (typeof path === "string") {
-		return path;
-	}
-	/* c8 ignore next -- tsgo symbol declarations expose source paths. */
-	return null;
 }
 
 export function isImportedCapabilitiesValue(
@@ -240,8 +200,8 @@ export function sameSymbol(left: TsgoSymbol | undefined, right: TsgoSymbol): boo
 	return left?.id === right.id;
 }
 
-export function symbolId(symbol: TsgoSymbol | undefined): string | number | undefined {
-	return typeof symbol?.id === "number" || typeof symbol?.id === "string" ? symbol.id : undefined;
+export function symbolId(symbol: TsgoSymbol | undefined): number | undefined {
+	return symbol?.id;
 }
 
 export function unwrapExpression(expression: Expression): Expression {
@@ -256,71 +216,26 @@ export function staticStringExpression(checker: Checker, expression: Expression)
 		return literal;
 	}
 	const type = checker.getTypeAtLocation(expression);
-	const value = (type as (Type & { readonly value?: unknown }) | undefined)?.value;
-	if (type != null && (type.flags & TypeFlags.StringLiteral) !== 0 && typeof value === "string") {
-		return value;
+	if (type != null && (type.flags & TypeFlags.StringLiteral) !== 0) {
+		return (type as StringLiteralType).value;
 	}
 	return null;
 }
 
 export function resolveCallSignature(
 	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
 	node: CallExpression,
 ): Signature | undefined {
-	const expression = unwrapExpression(node.expression);
-	return callSignature(checker, sourceFile, expression);
-}
-
-function callSignature(
-	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
-	expression: Expression,
-): Signature | undefined {
-	const type = callableExpressionType(checker, sourceFile, expression);
+	const type = checker.getTypeAtLocation(unwrapExpression(node.expression));
+	/* c8 ignore next -- the checker returns a type for parsed call expression callees. */
 	if (type == null) {
 		return undefined;
 	}
 	return checker.getSignaturesOfType(type, SignatureKind.Call)[0];
 }
 
-export function expressionType(
-	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
-	expression: Expression,
-): Type | undefined {
-	const unwrapped = unwrapExpression(expression);
-	if (unwrapped.kind === SyntaxKind.CallExpression) {
-		const signature = resolveCallSignature(checker, sourceFile, unwrapped as CallExpression);
-		/* c8 ignore next -- call expressions used for capability values have signatures. */
-		if (signature != null) {
-			return checker.getReturnTypeOfSignature(signature);
-		}
-	}
-	return checker.getTypeAtLocation(unwrapped);
-}
-
-function callableExpressionType(
-	checker: Checker,
-	sourceFile: AnalyzedSourceFile,
-	expression: Expression,
-): Type | undefined {
-	if (expression.kind === SyntaxKind.Identifier) {
-		const position = nodeTokenStart(sourceFile.sourceFile.text, expression);
-		return position == null ? undefined : checker.getTypeAtPosition(sourceFile.filePath, position);
-	}
-	if (expression.kind !== SyntaxKind.PropertyAccessExpression) {
-		return checker.getTypeAtLocation(expression);
-	}
-	const name = (expression as PropertyAccessExpression).name;
-	if (name.kind === SyntaxKind.PrivateIdentifier) {
-		return checker.getTypeAtLocation(expression);
-	}
-	// Named callees are queried at the selected name token. Full ranges include
-	// trivia and, for property accesses, can resolve to the object-side type
-	// instead of the callable symbol in native external-project analysis.
-	const position = nodeTokenStart(sourceFile.sourceFile.text, name);
-	return position == null ? undefined : checker.getTypeAtPosition(sourceFile.filePath, position);
+export function expressionType(checker: Checker, expression: Expression): Type | undefined {
+	return checker.getTypeAtLocation(unwrapExpression(expression));
 }
 
 export function isUnresolvedForwardingParameter(parameterType: Type | undefined): boolean {

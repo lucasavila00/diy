@@ -18,12 +18,11 @@
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},
 	"dependencies": {
-		"@typescript/native-preview": "7.0.0-dev.20260524.1"
+		"typescript": "catalog:"
 	},
 	"devDependencies": {
 		"@beff/diy-analyzer": "workspace:*",
-		"@types/node": "^24.9.0",
-		"commander": "^11.1.0",
-		"typescript": "^6.0.3"
+		"@types/node": "catalog:",
+		"commander": "^15.1.0"
 	}
 }

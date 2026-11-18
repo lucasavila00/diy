@@ -18,7 +18,7 @@ await build({
 	bundle: true,
 	conditions: ["require", "node"],
 	entryPoints: [join(cliRoot, "src/cli.ts")],
-	external: ["@typescript/native-preview", "@typescript/native-preview/*"],
+	external: ["typescript", "typescript/*"],
 	format: "cjs",
 	mainFields: ["main", "module"],
 	outfile: join(cliRoot, "dist-cli/cli.cjs"),

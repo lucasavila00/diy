@@ -4,17 +4,15 @@ jobs:
   static-validate:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 10
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "22.x"
           registry-url: "https://registry.npmjs.org"
       - name: Tests
         run: |
-          pnpm install
-          npm run all
+          pnpm install --frozen-lockfile
+          pnpm run all
           git add .
           git diff --cached --exit-code

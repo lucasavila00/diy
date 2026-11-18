@@ -10,11 +10,10 @@
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},
 	"dependencies": {
-		"@typescript/native-preview": "7.0.0-dev.20260524.1"
+		"typescript": "catalog:"
 	},
 	"devDependencies": {
-		"@types/node": "^24.9.0",
-		"tinyglobby": "^0.2.16",
-		"typescript": "^6.0.3"
+		"@types/node": "catalog:",
+		"tinyglobby": "^0.2.17"
 	}
 }

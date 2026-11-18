@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
-import { API } from "@typescript/native-preview/unstable/sync";
+import { API } from "typescript/unstable/sync";
 
 import { expandSourceFiles } from "../config/source-files.ts";
 import type { DiySourceConfig } from "../config/source-files.ts";
@@ -119,7 +119,6 @@ function resolveProjectConfig(
 			{
 				compilerOptions: {
 					allowImportingTsExtensions: true,
-					baseUrl: cwd,
 					module: "NodeNext",
 					moduleResolution: "NodeNext",
 					noEmit: true,

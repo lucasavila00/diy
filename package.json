@@ -4,11 +4,12 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"all": "pnpm run build && concurrently --group -n format,lint,typecheck,test-fix,v8,e2e,knip 'pnpm run format' 'pnpm run lint:fix' 'pnpm run typecheck' 'pnpm run test-fix' 'pnpm run test:v8:update' 'pnpm run test:e2e:update' 'pnpm run knip'",
+		"all": "pnpm run build && concurrently --group -n format,lint,typecheck,test-fix,v8,e2e,knip,deps 'pnpm run format' 'pnpm run lint:fix' 'pnpm run typecheck' 'pnpm run test-fix' 'pnpm run test:v8:update' 'pnpm run test:e2e:update' 'pnpm run knip' 'pnpm run deps:lint'",
 		"benchmark:diy-capabilities": "node scripts/benchmark-diy-capabilities.mjs",
 		"build": "pnpm -r --if-present run build",
 		"check": "pnpm run typecheck && pnpm run test",
 		"changeset": "changeset",
+		"deps:lint": "syncpack lint",
 		"test:e2e": "pnpm --filter @private/diy-cli-builder run build && bash e2e-tests/all.sh",
 		"test:e2e:update": "pnpm --filter @private/diy-cli-builder run build && bash e2e-tests/all.sh",
 		"test:v8": "vitest run --config vitest.v8.config.ts --coverage",
@@ -23,14 +24,15 @@
 		"typecheck": "pnpm -r run typecheck"
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.31.0",
-		"@vitest/coverage-v8": "^4.1.5",
-		"concurrently": "^9.2.1",
-		"knip": "^5.63.1",
-		"oxfmt": "^0.46.0",
-		"oxlint": "^1.61.0",
-		"typescript": "^6.0.3",
-		"vitest": "^4.1.5"
+		"@changesets/cli": "^3.0.3",
+		"@vitest/coverage-v8": "^5.1.0",
+		"concurrently": "^10.0.7",
+		"knip": "^6.45.1",
+		"oxfmt": "^0.79.0",
+		"oxlint": "^1.94.0",
+		"syncpack": "^15.3.3",
+		"typescript": "catalog:",
+		"vitest": "^5.1.0"
 	},
-	"packageManager": "pnpm@10.27.0"
+	"packageManager": "pnpm@12.21.0"
 }

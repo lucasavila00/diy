@@ -79,7 +79,7 @@ For analyzer internals, read `packages/diy-analyzer/AGENTS.md` before changing `
 
 ## Build, Test, and Development Commands
 
-Use pnpm 10, matching the root `packageManager` field.
+Use pnpm 12, matching the root `packageManager` field.
 
 - `pnpm install` installs workspace dependencies.
 - `pnpm run typecheck` runs TypeScript checks in all packages.
@@ -91,6 +91,8 @@ Run the CI-equivalent sequence before broad changes: `pnpm run check && pnpm run
 ## Coding Style & Naming Conventions
 
 The codebase is TypeScript ESM. Keep imports explicit and include `.ts` extensions for local source imports, matching existing files. Use tabs for indentation, `camelCase` for functions and variables, `PascalCase` for exported types/classes, and descriptive kebab-case filenames such as `module-graph.ts`.
+
+A dependency used by more than one workspace package must be declared once in the `catalog` of `pnpm-workspace.yaml` and referenced as `"catalog:"` in each `package.json`. `pnpm run deps:lint` (syncpack, part of `pnpm run all`) fails on any version that differs from the catalog.
 
 Do not commit generated `dist/` churn unless the change intentionally updates package output. Keep analyzer output deterministic by sorting paths, rules, and messages consistently.
 

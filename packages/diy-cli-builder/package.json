@@ -7,6 +7,6 @@
 		"build": "node ./script/build.mjs"
 	},
 	"devDependencies": {
-		"esbuild": "^0.27.0"
+		"esbuild": "^0.28.2"
 	}
 }
