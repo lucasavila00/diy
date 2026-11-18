@@ -1,1 +1,1 @@
-diy-cli --no-dead-code-analysis -p diy.json
+diy-cli -p diy.json

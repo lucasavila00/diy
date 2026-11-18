@@ -1,5 +1,13 @@
-import { SyntaxKind } from "typescript/unstable/ast";
+import {
+	SyntaxKind,
+	isBinaryExpression,
+	isElementAccessExpression,
+	isIdentifier,
+	isPropertyAccessExpression,
+	isVariableDeclaration,
+} from "typescript/unstable/ast";
 import type {
+	Expression,
 	FunctionLikeDeclaration,
 	ImportDeclaration,
 	ImportSpecifier,
@@ -22,11 +30,12 @@ import {
 	nodeName,
 	staticName,
 } from "./ast-utils.ts";
-import { isDiyCapabilitiesAnnotation } from "./capability-types.ts";
+import { isDiyCapabilitiesAnnotation, unwrapExpression } from "./capability-types.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
 type FunctionFrame = {
+	readonly capabilitiesNames: ReadonlySet<string>;
 	readonly name: string | null;
 };
 
@@ -75,6 +84,13 @@ async function analyzeSourceFileSyntax(
 		const name = functionStack.at(-1)?.name;
 		return name == null ? undefined : name;
 	};
+	const isCapabilitiesReference = (expression: Expression): boolean => {
+		const unwrapped = unwrapExpression(expression);
+		return (
+			isIdentifier(unwrapped) &&
+			functionStack.some((frame) => frame.capabilitiesNames.has(unwrapped.text))
+		);
+	};
 	const report = (
 		node: Node,
 		name: string,
@@ -100,6 +116,7 @@ async function analyzeSourceFileSyntax(
 		const isFunction = isFunctionLike(node);
 		if (isFunction) {
 			functionStack.push({
+				capabilitiesNames: capabilitiesParameterNames(node),
 				name: nativeFunctionName(node, parent),
 			});
 			await checkCapabilitiesParameters(checker, node, report);
@@ -107,6 +124,7 @@ async function analyzeSourceFileSyntax(
 		if (node.kind === SyntaxKind.ImportDeclaration) {
 			checkNoRenamedDiyImport(node as ImportDeclaration, report);
 		}
+		checkNoCapabilityServiceAlias(node, isCapabilitiesReference, report);
 
 		for (const child of childNodes(node)) {
 			await visit(child, node);
@@ -192,6 +210,58 @@ async function checkCapabilitiesParameters(
 			);
 		}
 	}
+}
+
+function capabilitiesParameterNames(node: FunctionLikeDeclaration): ReadonlySet<string> {
+	const names = new Set<string>();
+	for (const param of node.parameters) {
+		const name = staticName(param.name);
+		if (name === "capabilities" || name === "_capabilities") {
+			names.add(name);
+		}
+	}
+	return names;
+}
+
+function checkNoCapabilityServiceAlias(
+	node: Node,
+	isCapabilitiesReference: (expression: Expression) => boolean,
+	report: (node: Node, name: string, reason: string, notes?: DiyAnalyzerViolation["notes"]) => void,
+): void {
+	let target: Node;
+	let value: Expression;
+	if (isVariableDeclaration(node) && node.initializer != null) {
+		target = node.name;
+		value = unwrapExpression(node.initializer);
+	} else if (isBinaryExpression(node) && node.operatorToken.kind === SyntaxKind.EqualsToken) {
+		target = node.left;
+		value = unwrapExpression(node.right);
+	} else {
+		return;
+	}
+	const isServiceRead =
+		(isPropertyAccessExpression(value) || isElementAccessExpression(value)) &&
+		isCapabilitiesReference(value.expression);
+	const isAlias =
+		(isIdentifier(target) && isServiceRead) ||
+		((target.kind === SyntaxKind.ObjectBindingPattern ||
+			target.kind === SyntaxKind.ObjectLiteralExpression) &&
+			isCapabilitiesReference(value));
+	if (!isAlias) {
+		return;
+	}
+	report(
+		target,
+		"capability service alias",
+		"Do not alias or destructure capability services; read each service from `capabilities` where it is used.",
+		[
+			{
+				kind: "help",
+				message:
+					"remove the alias and read the service inline at each use, like `capabilities.clock.now()`",
+			},
+		],
+	);
 }
 
 async function hasDiyCapabilitiesIntersection(

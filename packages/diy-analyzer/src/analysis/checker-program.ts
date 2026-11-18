@@ -3,8 +3,6 @@ import { dirname, join, resolve } from "node:path";
 
 import { API } from "typescript/unstable/async";
 
-import { expandSourceFiles } from "../config/source-files.ts";
-import type { DiySourceConfig } from "../config/source-files.ts";
 import type { DiyAnalyzerViolation } from "../model/types.ts";
 import { collectAnalyzedCapabilityFunctions } from "./capability-functions.ts";
 import type { DiagnosticSuppression } from "./diagnostic-suppressions.ts";
@@ -28,16 +26,6 @@ export async function buildCheckerAnalysisProgramFromFiles(
 			collectAnalyzedCapabilityFunctions(program.project, program.sourceFiles, verbose),
 		),
 	};
-}
-
-export async function buildNativeSyntaxProgram(
-	config: DiySourceConfig,
-	cwd: string,
-	verbose?: (message: string) => void,
-): Promise<NativeSyntaxProgram> {
-	const coveredFiles = await expandSourceFiles(config, cwd);
-	verbose?.(`expanded ${coveredFiles.length} source files`);
-	return buildNativeSyntaxProgramFromFiles(coveredFiles, cwd, verbose);
 }
 
 async function buildNativeSyntaxProgramFromFiles(
@@ -95,10 +83,6 @@ async function buildNativeSyntaxProgramFromFiles(
 		/* c8 ignore next -- tsgo project-open failures are surfaced before analysis starts. */
 		throw error;
 	}
-}
-
-export async function closeNativeSyntaxProgram(program: NativeSyntaxProgram): Promise<void> {
-	await program.api.close();
 }
 
 export async function closeCheckerAnalysisProgram(program: CheckerAnalysisProgram): Promise<void> {

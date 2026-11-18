@@ -191,10 +191,11 @@ function functionLocation(
 	sourceFile: AnalyzedSourceFile,
 	node: FunctionLikeDeclaration,
 ): { readonly column: number; readonly line: number } {
-	const text = sourceFile.sourceFile.text.slice(node.pos, node.end);
+	const start = node.getStart();
+	const text = sourceFile.sourceFile.text.slice(start, node.end);
 	const keywordIndex = text.search(/\b(function|async)\b|[A-Za-z_$][\w$]*\s*:/);
 	/* c8 ignore next -- supported function-like syntax has a keyword or owner label. */
-	const offset = keywordIndex < 0 ? node.pos : node.pos + keywordIndex;
+	const offset = keywordIndex < 0 ? start : start + keywordIndex;
 	return locationForOffset(sourceFile.lineStarts(), offset);
 }
 

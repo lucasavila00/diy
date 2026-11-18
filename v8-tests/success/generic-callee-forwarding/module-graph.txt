@@ -1,0 +1,14 @@
+Module graph
+
+src/main.ts
++-- needReader
+|  +-- direct: reader
+|  `-- indirect: (none)
+|
++-- forwardGeneric
+|  +-- direct: (none)
+|  `-- indirect: (none)
+|
+`-- viaGeneric
+   +-- direct: (none)
+   `-- indirect: reader

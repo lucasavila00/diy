@@ -1,3 +1,18 @@
+src/main.ts:10:8 unused capability
+  Declares unused capability "fs".
+  = help: remove "fs" from `Capabilities<...>`, or add a real `capabilities.fs` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:19:8 unused capability
+  Declares unused capability "storage".
+  = help: remove "storage" from `Capabilities<...>`, or add a real `capabilities.storage` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:32:8 unused capability
+  Declares unused capability "fs".
+  = help: remove "fs" from `Capabilities<...>`, or add a real `capabilities.fs` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:10:25 invalid capabilities parameter
   Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
