@@ -5,6 +5,7 @@ import type {
 	DiyModuleGraphModule,
 	DiyUnusedCapabilityFinding,
 } from "../model/types.ts";
+import { compareStrings } from "../shared/compare.ts";
 import { compareAnalyzedCapabilityFunctions } from "./capability-functions.ts";
 import {
 	buildCheckerAnalysisProgramFromFiles,
@@ -114,6 +115,6 @@ function moduleGraph(
 		});
 	}
 	return {
-		modules: modules.sort((left, right) => left.filePath.localeCompare(right.filePath)),
+		modules: modules.sort((left, right) => compareStrings(left.filePath, right.filePath)),
 	};
 }

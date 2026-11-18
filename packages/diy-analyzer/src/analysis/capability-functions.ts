@@ -2,6 +2,7 @@ import { SyntaxKind } from "typescript/unstable/ast";
 import type { FunctionLikeDeclaration, Node } from "typescript/unstable/ast";
 import type { Project } from "typescript/unstable/async";
 
+import { compareStrings } from "../shared/compare.ts";
 import {
 	childNodes,
 	isFunctionLike,
@@ -209,9 +210,9 @@ export function compareAnalyzedCapabilityFunctions(
 ): number {
 	/* c8 ignore next -- later operands are deterministic tie-break plumbing. */
 	return (
-		left.filePath.localeCompare(right.filePath) ||
+		compareStrings(left.filePath, right.filePath) ||
 		left.line - right.line ||
 		left.column - right.column ||
-		left.name.localeCompare(right.name)
+		compareStrings(left.name, right.name)
 	);
 }
