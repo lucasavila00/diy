@@ -96,6 +96,10 @@ async function readAnalyzedCapabilityFunction(
 	ownerName: string | null,
 	namespaceStack: readonly string[],
 ): Promise<AnalyzedCapabilityFunction | null> {
+	// Overload signatures, `declare function`, and abstract methods have no body to scan.
+	if (node.body == null) {
+		return null;
+	}
 	const firstParam = node.parameters[0];
 	if (firstParam == null || firstParam.type == null) {
 		return null;

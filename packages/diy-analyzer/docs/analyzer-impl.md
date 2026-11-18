@@ -92,7 +92,9 @@ covered set.
 
 [`capability-functions.ts`](../src/analysis/capability-functions.ts) traverses every
 `AnalyzedSourceFile` and selects function-like declarations whose first parameter
-resolves to DIY `Capabilities<...>`. Each selected function becomes an
+resolves to DIY `Capabilities<...>`. Declarations without a body (overload signatures,
+`declare function`, abstract methods) are skipped; syntax lint rules still check their
+parameters. Each selected function becomes an
 `AnalyzedCapabilityFunction` from [`native-types.ts`](../src/analysis/native-types.ts):
 
 ```ts
