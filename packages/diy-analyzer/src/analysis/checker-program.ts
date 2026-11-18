@@ -1,6 +1,8 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
+import { SyntaxKind, getLeadingCommentRanges, getTokenAtPosition } from "typescript/unstable/ast";
+import type { SourceFile } from "typescript/unstable/ast";
 import { API } from "typescript/unstable/async";
 
 import type { DiyAnalyzerViolation } from "../model/types.ts";
@@ -147,8 +149,12 @@ function collectNativeSuppressions(modules: readonly AnalyzedSourceFile[]): {
 	const violations: DiyAnalyzerViolation[] = [];
 	const directivePattern = /^(\s*)\/\/\s*diy-ignore-next-line\b(.*)$/;
 	for (const sourceFile of modules) {
-		const lines = sourceFile.sourceFile.text.split(/\r?\n/);
+		const text = sourceFile.sourceFile.text;
+		const lines = text.split(/\r?\n/);
+		let lineStart = 0;
 		for (const [index, lineText] of lines.entries()) {
+			const start = lineStart;
+			lineStart = text.indexOf("\n", start) + 1;
 			const match = directivePattern.exec(lineText);
 			if (match == null) {
 				continue;
@@ -156,6 +162,9 @@ function collectNativeSuppressions(modules: readonly AnalyzedSourceFile[]): {
 			const line = index + 1;
 			/* c8 ignore next -- directivePattern always captures indentation. */
 			const column = (match[1]?.length ?? 0) + 1;
+			if (!startsSingleLineComment(sourceFile.sourceFile, start + column - 1)) {
+				continue;
+			}
 			/* c8 ignore next -- directivePattern always captures the directive suffix. */
 			const suffix = match[2]?.trimStart() ?? "";
 			if (!suffix.startsWith("--") || suffix.slice(2).trim().length === 0) {
@@ -177,6 +186,16 @@ function collectNativeSuppressions(modules: readonly AnalyzedSourceFile[]): {
 		}
 	}
 	return { suppressions, violations };
+}
+
+/** Whether a real `//` comment token starts at `position`, not text inside a string, template, or block comment. */
+function startsSingleLineComment(sourceFile: SourceFile, position: number): boolean {
+	const token = getTokenAtPosition(sourceFile, position);
+	return (
+		getLeadingCommentRanges(sourceFile.text, token.pos)?.some(
+			(comment) => comment.pos === position && comment.kind === SyntaxKind.SingleLineCommentTrivia,
+		) ?? false
+	);
 }
 
 function suppressionTargetLine(lines: readonly string[], index: number): number {
