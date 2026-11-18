@@ -5,20 +5,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
         with:
           version: 10
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
-      - name: Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          package-manager-cache: false
+      - name: Build and pack
         run: |
-          pnpm install
+          pnpm install --frozen-lockfile
           pnpm build
-          (cd packages/diy && pnpm publish --no-git-checks --access public)
-          (cd packages/diy-cli && pnpm publish --no-git-checks --access public)
+          pnpm --dir packages/diy pack --out "$RUNNER_TEMP/diy.tgz"
+          pnpm --dir packages/diy-cli pack --out "$RUNNER_TEMP/diy-cli.tgz"
+      - name: Publish with OIDC
+        run: |
+          npm publish "$RUNNER_TEMP/diy.tgz" --access public
+          npm publish "$RUNNER_TEMP/diy-cli.tgz" --access public

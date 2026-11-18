@@ -1,6 +1,11 @@
 {
 	"name": "@beff/diy",
 	"version": "0.0.33",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/lucasavila00/diy.git",
+		"directory": "packages/diy"
+	},
 	"files": [
 		"dist/cjs",
 		"dist/esm",

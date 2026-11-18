@@ -100,4 +100,4 @@ Run the `npm run all`
 
 ## Security & Configuration Tips
 
-Publishing uses `NPM_TOKEN` in GitHub Actions. Do not commit registry tokens, local `.env` files, or machine-specific paths. Prefer root workspace commands so package-local tooling and lockfile state stay consistent.
+Publishing uses npm Trusted Publishing (GitHub Actions OIDC); see `CONTRIBUTING.md`. Do not commit registry tokens, local `.env` files, or machine-specific paths. Prefer root workspace commands so package-local tooling and lockfile state stay consistent.
