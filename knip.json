@@ -30,7 +30,7 @@
 		},
 		"packages/diy-cli": {
 			"entry": ["bin/index.js!", "src/cli.ts!"],
-			"ignoreDependencies": ["@typescript/native-preview"],
+			"ignoreDependencies": ["typescript"],
 			"project": ["bin/**/*.js!", "src/**/*.ts!", "tsconfig.json!"]
 		},
 		"packages/diy-cli-builder": {

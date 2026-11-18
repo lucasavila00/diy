@@ -1,12 +1,12 @@
-import { skipTrivia, SyntaxKind } from "@typescript/native-preview/unstable/ast";
+import { skipTrivia, SyntaxKind } from "typescript/unstable/ast";
 import type {
 	FunctionLikeDeclaration,
 	ImportDeclaration,
 	ImportSpecifier,
 	Node,
 	TypeNode,
-} from "@typescript/native-preview/unstable/ast";
-import type { Diagnostic, Project } from "@typescript/native-preview/unstable/sync";
+} from "typescript/unstable/ast";
+import type { Diagnostic, Project } from "typescript/unstable/sync";
 
 import type {
 	DiyAnalyzerNote,

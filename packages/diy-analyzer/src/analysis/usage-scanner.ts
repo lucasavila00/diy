@@ -1,20 +1,24 @@
-import { SyntaxKind, isExpression } from "@typescript/native-preview/unstable/ast";
+import {
+	SyntaxKind,
+	isBinaryExpression,
+	isVariableDeclaration,
+} from "typescript/unstable/ast";
 import type {
+	BinaryExpression,
 	CallExpression,
 	ElementAccessExpression,
 	Expression,
 	FunctionLikeDeclaration,
 	Node,
 	PropertyAccessExpression,
-} from "@typescript/native-preview/unstable/ast";
-import type { Checker, Project, Type } from "@typescript/native-preview/unstable/sync";
+	VariableDeclaration,
+} from "typescript/unstable/ast";
+import type { Checker, Project, Type } from "typescript/unstable/sync";
 
 import {
 	isFunctionLike,
 	locationForOffset,
-	nodeInitializer,
 	nodeName,
-	nodeNameNode,
 	objectLiteralProperties,
 	staticName,
 } from "./ast-utils.ts";
@@ -58,9 +62,9 @@ export function scanFunctionBody(
 		) {
 			return;
 		}
-		if (node.kind === SyntaxKind.VariableDeclaration) {
+		if (isVariableDeclaration(node)) {
 			scanPropagatedVariable(project.checker, analyzedFunction, node);
-		} else if (node.kind === SyntaxKind.BinaryExpression) {
+		} else if (isBinaryExpression(node)) {
 			scanPropagatedAssignment(project.checker, analyzedFunction, node);
 		} else if (node.kind === SyntaxKind.PropertyAccessExpression) {
 			scanPropertyAccess(project, analyzedFunction, node as PropertyAccessExpression);
@@ -182,7 +186,7 @@ function scanCall(
 	if (forwardedArguments.length === 0) {
 		return;
 	}
-	const signature = resolveCallSignature(project.checker, analyzedFunction.sourceFile, node);
+	const signature = resolveCallSignature(project.checker, node);
 	for (const { forwarded, index } of forwardedArguments) {
 		/* c8 ignore next -- forwarded calls without signatures are reported below as unresolved. */
 		const parameterType =
@@ -212,43 +216,31 @@ function scanCall(
 function scanPropagatedVariable(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
-	node: Node,
+	node: VariableDeclaration,
 ): void {
-	const initializer = nodeInitializer(node);
-	if (initializer == null || !isExpression(initializer)) {
+	if (node.initializer == null) {
 		return;
 	}
-	const forwarded = forwardedExpression(checker, analyzedFunction, initializer);
+	const forwarded = forwardedExpression(checker, analyzedFunction, node.initializer);
 	if (forwarded == null) {
 		return;
 	}
-	const name = nodeNameNode(node);
-	/* c8 ignore next -- variable declarations always expose a binding name. */
-	if (name != null) {
-		addPropagatedSource(checker, analyzedFunction, name, forwarded.provided);
-	}
+	addPropagatedSource(checker, analyzedFunction, node.name, forwarded.provided);
 }
 
 function scanPropagatedAssignment(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
-	node: Node,
+	node: BinaryExpression,
 ): void {
-	const record = node as unknown as Record<string, Node | undefined>;
-	if (record.operatorToken?.kind !== SyntaxKind.EqualsToken) {
+	if (node.operatorToken.kind !== SyntaxKind.EqualsToken) {
 		return;
 	}
-	const left = record.left;
-	const right = record.right;
-	/* c8 ignore next -- tsgo binary expressions always expose expression operands. */
-	if (left == null || right == null || !isExpression(right)) {
-		return;
-	}
-	const forwarded = forwardedExpression(checker, analyzedFunction, right);
+	const forwarded = forwardedExpression(checker, analyzedFunction, node.right);
 	if (forwarded == null) {
 		return;
 	}
-	addPropagatedSource(checker, analyzedFunction, left, forwarded.provided);
+	addPropagatedSource(checker, analyzedFunction, node.left, forwarded.provided);
 }
 
 function isCapabilitiesHelperCall(sourceFile: AnalyzedSourceFile, node: CallExpression): boolean {
@@ -359,7 +351,7 @@ function providedCapabilityIds(
 		for (const id of objectLiteralCapabilityIds(sourceFile, expression)) {
 			provided.add(id);
 		}
-		const type = expressionType(checker, sourceFile, expression);
+		const type = expressionType(checker, expression);
 		/* c8 ignore next -- expressions passed to capability helpers have checker types. */
 		if (type == null) {
 			continue;

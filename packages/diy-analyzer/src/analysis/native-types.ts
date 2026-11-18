@@ -1,9 +1,5 @@
-import type {
-	FunctionLikeDeclaration,
-	SourceFile,
-	TypeNode,
-} from "@typescript/native-preview/unstable/ast";
-import type { API, Project, Symbol as TsgoSymbol } from "@typescript/native-preview/unstable/sync";
+import type { FunctionLikeDeclaration, SourceFile, TypeNode } from "typescript/unstable/ast";
+import type { API, Project, Symbol as TsgoSymbol } from "typescript/unstable/sync";
 
 import type { DiyAnalyzerViolation } from "../model/types.ts";
 import type { DiagnosticSuppression } from "./diagnostic-suppressions.ts";
@@ -45,12 +41,12 @@ export type AnalyzedCapabilityFunction = {
 	readonly unsupportedReasons: UnsupportedAnalysisReason[];
 };
 
-export type ForwardedCapabilityUse = {
+type ForwardedCapabilityUse = {
 	readonly provided: ReadonlySet<string>;
 	readonly required: ReadonlySet<string>;
 };
 
-export type CapabilityProviderCheck = {
+type CapabilityProviderCheck = {
 	readonly column: number;
 	readonly extra: ReadonlySet<string>;
 	readonly line: number;

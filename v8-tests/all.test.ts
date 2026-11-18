@@ -184,7 +184,6 @@ describe("DIY CLI mode flags", () => {
 					{
 						compilerOptions: {
 							allowJs: true,
-							baseUrl: ".",
 							module: "NodeNext",
 							moduleResolution: "NodeNext",
 							noEmit: true,

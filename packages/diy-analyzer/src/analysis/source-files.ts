@@ -1,16 +1,11 @@
 import { existsSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 
-import { SyntaxKind } from "@typescript/native-preview/unstable/ast";
-import type {
-	ImportDeclaration,
-	Node,
-	SourceFile,
-	TypeNode,
-} from "@typescript/native-preview/unstable/ast";
-import type { Project } from "@typescript/native-preview/unstable/sync";
+import { SyntaxKind, isTypeAliasDeclaration } from "typescript/unstable/ast";
+import type { ImportDeclaration, Node, SourceFile, TypeNode } from "typescript/unstable/ast";
+import type { Project } from "typescript/unstable/sync";
 
-import { lineStarts, literalText, nodeName } from "./ast-utils.ts";
+import { lineStarts, literalText } from "./ast-utils.ts";
 import type { AnalyzedSourceFile, ImportBinding } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
@@ -151,13 +146,8 @@ function collectImports(sourceFile: SourceFile): ReadonlyMap<string, ImportBindi
 function collectTypeAliases(sourceFile: SourceFile): ReadonlyMap<string, TypeNode> {
 	const aliases = new Map<string, TypeNode>();
 	const visit = (node: Node): void => {
-		if (node.kind === SyntaxKind.TypeAliasDeclaration) {
-			const name = nodeName(node);
-			const type = (node as unknown as { readonly type?: TypeNode }).type;
-			/* c8 ignore next -- parsed type alias declarations expose both name and type. */
-			if (name != null && type != null) {
-				aliases.set(name, type);
-			}
+		if (isTypeAliasDeclaration(node)) {
+			aliases.set(node.name.text, node.type);
 		}
 		node.forEachChild(visit);
 	};
@@ -172,8 +162,8 @@ export function localDiyPaths(cwd: string): Record<string, readonly string[]> {
 		return {};
 	}
 	return {
-		"@beff/diy": [relative(cwd, join(packageRoot, "src/index.ts"))],
-		"@beff/diy/capabilities": [relative(cwd, join(packageRoot, "src/capabilities.ts"))],
+		"@beff/diy": [join(packageRoot, "src/index.ts")],
+		"@beff/diy/capabilities": [join(packageRoot, "src/capabilities.ts")],
 	};
 }
 
