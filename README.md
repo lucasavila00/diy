@@ -116,7 +116,6 @@ Then add scripts that run `diy-cli` with that project file:
 ```json
 {
 	"scripts": {
-		"diy:lint": "diy-cli --no-dead-code-analysis -p diy.json",
 		"diy:check": "diy-cli -p diy.json",
 		"diy:graph": "diy-cli --graph -p diy.json > diy-module-graph.txt"
 	}
@@ -176,7 +175,6 @@ Usage: diy-cli [options]
 Options:
 
 - `-p, --project <path>`: Required path to `diy.json`.
-- `--no-dead-code-analysis`: Run syntax lint rules without unused-capability and reachability analysis.
 - `--graph`: Print a capability module graph instead of normal analyzer diagnostics.
 
 `diy.json` fields:
@@ -186,9 +184,9 @@ Options:
 
 ## Lint Rules
 
-DIY always runs a syntax lint pass. These rules keep capability-bearing functions
-easy for people, TypeScript, and the analyzer to read. Pass
-`--no-dead-code-analysis` to run only these lint rules.
+DIY always runs a syntax lint pass alongside unused-capability analysis. These rules
+keep capability-bearing functions easy for people, TypeScript, and the analyzer to
+read.
 
 Capability parameters must be the first parameter, and they must be named
 `capabilities` or `_capabilities`:
