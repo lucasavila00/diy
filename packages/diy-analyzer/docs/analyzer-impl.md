@@ -166,8 +166,10 @@ The scanner walks the function's AST and updates the function state:
   argument to the callee parameter type at that call site;
 - `Capabilities.extend(capabilities, extra)` also records a provider check so redundant
   extension can become a violation;
-- nested functions with their own capability binding are treated as new analysis units,
-  so their reads are not charged to the outer function.
+- nested functions with their own capability binding are treated as new analysis units;
+  reads are attributed by the parameter symbol they resolve to, so reads of the nested
+  binding are not charged to the outer function, while closure reads of the outer binding
+  inside the nested function still are.
 
 A forwarded value is represented as:
 

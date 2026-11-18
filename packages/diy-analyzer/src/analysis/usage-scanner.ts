@@ -4,7 +4,6 @@ import type {
 	CallExpression,
 	ElementAccessExpression,
 	Expression,
-	FunctionLikeDeclaration,
 	Node,
 	PropertyAccessExpression,
 	VariableDeclaration,
@@ -13,7 +12,6 @@ import type { Checker, Project, Type } from "typescript/unstable/async";
 
 import {
 	childNodes,
-	isFunctionLike,
 	locationForOffset,
 	nodeName,
 	objectLiteralProperties,
@@ -24,7 +22,6 @@ import {
 	expressionSymbol,
 	expressionType,
 	isCapabilitiesType,
-	isDiyCapabilitiesAnnotation,
 	isImportedCapabilitiesValue,
 	isUnresolvedForwardingParameter,
 	resolveCallSignature,
@@ -54,13 +51,6 @@ export async function scanFunctionBody(
 	// sources that later nodes in the same body look up.
 	const visit = async (node: Node): Promise<void> => {
 		scannedNodes += 1;
-		if (
-			node !== analyzedFunction.node &&
-			isFunctionLike(node) &&
-			hasOwnCapabilitiesBinding(analyzedFunction.sourceFile, node)
-		) {
-			return;
-		}
 		if (isVariableDeclaration(node)) {
 			await scanPropagatedVariable(project.checker, analyzedFunction, node);
 		} else if (isBinaryExpression(node)) {
@@ -442,20 +432,6 @@ async function capabilitiesSourceExpression(
 	const id = symbolId(symbol);
 	const provided = id == null ? undefined : analyzedFunction.propagatedCapabilitySources.get(id);
 	return provided == null ? null : { provided };
-}
-
-function hasOwnCapabilitiesBinding(
-	sourceFile: AnalyzedSourceFile,
-	node: FunctionLikeDeclaration,
-): boolean {
-	const firstParam = node.parameters[0];
-	if (firstParam?.type != null && isDiyCapabilitiesAnnotation(sourceFile, firstParam.type)) {
-		return true;
-	}
-	return node.parameters.some((param) => {
-		const name = staticName(param.name);
-		return name === "capabilities" || name === "_capabilities";
-	});
 }
 
 export function locationForNode(
