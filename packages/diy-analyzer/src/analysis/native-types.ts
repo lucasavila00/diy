@@ -1,5 +1,5 @@
 import type { FunctionLikeDeclaration, SourceFile, TypeNode } from "typescript/unstable/ast";
-import type { API, Project, Symbol as TsgoSymbol } from "typescript/unstable/sync";
+import type { API, Project, Symbol as TsgoSymbol } from "typescript/unstable/async";
 
 import type { DiyAnalyzerViolation } from "../model/types.ts";
 import type { DiagnosticSuppression } from "./diagnostic-suppressions.ts";

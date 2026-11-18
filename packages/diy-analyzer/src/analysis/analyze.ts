@@ -67,7 +67,7 @@ async function analyzeDiySyntax(
 		const suppressed = applyDiagnosticSuppressions({
 			findings: [],
 			suppressions: program.suppressions.suppressions,
-			unsupported: collectNativeParseErrors(program.project, program.sourceFiles, verbose),
+			unsupported: await collectNativeParseErrors(program.project, program.sourceFiles, verbose),
 			violations: [
 				...analyzeNativeDiySyntax(program.project, program.sourceFiles, verbose),
 				...program.suppressions.violations,
@@ -80,6 +80,6 @@ async function analyzeDiySyntax(
 			violations: suppressed.violations,
 		});
 	} finally {
-		closeNativeSyntaxProgram(program);
+		await closeNativeSyntaxProgram(program);
 	}
 }

@@ -5,7 +5,7 @@
 `@beff/diy-analyzer` is a private TypeScript analyzer core for the DIY dependency-injection style used in this repo. The published `@beff/diy-cli` package owns the CLI source and bundles this analyzer core through the private `@private/diy-cli-builder` package. The pipeline is:
 
 1. `src/config/source-files.ts` expands configured analyzer inputs.
-2. `src/analysis/checker-program.ts` loads tsgo projects and source files through `typescript/unstable/sync`.
+2. `src/analysis/checker-program.ts` loads tsgo projects and source files through `typescript/unstable/async`. Use the async API: the sync client can print `context canceled` to stderr on close.
 3. `src/analysis/analyze.ts` coordinates the default syntax lint pass and optional checker-backed dead-code checks.
 4. `src/analysis/` contains checker-backed dead-code, syntax lint, and graph analysis.
 5. `src/analysis/finalize.ts` sorts the combined analysis result.

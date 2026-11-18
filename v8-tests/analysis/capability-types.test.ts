@@ -89,41 +89,41 @@ describe("DIY Capabilities annotations", () => {
 		expect(isDiyCapabilitiesAnnotation(source, typeReference("Capabilities"))).toBe(false);
 	});
 
-	it("does not treat unrelated annotations as opaque Capabilities", () => {
+	it("does not treat unrelated annotations as opaque Capabilities", async () => {
 		const checker = {
-			getTypeFromTypeNode: () => undefined,
+			getTypeFromTypeNode: async () => undefined,
 		} as unknown as Parameters<typeof isOpaqueCapabilitiesType>[0];
 		const source = sourceFile({
 			imports: [["Capabilities", { importedName: "Capabilities", source: "@beff/diy" }]],
 		});
 
-		expect(isOpaqueCapabilitiesType(checker, source, typeReference("Input"))).toBe(false);
+		expect(await isOpaqueCapabilitiesType(checker, source, typeReference("Input"))).toBe(false);
 	});
 
-	it("reads declared types from parameter bindings instead of annotation locations", () => {
+	it("reads declared types from parameter bindings instead of annotation locations", async () => {
 		const declaredType = typeWithProperties(["access", "catalog"]);
 		const annotationLocationType = typeWithProperties(["then", "catch", "finally"]);
 		const parameterName = {} as ParameterNameArg;
 		const parameterSymbol = {} as ParameterSymbolArg;
 		const checker = {
-			getTypeAtLocation: () => annotationLocationType,
-			getTypeOfSymbolAtLocation: (symbol: unknown, location: unknown) =>
+			getTypeAtLocation: async () => annotationLocationType,
+			getTypeOfSymbolAtLocation: async (symbol: unknown, location: unknown) =>
 				symbol === parameterSymbol && location === parameterName ? declaredType : undefined,
 		} as unknown as Parameters<typeof declaredParameterType>[0];
 
-		expect(declaredParameterType(checker, parameterName, parameterSymbol)).toBe(declaredType);
+		expect(await declaredParameterType(checker, parameterName, parameterSymbol)).toBe(declaredType);
 	});
 
-	it("uses the parameter name type when the symbol location type is unavailable", () => {
+	it("uses the parameter name type when the symbol location type is unavailable", async () => {
 		const declaredType = typeWithProperties(["access"]);
 		const checker = {
-			getTypeAtLocation: () => declaredType,
-			getTypeOfSymbolAtLocation: () => undefined,
+			getTypeAtLocation: async () => declaredType,
+			getTypeOfSymbolAtLocation: async () => undefined,
 		} as unknown as Parameters<typeof declaredParameterType>[0];
 
-		expect(declaredParameterType(checker, {} as ParameterNameArg, {} as ParameterSymbolArg)).toBe(
-			declaredType,
-		);
+		expect(
+			await declaredParameterType(checker, {} as ParameterNameArg, {} as ParameterSymbolArg),
+		).toBe(declaredType);
 	});
 });
 

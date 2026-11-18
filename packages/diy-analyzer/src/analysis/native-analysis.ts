@@ -19,7 +19,7 @@ import {
 	computeRequiredCapabilityIds,
 	graphFunction,
 } from "./results.ts";
-import { timeDeadCodePhase } from "./timing.ts";
+import { timeDeadCodePhase, timeDeadCodePhaseAsync } from "./timing.ts";
 
 export async function analyzeNativeDeadCodeFromFiles(
 	coveredFiles: readonly string[],
@@ -40,20 +40,20 @@ export async function analyzeNativeDeadCodeFromFiles(
 	return analyzeNativeDeadCodeProgram(program, options);
 }
 
-function analyzeNativeDeadCodeProgram(
+async function analyzeNativeDeadCodeProgram(
 	program: CheckerAnalysisProgram,
 	options: {
 		readonly graph?: boolean;
 		readonly verbose?: ((message: string) => void) | undefined;
 	},
-): {
+): Promise<{
 	readonly coveredFiles: readonly string[];
 	readonly findings: readonly DiyUnusedCapabilityFinding[];
 	readonly graph?: DiyModuleGraph;
 	readonly suppressions: CheckerAnalysisProgram["suppressions"];
 	readonly unsupported: readonly DiyAnalyzerUnsupported[];
 	readonly violations: readonly DiyAnalyzerViolation[];
-} {
+}> {
 	try {
 		options.verbose?.("computing required capabilities");
 		const required = timeDeadCodePhase("compute required capabilities", () =>
@@ -71,8 +71,8 @@ function analyzeNativeDeadCodeProgram(
 			suppressions: program.suppressions,
 			// Keep these phase logs close to the calls because syntax diagnostics can
 			// traverse very large generated files.
-			unsupported: timeDeadCodePhase("collect unsupported analysis", () => [
-				...collectNativeParseErrors(program.project, program.sourceFiles, options.verbose),
+			unsupported: await timeDeadCodePhaseAsync("collect unsupported analysis", async () => [
+				...(await collectNativeParseErrors(program.project, program.sourceFiles, options.verbose)),
 				...collectUnsupported(program.analyzedFunctions),
 			]),
 			violations: timeDeadCodePhase("collect violations", () => [
@@ -81,7 +81,7 @@ function analyzeNativeDeadCodeProgram(
 			]),
 		};
 	} finally {
-		closeCheckerAnalysisProgram(program);
+		await closeCheckerAnalysisProgram(program);
 	}
 }
 
