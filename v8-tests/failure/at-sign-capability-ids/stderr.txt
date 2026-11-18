@@ -1,0 +1,9 @@
+src/main.ts:7:8 unused capability
+  Declares unused capability "@scope/logger".
+  = help: remove "@scope/logger" from `Capabilities<...>`, or add a real `capabilities["@scope/logger"]` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:15:8 unused capability
+  Declares unused capability "__internal".
+  = help: remove "__internal" from `Capabilities<...>`, or add a real `capabilities.__internal` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

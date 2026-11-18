@@ -133,9 +133,10 @@ required capability type can be recovered. Ordinary calls without capability for
 are ignored because they do not change the dependency-injection proof.
 
 The analyzer also treats nested functions carefully. If a nested function has its own
-capability binding, the outer scan does not attribute that nested function's reads to the
+capability binding, the outer scan does not attribute reads of that nested binding to the
 outer function. This keeps lexical nesting from accidentally becoming capability
-ownership.
+ownership. Reads inside the nested function that resolve to the outer binding through a
+closure still count for the outer function.
 
 ## Diagnostics
 
