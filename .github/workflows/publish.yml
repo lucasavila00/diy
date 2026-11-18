@@ -2,6 +2,8 @@ name: Publish Package to npmjs
 on:
   release:
     types: [created]
+  # Manual re-run from main, e.g. to finish a release where one package failed.
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -24,5 +26,13 @@ jobs:
           pnpm --dir packages/diy-cli pack --out "$RUNNER_TEMP/diy-cli.tgz"
       - name: Publish with OIDC
         run: |
-          npm publish "$RUNNER_TEMP/diy.tgz" --access public
-          npm publish "$RUNNER_TEMP/diy-cli.tgz" --access public
+          # Skip versions already on npm so a partially failed release can be re-run.
+          for package in diy diy-cli; do
+            name=$(node -p "require('./packages/$package/package.json').name")
+            version=$(node -p "require('./packages/$package/package.json').version")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already published; skipping"
+            else
+              npm publish "$RUNNER_TEMP/$package.tgz" --access public
+            fi
+          done
