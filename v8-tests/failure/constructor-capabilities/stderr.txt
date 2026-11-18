@@ -1,0 +1,9 @@
+src/main.ts:10:14 invalid capabilities parameter
+  Constructors cannot take `Capabilities`. A constructor would store the capabilities bag on the object, which hides which services each method uses, and constructors cannot be async.
+  = help: use a function instead, e.g. `async function createService(capabilities: Capabilities<AppCapability>)`, and pass `capabilities` to each function that needs services
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:19:3 invalid capabilities parameter
+  Constructors cannot take `Capabilities`. A constructor would store the capabilities bag on the object, which hides which services each method uses, and constructors cannot be async.
+  = help: use a function instead, e.g. `async function createService(capabilities: Capabilities<AppCapability>)`, and pass `capabilities` to each function that needs services
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

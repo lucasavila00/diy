@@ -256,6 +256,24 @@ export abstract class Job {
 }
 ```
 
+Constructors cannot take capabilities. A constructor would store the capabilities
+bag on the object, which hides which services each method uses, and constructors
+cannot be `async`. Take capabilities in a function instead:
+
+```ts
+// Not allowed.
+export class Service {
+	constructor(capabilities: Capabilities<ReaderCapability>) {
+		this.value = capabilities.reader.read();
+	}
+}
+
+// Allowed.
+export async function createService(capabilities: Capabilities<ReaderCapability>): Promise<string> {
+	return capabilities.reader.read();
+}
+```
+
 If a parameter named `capabilities` or `_capabilities` has a type annotation, it
 must resolve to DIY `Capabilities<...>`. This prevents unrelated values from
 looking like DIY capability bags:
