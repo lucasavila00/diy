@@ -139,21 +139,30 @@ async function capabilityAccess(
 		firstAccess = current as PropertyAccessExpression | ElementAccessExpression;
 		current = unwrapExpression(accessExpression(firstAccess));
 	}
-	if ((await capabilitiesSourceExpression(checker, analyzedFunction, current)) == null) {
+	const source = await capabilitiesSourceExpression(checker, analyzedFunction, current);
+	if (source == null) {
 		return null;
 	}
+	let id: string | null;
 	if (firstAccess.kind === SyntaxKind.PropertyAccessExpression) {
 		const access = firstAccess as PropertyAccessExpression;
 		if (access.name.kind === SyntaxKind.PrivateIdentifier || access.questionDotToken != null) {
 			return { id: null };
 		}
-		return { id: staticName(access.name) };
+		id = staticName(access.name);
+	} else {
+		const access = firstAccess as ElementAccessExpression;
+		if (access.questionDotToken != null) {
+			return { id: null };
+		}
+		id = await staticStringExpression(checker, access.argumentExpression);
 	}
-	const access = firstAccess as ElementAccessExpression;
-	if (access.questionDotToken != null) {
-		return { id: null };
+	// Services provided locally by `extend`/`merge`/`override` are not reads of
+	// the original parameter's services.
+	if (id != null && source.provided.has(id)) {
+		return null;
 	}
-	return { id: await staticStringExpression(checker, access.argumentExpression) };
+	return { id };
 }
 
 function accessExpression(node: PropertyAccessExpression | ElementAccessExpression): Expression {
