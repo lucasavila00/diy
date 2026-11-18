@@ -61,7 +61,10 @@ The supported helper surface is:
 - `Capabilities.merge(...)`
 
 `Capabilities.override(...)` accepts a partial service object directly because the base
-capability object already determines the allowed keys and service types.
+capability object already determines the allowed keys and service types. Every key in the
+replacement object must hold a service of the declared type; an explicit `undefined` is
+rejected even without `exactOptionalPropertyTypes`, because the result still provides
+that service.
 
 Containers do not carry instance methods. This keeps the runtime value a plain service
 object and avoids method-name collisions with capability IDs.

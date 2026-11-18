@@ -557,7 +557,8 @@ export function createRequestCapabilities(
 
 ### Override services for tests
 
-Use `Capabilities.override(...)` to replace services without changing the capability type:
+Use `Capabilities.override(...)` to replace services without changing the capability type.
+Pass only the services you replace; each one must be a real service, so `{ clock: undefined }` is a type error:
 
 ```ts
 import * as fs from "node:fs/promises";

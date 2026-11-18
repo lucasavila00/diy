@@ -30,7 +30,7 @@
 	},
 	"scripts": {
 		"build": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json && node ./script/fixup-package.mjs",
-		"typecheck": "tsc --noEmit -p tsconfig.json"
+		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.no-exact-optional.json"
 	},
 	"devDependencies": {
 		"typescript": "catalog:"

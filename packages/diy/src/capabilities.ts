@@ -45,8 +45,6 @@ export type Capabilities<in Allowed extends Capability<string, unknown>> = {
 	readonly [Single in Allowed as Single[typeof capabilityId]]: Single[typeof serviceType];
 };
 
-type ServiceOverrides<Allowed extends Capability<string, unknown>> = Partial<Capabilities<Allowed>>;
-
 function create<Allowed extends Capability<string, unknown> = never>(
 	serviceMap: Capabilities<Allowed>,
 ): Capabilities<Allowed> {
@@ -61,9 +59,14 @@ function extend<
 	return { ...capabilities, ...extra } as Capabilities<Allowed | Extra>;
 }
 
-function override<Allowed extends Capability<string, unknown>>(
+// `Pick` keeps every replaced service required, so `{ clock: undefined }` is rejected
+// whether or not `exactOptionalPropertyTypes` is enabled. `Partial` would allow it.
+function override<
+	Allowed extends Capability<string, unknown>,
+	Replaced extends keyof Capabilities<Allowed>,
+>(
 	capabilities: Capabilities<Allowed>,
-	replacement: ServiceOverrides<Allowed>,
+	replacement: Pick<Capabilities<Allowed>, Replaced>,
 ): Capabilities<Allowed> {
 	return { ...capabilities, ...replacement };
 }
