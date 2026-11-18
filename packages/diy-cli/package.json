@@ -1,6 +1,11 @@
 {
 	"name": "@beff/diy-cli",
 	"version": "0.0.33",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/lucasavila00/diy.git",
+		"directory": "packages/diy-cli"
+	},
 	"bin": {
 		"diy-cli": "./bin/index.js"
 	},
