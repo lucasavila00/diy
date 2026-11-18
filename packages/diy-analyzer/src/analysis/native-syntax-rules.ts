@@ -240,6 +240,8 @@ function checkNoConstructorCapabilities(
 			],
 		);
 	}
+}
+
 function capabilitiesParameterNames(node: FunctionLikeDeclaration): ReadonlySet<string> {
 	const names = new Set<string>();
 	for (const param of node.parameters) {
