@@ -63,7 +63,7 @@ function compareUnsupported(left: DiyAnalyzerUnsupported, right: DiyAnalyzerUnsu
 function compareViolations(left: DiyAnalyzerViolation, right: DiyAnalyzerViolation): number {
 	return (
 		left.filePath.localeCompare(right.filePath) ||
-		left.line - right.line ||
+		(left.line ?? 0) - (right.line ?? 0) ||
 		(left.functionName ?? "").localeCompare(right.functionName ?? "") ||
 		left.name.localeCompare(right.name) ||
 		left.reason.localeCompare(right.reason)

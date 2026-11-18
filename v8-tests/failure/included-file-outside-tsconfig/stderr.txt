@@ -1,0 +1,4 @@
+scripts/over-declared.ts unanalyzed file
+  Matched by diy.json `include`, but not part of the TypeScript project ../tsconfig.json, so it was not analyzed.
+  = help: add this file to `include` or `files` in ../tsconfig.json, or exclude it with diy.json `ignore`
+  = note: DIY uses the nearest tsconfig.json at or above the diy.json directory as-is and does not follow project `references`

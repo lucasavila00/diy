@@ -63,19 +63,23 @@ async function buildNativeSyntaxProgramFromFiles(
 			throw new Error(`Failed to open TypeScript project ${configInfo.configPath}.`);
 		}
 		verbose?.("collecting source files");
-		const sourceFiles = await timeDeadCodePhaseAsync("collect source files", () =>
-			collectAnalyzedSourceFiles(project, coveredSet, cwd, verbose),
+		const { sourceFiles, unanalyzedFiles } = await timeDeadCodePhaseAsync(
+			"collect source files",
+			() => collectAnalyzedSourceFiles(project, coveredSet, cwd, configInfo.configPath, verbose),
 		);
 		verbose?.(`collected ${sourceFiles.length} source files`);
 		return {
 			api,
-			coveredFiles,
+			coveredFiles: sourceFiles
+				.filter((sourceFile) => sourceFile.reportable)
+				.map((sourceFile) => sourceFile.filePath),
 			project,
 			sourceFiles,
 			suppressions: timeDeadCodePhase("collect suppressions", () => {
 				verbose?.("collecting suppressions");
 				return collectNativeSuppressions(sourceFiles.filter((sourceFile) => sourceFile.reportable));
 			}),
+			unanalyzedFiles,
 		};
 	} catch (error) {
 		/* c8 ignore next -- tsgo project-open failures are surfaced before analysis starts. */

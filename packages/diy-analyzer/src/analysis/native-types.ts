@@ -84,6 +84,7 @@ export type NativeSyntaxProgram = {
 		readonly suppressions: readonly DiagnosticSuppression[];
 		readonly violations: readonly DiyAnalyzerViolation[];
 	};
+	readonly unanalyzedFiles: readonly DiyAnalyzerViolation[];
 };
 
 export type CheckerAnalysisProgram = NativeSyntaxProgram & {
