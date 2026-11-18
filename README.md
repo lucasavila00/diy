@@ -488,6 +488,9 @@ unsupported analysis:
 - a wrapper object: `const context = { capabilities }` or `{ bag: capabilities }`;
 - a function return: `const pick = () => capabilities` or `return capabilities`.
 
+`run.call(thisArg, capabilities)` and `run.bind(thisArg, capabilities)` still pass the bag
+as a direct argument, so they are supported and analyzed like `run(capabilities)`.
+
 ```ts
 // Not allowed: the bag is copied with a spread.
 export function loadCopy(capabilities: Capabilities<ReaderCapability>): void {
