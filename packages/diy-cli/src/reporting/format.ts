@@ -1,7 +1,5 @@
-import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 
-import { codeFrameColumns } from "@babel/code-frame";
 import type {
 	AnalyzeOptions,
 	DiyAnalyzerNote,
@@ -102,35 +100,7 @@ function formatDiagnostic(
 		item.line == null
 			? displayPath
 			: `${displayPath}:${item.line}${item.column == null ? "" : `:${item.column}`}`;
-	const location = `${lineColumn} ${name}`;
-	const source = readSourceFile(item.filePath);
-	/* c8 ignore next -- analyzer diagnostics point at loaded source files. */
-	if (source == null || item.line == null) {
-		return `${location} ${message}${formatNotes(notes)}`;
-	}
-	return `${location}\n${codeFrameColumns(
-		source,
-		{
-			start: {
-				/* c8 ignore next -- analyzer diagnostics include columns. */
-				column: item.column ?? 1,
-				line: item.line,
-			},
-		},
-		{
-			highlightCode: false,
-			message,
-		},
-	)}${formatNotes(notes)}`;
-}
-
-function readSourceFile(filePath: string): string | null {
-	try {
-		return readFileSync(filePath, "utf8");
-	} catch {
-		/* c8 ignore next -- normal analyzer diagnostics use existing files. */
-		return null;
-	}
+	return `${lineColumn} ${name}\n  ${message}${formatNotes(notes)}`;
 }
 
 export function formatDiyAnalysis(analysis: DiyAnalysis, options: AnalyzeOptions = {}): string {

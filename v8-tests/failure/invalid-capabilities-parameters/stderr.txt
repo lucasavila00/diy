@@ -1,65 +1,29 @@
 src/main.ts:10:25 invalid capabilities parameter
-   8 | declare function use(value: unknown): void;
-   9 |
-> 10 | export function renamed(svc: Capabilities<FsCapability>): void {
-     |                         ^ Capabilities parameters must be named `capabilities` or `_capabilities`.
-  11 | 	use(svc);
-  12 | }
-  13 |
+  Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:14:38 invalid capabilities parameter
-  12 | }
-  13 |
-> 14 | export function second(path: string, capabilities: Capabilities<FsCapability>): void {
-     |                                      ^ Capabilities parameters must be the first parameter.
-  15 | 	use(path);
-  16 | 	use(capabilities);
-  17 | }
+  Capabilities parameters must be the first parameter.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:19:30 invalid capabilities parameter
-  17 | }
-  18 |
-> 19 | export function renamedAlias(storage: StorageCaps): void {
-     |                              ^ Capabilities parameters must be named `capabilities` or `_capabilities`.
-  20 | 	use(storage);
-  21 | }
-  22 |
+  Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:23:43 invalid capabilities parameter
-  21 | }
-  22 |
-> 23 | export function secondAlias(path: string, capabilities: StorageCaps): void {
-     |                                           ^ Capabilities parameters must be the first parameter.
-  24 | 	use(path);
-  25 | 	use(capabilities);
-  26 | }
+  Capabilities parameters must be the first parameter.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:28:29 invalid capabilities type
-  26 | }
-  27 |
-> 28 | export function intersected(capabilities: StorageCaps & Capabilities<FsCapability>): void {
-     |                             ^ Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
-  29 | 	use(capabilities);
-  30 | }
-  31 |
+  Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
   = help: write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:36:25 invalid capabilities parameter
-  34 | }
-  35 |
-> 36 | export function untyped(capabilities: unknown): void {
-     |                         ^ `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
-  37 | 	use(capabilities);
-  38 | }
-  39 |
+  `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

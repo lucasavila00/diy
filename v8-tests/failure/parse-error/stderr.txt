@@ -1,5 +1,3 @@
 src/main.ts:1:15 unsupported analysis
-> 1 | const value = ;
-    |               ^ Expression expected.
-  2 |
+  Expression expected.
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

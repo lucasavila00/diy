@@ -265,6 +265,8 @@ The public result contracts live in [`model/types.ts`](../src/model/types.ts):
   and optional help notes;
 - `DiyModuleGraph` groups `DiyModuleGraphFunction` records by file path.
 
-The CLI reporting layer is outside the analyzer package. It formats diagnostics with
-code frames and formats graphs as a tree where `direct` comes from direct reads and
-`indirect` is computed as `transitive - direct`.
+The CLI reporting layer is outside the analyzer package. It formats diagnostics as
+plain text for coding agents (a `path:line:column rule` header, then the message and
+notes on indented lines; see [ADR 0007](../../../docs/adr/0007-agent-oriented-diagnostics.md)) and formats
+graphs as a tree where `direct` comes from direct reads and `indirect` is computed as
+`transitive - direct`.

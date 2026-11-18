@@ -1,83 +1,37 @@
 src/main.ts:1:29 renamed diy import
-> 1 | import type { Capabilities, Capabilities as RenamedCapabilities, Capability } from "@beff/diy";
-    |                             ^ Do not rename imports from @beff/diy; import exported names directly.
-  2 |
-  3 | type ReadCapability = Capability<"reader", unknown>;
-  4 | type QueueCapability = Capability<"queue", unknown>;
+  Do not rename imports from @beff/diy; import exported names directly.
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:7:34 invalid capabilities parameter
-   5 | type QueueCaps = Capabilities<QueueCapability>;
-   6 |
->  7 | export function renamedParameter(caps: Capabilities<ReadCapability>): void {
-     |                                  ^ Capabilities parameters must be named `capabilities` or `_capabilities`.
-   8 | 	void caps;
-   9 | }
-  10 |
+  Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:13:2 invalid capabilities parameter
-  11 | export function misplacedParameter(
-  12 | 	value: string,
-> 13 | 	capabilities: Capabilities<ReadCapability>,
-     | 	^ Capabilities parameters must be the first parameter.
-  14 | ): void {
-  15 | 	void value;
-  16 | 	void capabilities;
+  Capabilities parameters must be the first parameter.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:19:41 invalid capabilities parameter
-  17 | }
-  18 |
-> 19 | export function renamedAliasedParameter(queue: QueueCaps): void {
-     |                                         ^ Capabilities parameters must be named `capabilities` or `_capabilities`.
-  20 | 	void queue;
-  21 | }
-  22 |
+  Capabilities parameters must be named `capabilities` or `_capabilities`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:23:58 invalid capabilities parameter
-  21 | }
-  22 |
-> 23 | export function misplacedAliasedParameter(value: string, capabilities: QueueCaps): void {
-     |                                                          ^ Capabilities parameters must be the first parameter.
-  24 | 	void value;
-  25 | 	void capabilities;
-  26 | }
+  Capabilities parameters must be the first parameter.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:29:2 invalid capabilities type
-  27 |
-  28 | export function intersectedCapabilities(
-> 29 | 	capabilities: Capabilities<ReadCapability> & Capabilities<QueueCapability>,
-     | 	^ Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
-  30 | ): void {
-  31 | 	void capabilities;
-  32 | }
+  Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
   = help: write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:35:2 invalid capabilities type
-  33 |
-  34 | export function intersectedAliasedCapabilities(
-> 35 | 	capabilities: QueueCaps & Capabilities<ReadCapability>,
-     | 	^ Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
-  36 | ): void {
-  37 | 	void capabilities;
-  38 | }
+  Do not compose capability bags with intersections. Put the capability union inside one `Capabilities<...>` type.
   = help: write `Capabilities<A | B>` instead of `Capabilities<A> & Capabilities<B>`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:40:1 invalid diagnostic suppression
-  38 | }
-  39 |
-> 40 | // diy-ignore-next-line
-     | ^ `diy-ignore-next-line` requires a non-empty reason after `--`.
-  41 | export function invalidSuppression(capabilities: RenamedCapabilities<ReadCapability>): void {
-  42 | 	void capabilities;
-  43 | }
+  `diy-ignore-next-line` requires a non-empty reason after `--`.

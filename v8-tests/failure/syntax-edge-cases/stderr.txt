@@ -1,31 +1,14 @@
 src/main.ts:2:8 renamed diy import
-  1 | import type { Capabilities, Capability } from "@beff/diy";
-> 2 | import * as diy from "@beff/diy";
-    |        ^ Do not rename imports from @beff/diy; import exported names directly.
-  3 |
-  4 | type ReadCapability = Capability<"read", unknown>;
-  5 | type ReadIdCapability = Capability<"read-id", unknown>;
+  Do not rename imports from @beff/diy; import exported names directly.
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:44:17 invalid capabilities parameter
-  42 |
-  43 | export function nestedShadow(capabilities: Capabilities<ReadCapability>): void {
-> 44 | 	function inner(capabilities: unknown): void {
-     | 	               ^ `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
-  45 | 		use(capabilities);
-  46 | 	}
-  47 | 	inner(capabilities);
+  `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
 src/main.ts:52:2 invalid capabilities parameter
-  50 | export function destructuredParam(
-  51 | 	{ value }: { value: unknown },
-> 52 | 	capabilities: Capabilities<ReadCapability>,
-     | 	^ Capabilities parameters must be the first parameter.
-  53 | ): void {
-  54 | 	const { need } = other;
-  55 | 	use(value);
+  Capabilities parameters must be the first parameter.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

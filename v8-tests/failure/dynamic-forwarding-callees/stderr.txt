@@ -1,10 +1,4 @@
 src/main.ts:16:8 unsupported analysis
-  14 | }
-  15 |
-> 16 | export function loadFromExpression(capabilities: Capabilities<ReadCapability>): void {
-     |        ^ unresolved capabilities forwarding callee
-  17 | 	dynamicRun(capabilities);
-  18 | }
-  19 |
+  unresolved capabilities forwarding callee
   = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
