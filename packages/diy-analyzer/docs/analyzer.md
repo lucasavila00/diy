@@ -151,11 +151,9 @@ Suppression comments are applied after analysis facts are produced and before fi
 sorting. Finalization keeps output deterministic by sorting paths, locations, function
 names, and messages.
 
-The CLI has three useful modes over the same core machinery:
+The CLI has two modes over the same core machinery:
 
 - default analysis runs syntax checks plus dead-code capability analysis;
-- `--no-dead-code-analysis` runs syntax checks without the fixed-point unused-capability
-  pass;
 - `--graph` asks the same dead-code analysis path to also materialize a module graph;
   the CLI prints diagnostics first and only prints the graph when there are no findings,
   violations, or unsupported cases.

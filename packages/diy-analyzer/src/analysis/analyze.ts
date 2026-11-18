@@ -3,11 +3,9 @@ import { relative, resolve } from "node:path";
 import type { DiySourceConfig } from "../config/source-files.ts";
 import { expandSourceFiles } from "../config/source-files.ts";
 import type { AnalyzeOptions, DiyAnalysis } from "../model/types.ts";
-import { buildNativeSyntaxProgram, closeNativeSyntaxProgram } from "./checker-program.ts";
 import { applyDiagnosticSuppressions } from "./diagnostic-suppressions.ts";
 import { finalizeAnalysis } from "./finalize.ts";
 import { analyzeNativeDeadCodeFromFiles } from "./native-analysis.ts";
-import { analyzeNativeDiySyntax, collectNativeParseErrors } from "./native-syntax-rules.ts";
 import { timeDeadCodePhase, timeDeadCodePhaseAsync } from "./timing.ts";
 
 export async function analyzeDiy(
@@ -16,13 +14,6 @@ export async function analyzeDiy(
 ): Promise<DiyAnalysis> {
 	/* c8 ignore next -- CLI/tests always pass cwd; default is process-entry convenience. */
 	const cwd = resolve(options.cwd ?? process.cwd());
-	if (options.graph === true && options.deadCodeAnalysis === false) {
-		throw new Error("Cannot combine --graph and --no-dead-code-analysis.");
-	}
-	if (options.deadCodeAnalysis === false) {
-		return analyzeDiySyntax(config, cwd, options.verbose);
-	}
-
 	const coveredFiles = await timeDeadCodePhaseAsync("source expansion", () =>
 		expandSourceFiles(config, cwd),
 	);
@@ -55,31 +46,4 @@ export async function analyzeDiy(
 		}),
 	);
 	return middleEnd.graph == null ? analysis : { ...analysis, graph: middleEnd.graph };
-}
-
-async function analyzeDiySyntax(
-	config: DiySourceConfig,
-	cwd: string,
-	verbose?: (message: string) => void,
-): Promise<DiyAnalysis> {
-	const program = await buildNativeSyntaxProgram(config, cwd, verbose);
-	try {
-		const suppressed = applyDiagnosticSuppressions({
-			findings: [],
-			suppressions: program.suppressions.suppressions,
-			unsupported: await collectNativeParseErrors(program.project, program.sourceFiles, verbose),
-			violations: [
-				...analyzeNativeDiySyntax(program.project, program.sourceFiles, verbose),
-				...program.suppressions.violations,
-			],
-		});
-		return finalizeAnalysis({
-			coveredFiles: program.coveredFiles,
-			findings: suppressed.findings,
-			unsupported: suppressed.unsupported,
-			violations: suppressed.violations,
-		});
-	} finally {
-		await closeNativeSyntaxProgram(program);
-	}
 }

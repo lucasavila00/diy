@@ -14,21 +14,13 @@ The public core entrypoint is
 ```ts
 type AnalyzeOptions = {
 	readonly cwd?: string;
-	readonly deadCodeAnalysis?: boolean;
 	readonly graph?: boolean;
 };
 ```
 
-The options choose one of two analysis paths:
-
-- syntax-only mode: `deadCodeAnalysis: false` builds a `NativeSyntaxProgram`, runs syntax
-  rules and parse-error collection, applies suppressions, and finalizes the result;
-- dead-code mode: the default path expands covered files, builds a checker-backed
-  program, extracts capability facts, computes required capability sets, emits findings,
-  and optionally attaches a module graph when `graph: true`.
-
-`analyzeDiy` rejects `graph: true` with `deadCodeAnalysis: false` because graph output
-depends on the same capability facts and fixed-point results as dead-code analysis.
+`analyzeDiy` expands covered files, builds a checker-backed program, runs syntax rules
+and parse-error collection, extracts capability facts, computes required capability
+sets, emits findings, and optionally attaches a module graph when `graph: true`.
 
 The CLI in [`diy-cli/src/cli.ts`](../../diy-cli/src/cli.ts) always calls `analyzeDiy`.
 For `--graph`, it asks analysis to include `graph: true`, prints any diagnostics first,

@@ -26,7 +26,6 @@ function fixtureDirs(parentDir: string): readonly string[] {
 async function runAnalyzerFixture(
 	caseDir: string,
 	commandOptions: {
-		readonly deadCodeAnalysis: boolean;
 		readonly graph: boolean;
 		readonly project: string;
 	},
@@ -68,7 +67,6 @@ async function failureRun(caseDir: string): Promise<CapturedRun> {
 		command = readFileSync(commandPath, "utf8").trim();
 	} catch {
 		return runAnalyzerFixture(caseDir, {
-			deadCodeAnalysis: false,
 			graph: false,
 			project: "diy.json",
 		});
@@ -103,18 +101,6 @@ describe("DIY success e2e", () => {
 	for (const caseDir of caseDirs) {
 		it(`${basename(caseDir)} passes`, async () => {
 			const result = await runAnalyzerFixture(caseDir, {
-				deadCodeAnalysis: false,
-				graph: false,
-				project: "diy.json",
-			});
-			expect(result.exitCode).toBe(0);
-			expect(result.stderr).toBe("");
-			expect(result.stdout).toMatch(/^DIY analyzer passed: \d+ files analyzed\.\n$/);
-		});
-
-		it(`${basename(caseDir)} passes dead-code analysis`, async () => {
-			const result = await runAnalyzerFixture(caseDir, {
-				deadCodeAnalysis: true,
 				graph: false,
 				project: "diy.json",
 			});
@@ -125,7 +111,6 @@ describe("DIY success e2e", () => {
 
 		it(`${basename(caseDir)} matches module graph`, async () => {
 			const result = await runAnalyzerFixture(caseDir, {
-				deadCodeAnalysis: true,
 				graph: true,
 				project: "diy.json",
 			});
@@ -143,14 +128,6 @@ describe("DIY CLI mode flags", () => {
 		expect(result.exitCode).toBe(1);
 		expect(result.stdout).toBe("");
 		expect(result.stderr).toContain('Declares unused capability "writer".');
-	});
-
-	it("can disable dead-code analysis", async () => {
-		const caseDir = join(v8TestsDir, "failure", "declared-more-than-used");
-		const result = await runCliFixture(caseDir, ["--no-dead-code-analysis", "-p", "diy.json"]);
-		expect(result.exitCode).toBe(0);
-		expect(result.stderr).toBe("");
-		expect(result.stdout).toMatch(/^DIY analyzer passed: \d+ files analyzed\.\n$/);
 	});
 
 	it("prints verbose analyzer progress", async () => {
@@ -225,30 +202,11 @@ describe("DIY CLI mode flags", () => {
 		expect(result.stderr).toBe("error: unknown option '--dead-code'\n");
 	});
 
-	it("rejects graph mode with disabled dead-code analysis", async () => {
-		const result = await runCliFixture(rootDir, [
-			"--graph",
-			"--no-dead-code-analysis",
-			"-p",
-			"diy.json",
-		]);
+	it("rejects the removed --no-dead-code-analysis flag", async () => {
+		const result = await runCliFixture(rootDir, ["--no-dead-code-analysis", "-p", "diy.json"]);
 		expect(result.exitCode).toBe(1);
 		expect(result.stdout).toBe("");
-		expect(result.stderr).toBe("Cannot combine --graph and --no-dead-code-analysis.\n");
-	});
-
-	it("rejects direct graph analysis with disabled dead-code analysis", async () => {
-		const caseDir = join(v8TestsDir, "failure", "declared-more-than-used");
-		await expect(
-			executeDiyCli(
-				{ deadCodeAnalysis: false, graph: true, project: "diy.json" },
-				{
-					cwd: caseDir,
-					stderr: () => {},
-					stdout: () => {},
-				},
-			),
-		).rejects.toThrow("Cannot combine --graph and --no-dead-code-analysis.");
+		expect(result.stderr).toBe("error: unknown option '--no-dead-code-analysis'\n");
 	});
 
 	it("runs general analysis before printing the graph", async () => {
