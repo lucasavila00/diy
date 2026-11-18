@@ -33,7 +33,6 @@ import {
 } from "./ast-utils.ts";
 import {
 	capabilityIds,
-	definiteCapabilityIds,
 	expressionSymbol,
 	expressionType,
 	isCapabilitiesType,
@@ -48,6 +47,7 @@ import type {
 	AnalyzedCapabilityFunction,
 	AnalyzedSourceFile,
 	ForwardedExpression,
+	PropagationHelperName,
 	UntrackedCapabilitiesPattern,
 } from "./native-types.ts";
 import { recordDeadCodeMetric } from "./timing.ts";
@@ -243,13 +243,9 @@ async function scanCall(
 	analyzedFunction: AnalyzedCapabilityFunction,
 	node: CallExpression,
 ): Promise<void> {
-	const extendInfo = await readCapabilitiesExtend(project.checker, analyzedFunction, node);
-	if (extendInfo != null) {
-		analyzedFunction.providerChecks.push({
-			column: locationForNode(analyzedFunction.sourceFile, node).column,
-			extra: extendInfo.extra,
-			line: locationForNode(analyzedFunction.sourceFile, node).line,
-		});
+	const helper = propagationHelperName(analyzedFunction.sourceFile, node);
+	if (helper != null) {
+		await scanHelperCall(project.checker, analyzedFunction, node, helper);
 	}
 	if (isCapabilitiesHelperCall(analyzedFunction.sourceFile, node)) {
 		return;
@@ -371,36 +367,61 @@ function isCapabilitiesHelperCall(sourceFile: AnalyzedSourceFile, node: CallExpr
 	);
 }
 
-async function readCapabilitiesExtend(
+// The analyzer follows the bag only in a simple helper call shape.
+// The bag must be the first argument. A helper call that takes the bag must not be
+// an argument of another helper call.
+async function scanHelperCall(
 	checker: Checker,
 	analyzedFunction: AnalyzedCapabilityFunction,
-	node: CallExpression,
-): Promise<{ readonly extra: ReadonlySet<string> } | null> {
-	const expression = node.expression;
-	if (expression.kind !== SyntaxKind.PropertyAccessExpression) {
-		return null;
+	call: CallExpression,
+	helper: PropagationHelperName,
+): Promise<void> {
+	const sourceFile = analyzedFunction.sourceFile;
+	for (const [index, argument] of call.arguments.entries()) {
+		const location = locationForNode(sourceFile, argument);
+		const inner = propagationHelperName(sourceFile, argument);
+		if (inner != null) {
+			if (
+				await takesBagFirst(checker, analyzedFunction, unwrapExpression(argument) as CallExpression)
+			) {
+				analyzedFunction.unsupportedReasons.push({
+					...location,
+					inner,
+					kind: "nested-capabilities-helper",
+					outer: helper,
+				});
+			}
+		} else if (
+			index > 0 &&
+			(await capabilitiesSourceExpression(checker, analyzedFunction, argument)) != null
+		) {
+			analyzedFunction.unsupportedReasons.push({
+				...location,
+				helper,
+				kind: "capabilities-not-first-helper-argument",
+			});
+		}
 	}
-	const callee = expression as PropertyAccessExpression;
-	if (
-		staticName(callee.name) !== "extend" ||
-		!isImportedCapabilitiesValue(analyzedFunction.sourceFile, callee.expression)
-	) {
-		return null;
+	if (await takesBagFirst(checker, analyzedFunction, call)) {
+		analyzedFunction.providerChecks.push({
+			...locationForNode(sourceFile, call),
+			extra: await providedCapabilityIds(checker, sourceFile, argumentsAfterFirst(call)),
+			helper,
+		});
 	}
-	const firstArgument = node.arguments[0];
-	if (
-		firstArgument == null ||
-		(await capabilitiesSourceExpression(checker, analyzedFunction, firstArgument)) == null
-	) {
-		return null;
-	}
-	return {
-		extra: await providedCapabilityIds(
-			checker,
-			analyzedFunction.sourceFile,
-			argumentsAfterFirst(node),
-		),
-	};
+}
+
+async function takesBagFirst(
+	checker: Checker,
+	analyzedFunction: AnalyzedCapabilityFunction,
+	call: CallExpression,
+): Promise<boolean> {
+	const firstArgument = call.arguments[0];
+	return (
+		/* c8 ignore next -- helper calls in fixtures pass at least one argument. */
+		firstArgument != null &&
+		(await capabilitiesSourceExpression(checker, analyzedFunction, firstArgument)) != null
+	);
 }
 
 async function forwardedExpression(
@@ -413,55 +434,27 @@ async function forwardedExpression(
 	if (source != null) {
 		return source;
 	}
-	if (expression.kind !== SyntaxKind.CallExpression) {
+	if (propagationHelperName(analyzedFunction.sourceFile, expression) == null) {
 		return null;
 	}
+	// The bag is the first argument. Later arguments replace the services that they give.
 	const call = expression as CallExpression;
-	const callee = call.expression;
-	if (callee.kind !== SyntaxKind.PropertyAccessExpression) {
+	const firstArgument = call.arguments[0];
+	/* c8 ignore next -- propagation helper calls used as forwarded values pass a source argument. */
+	const firstSource =
+		firstArgument == null
+			? null
+			: await capabilitiesSourceExpression(checker, analyzedFunction, firstArgument);
+	if (firstSource == null) {
 		return null;
 	}
-	const propertyAccess = callee as PropertyAccessExpression;
-	const helperName = staticName(propertyAccess.name);
-	if (
-		!isPropagationHelperName(helperName) ||
-		!isImportedCapabilitiesValue(analyzedFunction.sourceFile, propertyAccess.expression)
-	) {
-		return null;
-	}
-	// Helpers combine arguments from left to right, like object spread.
-	// The source is the last argument that carries the capabilities parameter.
-	// An argument after the source replaces the services that it always gives.
-	// An argument before the source gives only services that the source does not have.
-	let helperSource: {
-		readonly forwarded: ForwardedExpression;
-		readonly ids: ReadonlySet<string>;
-		readonly index: number;
-	} | null = null;
-	for (const [index, helperArgument] of call.arguments.entries()) {
-		const forwarded = await forwardedExpression(checker, analyzedFunction, helperArgument);
-		if (forwarded != null) {
-			const ids = await providedCapabilityIds(checker, analyzedFunction.sourceFile, [
-				helperArgument,
-			]);
-			helperSource = { forwarded, ids, index };
-		}
-	}
-	if (helperSource == null) {
-		return null;
-	}
-	const provided = new Set(helperSource.forwarded.provided);
-	for (const [index, helperArgument] of call.arguments.entries()) {
-		if (index === helperSource.index) {
-			continue;
-		}
-		for (const id of await providedCapabilityIds(checker, analyzedFunction.sourceFile, [
-			helperArgument,
-		])) {
-			if (index > helperSource.index || !helperSource.ids.has(id)) {
-				provided.add(id);
-			}
-		}
+	const provided = new Set(firstSource.provided);
+	for (const id of await providedCapabilityIds(
+		checker,
+		analyzedFunction.sourceFile,
+		argumentsAfterFirst(call),
+	)) {
+		provided.add(id);
 	}
 	return { provided };
 }
@@ -481,7 +474,7 @@ async function providedCapabilityIds(
 		if (type == null) {
 			continue;
 		}
-		for (const id of await definiteCapabilityIds(checker, type)) {
+		for (const id of await capabilityIds(checker, type)) {
 			provided.add(id);
 		}
 	}
@@ -534,8 +527,27 @@ function argumentsAfterFirst(call: CallExpression): readonly Expression[] {
 	return args;
 }
 
-function isPropagationHelperName(name: string | null): boolean {
-	return name === "extend" || name === "merge" || name === "override";
+function propagationHelperName(
+	sourceFile: AnalyzedSourceFile,
+	expression: Expression,
+): PropagationHelperName | null {
+	const unwrapped = unwrapExpression(expression);
+	if (unwrapped.kind !== SyntaxKind.CallExpression) {
+		return null;
+	}
+	const callee = (unwrapped as CallExpression).expression;
+	if (callee.kind !== SyntaxKind.PropertyAccessExpression) {
+		return null;
+	}
+	const propertyAccess = callee as PropertyAccessExpression;
+	const name = staticName(propertyAccess.name);
+	if (
+		(name === "extend" || name === "merge" || name === "override") &&
+		isImportedCapabilitiesValue(sourceFile, propertyAccess.expression)
+	) {
+		return name;
+	}
+	return null;
 }
 
 async function addPropagatedSource(

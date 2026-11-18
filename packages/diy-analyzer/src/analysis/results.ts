@@ -8,6 +8,7 @@ import type {
 import { sorted } from "./ast-utils.ts";
 import type {
 	AnalyzedCapabilityFunction,
+	PropagationHelperName,
 	UnsupportedAnalysisReason,
 	UntrackedCapabilitiesPattern,
 } from "./native-types.ts";
@@ -98,6 +99,34 @@ export function collectProviderViolations(
 			continue;
 		}
 		for (const check of analyzedFunction.providerChecks) {
+			if (check.helper !== "extend") {
+				const replacesAll =
+					analyzedFunction.declaredCapabilityIds.size > 0 &&
+					Array.from(analyzedFunction.declaredCapabilityIds).every((id) => check.extra.has(id));
+				if (replacesAll) {
+					violations.push({
+						capabilityIds: sorted(analyzedFunction.declaredCapabilityIds),
+						column: check.column,
+						filePath: analyzedFunction.filePath,
+						functionName: analyzedFunction.name,
+						line: check.line,
+						name: "replaced capabilities bag",
+						notes: [
+							{
+								kind: "note",
+								message: "no service from `capabilities` gets to the result",
+							},
+							{
+								kind: "help",
+								message:
+									"give only the services that change in later arguments; a later argument with a capability type that is too wide also causes this",
+							},
+						],
+						reason: `Capabilities.${check.helper} replaces all capabilities of capabilities`,
+					});
+				}
+				continue;
+			}
 			const overlapping = Array.from(check.extra)
 				.filter((id) => analyzedFunction.declaredCapabilityIds.has(id))
 				.sort();
@@ -150,6 +179,34 @@ function makeUnsupported(
 	reason: UnsupportedAnalysisReason,
 ): DiyAnalyzerUnsupported {
 	switch (reason.kind) {
+		case "capabilities-not-first-helper-argument":
+			return {
+				column: reason.column,
+				filePath: analyzedFunction.filePath,
+				functionName: analyzedFunction.name,
+				line: reason.line,
+				notes: [
+					{
+						kind: "help",
+						message: `put the capabilities bag first: \`${helperCallExample(reason.helper, "capabilities")}\``,
+					},
+				],
+				reason: `capabilities bag is not the first argument of \`Capabilities.${reason.helper}(...)\`; the analyzer follows the bag only in the first argument`,
+			};
+		case "nested-capabilities-helper":
+			return {
+				column: reason.column,
+				filePath: analyzedFunction.filePath,
+				functionName: analyzedFunction.name,
+				line: reason.line,
+				notes: [
+					{
+						kind: "help",
+						message: `assign the inner result to a local first: \`const bag = ${helperCallExample(reason.inner, "capabilities")}; ${helperCallExample(reason.outer, "bag")}\``,
+					},
+				],
+				reason: `\`Capabilities.${reason.inner}(...)\` is an argument of \`Capabilities.${reason.outer}(...)\`; the analyzer does not follow nested helper calls`,
+			};
 		case "dynamic-capability-access":
 			return {
 				/* c8 ignore next -- dynamic access reports carry the exact access location. */
@@ -225,6 +282,11 @@ function makeUnsupported(
 				reason: `${untrackedFlowReason(reason.pattern)}; the analyzer cannot tell which capabilities are used`,
 			};
 	}
+}
+
+function helperCallExample(helper: PropagationHelperName, bag: string): string {
+	const other = { extend: "extra", merge: "other", override: "replacement" }[helper];
+	return `Capabilities.${helper}(${bag}, ${other})`;
 }
 
 function untrackedFlowReason(pattern: UntrackedCapabilitiesPattern): string {

@@ -80,12 +80,12 @@ function. Conceptually, this is a local transfer function:
   call such as `Object.keys`) is unsupported, because the analyzer cannot see which
   services the callee uses;
 - helper calls such as `Capabilities.extend`, `merge`, and `override` update the set of
-  labels considered already provided by the forwarded value. Helpers combine their
-  arguments from left to right. The source is the last argument that carries the
-  capabilities parameter, in any position or in a nested helper call. An argument
-  after the source gives each label that it always carries. An argument before the
-  source gives only the labels that the source does not carry. Optional members (for
-  example, the keys of a `Partial<...>` value) do not give a label;
+  labels considered already provided by the forwarded value. The analyzer uses simple
+  rules here. The bag must be the first argument. Each later argument gives the labels
+  of its type. A bag in another argument position is unsupported. A helper call that
+  takes the bag is unsupported when it is an argument of another helper call;
+- a `merge` or `override` call whose later arguments give every declared label is a
+  violation at the call, because no service of the bag gets to the result;
 - dynamic reads, unresolved declarations, and unresolved forwarding targets become
   unsupported-analysis facts;
 - a capability source used as a conditional branch, a `??` or `||` operand, an object
@@ -156,7 +156,7 @@ The analyzer produces three user-facing categories:
 
 - findings: declared capabilities that are not required by the fixed point;
 - violations: DIY syntax or convention errors, such as invalid capability parameter
-  placement or redundant provider extension;
+  placement, redundant provider extension, or a helper call that replaces the whole bag;
 - unsupported analysis: code shapes where the analyzer refuses to infer, such as dynamic
   capability access, unresolved forwarding, or a capability bag passed through an
   untracked expression.

@@ -111,10 +111,11 @@ The key fields are the mutable abstract state for one function:
   capability set required by the forwarded parameter type;
 - `propagatedCapabilitySources`: local variables or assignment targets that point to a
   derived capability object;
-- `providerChecks`: `Capabilities.extend(...)` calls that may redundantly provide
-  capabilities already declared by the function;
+- `providerChecks`: `Capabilities.extend(...)`, `merge(...)`, and `override(...)` calls
+  that take the bag first, with the labels that their later arguments give;
 - `unsupportedReasons`: proof blockers such as dynamic access, unresolved declarations,
-  open bags, generic direct reads, unresolved forwarding, and untracked capability flow.
+  open bags, generic direct reads, unresolved forwarding, untracked capability flow, and
+  helper calls that do not have the simple shape.
 
 The collector also computes stable names and locations, handles namespace-qualified
 names, keeps the parameter symbol for later identity checks, and sorts functions
@@ -157,20 +158,21 @@ The scanner walks the function's AST and updates the function state:
 - `const child = Capabilities.extend(capabilities, extra)` records `child` as a
   propagated capability source and records the extra provided labels;
 - assignments from capability helper expressions do the same for the assignment target;
-- in a helper call, the source is the last argument that carries the capabilities
-  parameter (directly, through a local alias, or through a nested helper call).
-  An argument after the source replaces each service that it always gives. An
-  argument before the source gives only the services that the source does not have.
-  `definiteCapabilityIds` ignores optional members. Thus a `Partial<...>` value does
-  not replace a service;
+- a helper call follows the bag only when the bag is the first argument. Each later
+  argument gives the labels of its type. A bag in another argument position becomes
+  `capabilities-not-first-helper-argument`. A helper call that takes the bag first and
+  is an argument of another helper call becomes `nested-capabilities-helper`. The
+  scanner does not look through nested helper calls;
 - calls that pass a capability source collect a forwarding constraint by comparing the
   argument to the callee parameter type at that call site;
 - if that parameter type is not a DIY `Capabilities<...>` type (`any`, `unknown`, a
   structural object type, a union such as `Capabilities<X> | undefined`, or a library
   parameter such as `Object.keys`), the call records `unresolved-forwarding` at the
   argument location instead of a forwarding constraint;
-- `Capabilities.extend(capabilities, extra)` also records a provider check so redundant
-  extension can become a violation;
+- each helper call that takes the bag first also records a provider check. For
+  `extend`, an extra label that the function already declares is a
+  `redundant capability provider` violation. For `merge` and `override`, later
+  arguments that give every declared label are a `replaced capabilities bag` violation;
 - a capability source used as a conditional branch, a `??` or `||` operand, an object
   spread, an object property value (including `{ capabilities }`), a `return` value, or
   an arrow function's expression body becomes `untracked-capabilities-flow`. The scanner

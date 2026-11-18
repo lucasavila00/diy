@@ -561,36 +561,64 @@ export function auditAndReplaceWriter(
 }
 ```
 
-The helpers combine their arguments from left to right, like object spread
-(`{ ...a, ...b }`). When two arguments give the same service, the later argument
-wins.
+The analyzer follows the bag through helper calls only in one simple shape:
 
-- A later argument replaces a service only if it always gives that service.
-- An optional key (for example, a key of a `Partial<...>` value) can be missing.
-  It does not replace the service.
-- The `capabilities` parameter can be in any argument position.
-- The `capabilities` parameter can be inside a nested helper call.
+- The `capabilities` bag (or a local that holds a helper result) must be the
+  first argument.
+- A helper call that takes the bag must not be an argument of another helper
+  call. Assign the inner result to a local first.
+- Later arguments replace services of the bag, like object spread
+  (`{ ...capabilities, ...other }`).
+
+The analyzer reports other shapes as unsupported analysis. It does not guess.
 
 ```ts
 declare function needBoth(
 	capabilities: Capabilities<ReaderCapability | WriterCapability>,
 ): void;
-declare const overrides: Partial<Capabilities<ReaderCapability | WriterCapability>>;
 declare const writerCapabilities: Capabilities<WriterCapability>;
+declare const fallback: Capabilities<ReaderCapability | WriterCapability>;
 
-// Allowed: `overrides` may leave out either key, so the original `reader` and
-// `writer` can still reach `needBoth`.
-export function overrideSome(
-	capabilities: Capabilities<ReaderCapability | WriterCapability>,
-): void {
-	needBoth(Capabilities.override(capabilities, overrides));
+// Allowed: the bag is the first argument.
+export function mergeFirst(capabilities: Capabilities<ReaderCapability>): void {
+	needBoth(Capabilities.merge(capabilities, writerCapabilities));
 }
 
-// Allowed: `reader` comes from the parameter, `writer` from `writerCapabilities`.
-export function readerFromParameter(capabilities: Capabilities<ReaderCapability>): void {
+// Allowed: assign the inner result to a local first.
+export function useLocal(capabilities: Capabilities<ReaderCapability>): void {
+	const merged = Capabilities.merge(capabilities);
+	needBoth(Capabilities.extend(merged, writerCapabilities));
+}
+
+// Not allowed: the bag is not the first argument.
+export function mergeSecond(capabilities: Capabilities<ReaderCapability>): void {
 	needBoth(Capabilities.merge(writerCapabilities, capabilities));
 }
+
+// Not allowed: a helper call that takes the bag is inside another helper call.
+export function nested(capabilities: Capabilities<ReaderCapability>): void {
+	needBoth(Capabilities.extend(Capabilities.merge(capabilities), writerCapabilities));
+}
+
+// Not allowed: the later argument replaces every service of the bag.
+// The analyzer reports `replaced capabilities bag` at the call.
+export function replaceAll(
+	capabilities: Capabilities<ReaderCapability | WriterCapability>,
+): void {
+	needBoth(Capabilities.override(capabilities, fallback));
+}
 ```
+
+The analyzer reports a misplaced bag like this:
+
+```text
+src/main.ts:LINE:COLUMN unsupported analysis
+  capabilities bag is not the first argument of `Capabilities.merge(...)`; the analyzer follows the bag only in the first argument
+  = help: put the capabilities bag first: `Capabilities.merge(capabilities, other)`
+```
+
+A `Partial<...>` value is not a valid replacement for `Capabilities.override(...)`.
+TypeScript rejects it, because a `Partial` key can hold `undefined`.
 
 Returning a capability bag also does not use the services inside it:
 
@@ -690,7 +718,8 @@ export function createRequestCapabilities(
 ### Override services for tests
 
 Use `Capabilities.override(...)` to replace services without changing the capability type.
-Pass only the services you replace; each one must be a real service, so `{ clock: undefined }` is a type error:
+Pass only the services you replace; each one must be a real service, so `{ clock: undefined }` is a type error.
+A `Partial<...>` value is also a type error, because its keys can hold `undefined`:
 
 ```ts
 import * as fs from "node:fs/promises";
@@ -740,4 +769,6 @@ const appCapabilities = Capabilities.merge(nodeCapabilities, databaseCapabilitie
 ```
 
 When two containers give the same service, the later container wins. `extend` and
-`override` use the same rule.
+`override` use the same rule. In a function that takes `capabilities`, put the bag
+first and do not put one helper call that takes the bag inside another. See
+[Capability helpers and unused parameters](#capability-helpers-and-unused-parameters).

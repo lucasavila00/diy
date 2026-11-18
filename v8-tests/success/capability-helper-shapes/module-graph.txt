@@ -5,22 +5,26 @@ src/main.ts
 |  +-- direct: reader, writer
 |  `-- indirect: (none)
 |
-+-- withOverrides
-|  +-- direct: (none)
-|  `-- indirect: reader, writer
++-- needAll
+|  +-- direct: clock, reader, writer
+|  `-- indirect: (none)
 |
-+-- mergeSecond
-|  +-- direct: (none)
-|  `-- indirect: reader
-|
-+-- mergeSecondAlias
++-- extendFirst
 |  +-- direct: (none)
 |  `-- indirect: reader
 |
-+-- extendSecond
++-- mergeFirst
 |  +-- direct: (none)
 |  `-- indirect: reader
 |
-`-- nestedHelpers
++-- overrideFirst
+|  +-- direct: writer
+|  `-- indirect: reader
+|
++-- chainedLocals
+|  +-- direct: (none)
+|  `-- indirect: reader
+|
+`-- nestedWithoutBag
    +-- direct: (none)
    `-- indirect: reader

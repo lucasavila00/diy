@@ -1,0 +1,40 @@
+src/main.ts:44:8 unused capability
+  Declares unused capability "reader".
+  = help: remove "reader" from `Capabilities<...>`, or add a real `capabilities.reader` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:55:8 unused capability
+  Declares unused capability "writer".
+  = help: remove "writer" from `Capabilities<...>`, or add a real `capabilities.writer` read if it is required
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:45:17 replaced capabilities bag
+  Capabilities.merge replaces all capabilities of capabilities: reader
+  = note: no service from `capabilities` gets to the result
+  = help: give only the services that change in later arguments; a later argument with a capability type that is too wide also causes this
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:15:41 unsupported analysis
+  capabilities bag is not the first argument of `Capabilities.merge(...)`; the analyzer follows the bag only in the first argument
+  = help: put the capabilities bag first: `Capabilities.merge(capabilities, other)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:21:42 unsupported analysis
+  capabilities bag is not the first argument of `Capabilities.extend(...)`; the analyzer follows the bag only in the first argument
+  = help: put the capabilities bag first: `Capabilities.extend(capabilities, extra)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:27:43 unsupported analysis
+  capabilities bag is not the first argument of `Capabilities.override(...)`; the analyzer follows the bag only in the first argument
+  = help: put the capabilities bag first: `Capabilities.override(capabilities, replacement)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:32:31 unsupported analysis
+  `Capabilities.merge(...)` is an argument of `Capabilities.extend(...)`; the analyzer does not follow nested helper calls
+  = help: assign the inner result to a local first: `const bag = Capabilities.merge(capabilities, other); Capabilities.extend(bag, extra)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:38:32 unsupported analysis
+  `Capabilities.override(...)` is an argument of `Capabilities.extend(...)`; the analyzer does not follow nested helper calls
+  = help: assign the inner result to a local first: `const bag = Capabilities.override(capabilities, replacement); Capabilities.extend(bag, extra)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
