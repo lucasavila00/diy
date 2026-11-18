@@ -281,6 +281,20 @@ import { Capabilities as CapabilityBag } from "@beff/diy";
 import DiyDefault from "@beff/diy";
 ```
 
+Read capability services inline at each use site. Local aliases and destructuring
+of `capabilities` are rejected:
+
+```ts
+// Allowed.
+const now = capabilities.clock.now();
+const logger = createLabeledLogger(capabilities.progressLogger);
+
+// Not allowed.
+const clock = capabilities.clock;
+const clock = capabilities["clock"];
+const { clock } = capabilities;
+```
+
 ## Dead-Code Analysis
 
 Run `diy-cli -p diy.json` to check capability reachability. Dead-code analysis is

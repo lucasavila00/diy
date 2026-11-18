@@ -33,6 +33,31 @@ src/main.ts:2:8 renamed diy import
   = help: use `import type { Capabilities, Capability } from "@beff/diy"`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
+src/main.ts:13:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:18:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:23:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:28:8 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:34:3 capability service alias
+  Do not alias or destructure capability services; read each service from `capabilities` where it is used.
+  = help: remove the alias and read the service inline at each use, like `capabilities.clock.now()`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:44:17 invalid capabilities parameter
   `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
