@@ -60,6 +60,11 @@ The supported helper surface is:
 - `Capabilities.override(...)`
 - `Capabilities.merge(...)`
 
+`Capabilities.extend(...)` and `Capabilities.merge(...)` only accept bags with a capability
+type, such as the result of `Capabilities.create<RequestCapability>(...)`. TypeScript cannot
+infer capability IDs from a plain object literal; it falls back to `Capability<string, unknown>`,
+which would let the result pass as any `Capabilities<...>`. Those calls are type errors instead.
+
 `Capabilities.override(...)` accepts a partial service object directly because the base
 capability object already determines the allowed keys and service types. Every key in the
 replacement object must hold a service of the declared type; an explicit `undefined` is

@@ -78,5 +78,5 @@ export function missingProvideType(capabilities: Capabilities<ReadCapability>): 
 }
 
 export function untypedExtend(capabilities: Capabilities<ReadCapability>): void {
-	use(Capabilities.extend(capabilities, { read: replacement }));
+	use(Capabilities.extend<ReadCapability, ReadCapability>(capabilities, { read: replacement }));
 }
