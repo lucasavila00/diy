@@ -1,4 +1,4 @@
-import { skipTrivia, SyntaxKind } from "typescript/unstable/ast";
+import { SyntaxKind } from "typescript/unstable/ast";
 import type {
 	FunctionLikeDeclaration,
 	ImportDeclaration,
@@ -256,9 +256,7 @@ function locationForNode(
 	sourceFile: AnalyzedSourceFile,
 	node: Node,
 ): { readonly column: number; readonly line: number } {
-	const text = sourceFile.sourceFile.text;
-	const offset = skipTrivia(text, node.pos);
-	return locationForOffset(sourceFile.lineStarts(), offset);
+	return locationForOffset(sourceFile.lineStarts(), node.getStart());
 }
 
 function parseError(

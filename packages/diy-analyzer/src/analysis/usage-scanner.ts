@@ -453,11 +453,5 @@ export function locationForNode(
 	sourceFile: AnalyzedSourceFile,
 	node: Node,
 ): { readonly column: number; readonly line: number } {
-	const text = sourceFile.sourceFile.text;
-	let offset = node.pos;
-	/* c8 ignore next -- offset remains within node bounds while trimming leading whitespace. */
-	while (offset < node.end && /\s/.test(text[offset] ?? "")) {
-		offset += 1;
-	}
-	return locationForOffset(sourceFile.lineStarts(), offset);
+	return locationForOffset(sourceFile.lineStarts(), node.getStart());
 }
