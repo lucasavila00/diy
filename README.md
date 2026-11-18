@@ -418,10 +418,11 @@ export function notAnalyzable(capabilities: Capabilities<ReaderCapability>): voi
 }
 ```
 
-Each of these calls reports, at the argument's location:
+Each of these calls reports at the argument's location. For example, the
+`dynamicRun(capabilities)` call:
 
 ```text
-src/main.ts:LINE:COLUMN unsupported analysis
+src/main.ts:17:13 unsupported analysis
   capabilities bag passed to a parameter not typed `Capabilities<...>`; the analyzer cannot see which services it uses
   = help: pass `capabilities` only to functions whose parameter is typed `Capabilities<...>`; read the services you need instead of inspecting the bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
