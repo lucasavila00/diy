@@ -237,6 +237,7 @@ syntax violations such as:
 - capability parameters not appearing first;
 - capability parameters on declarations without a body (overload signatures, `declare`
   functions, abstract methods);
+- capability parameters on constructors;
 - non-DIY annotations on parameters named `capabilities`;
 - intersected `Capabilities<A> & Capabilities<B>` bags;
 - renamed imports from `@beff/diy`.
