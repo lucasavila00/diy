@@ -14,17 +14,21 @@ export class Service {
 
 // Not allowed, even as a later, renamed parameter.
 export class Misplaced {
-	constructor(
-		readonly id: string,
-		deps: Capabilities<WriterCapability>,
-	) {
+	readonly id: string;
+
+	constructor(id: string, deps: Capabilities<WriterCapability>) {
+		this.id = id;
 		deps.writer.write(id);
 	}
 }
 
 // Allowed: constructors without capabilities.
 export class Plain {
-	constructor(readonly id: string) {}
+	readonly id: string;
+
+	constructor(id: string) {
+		this.id = id;
+	}
 }
 
 // Allowed: a function that takes capabilities instead of a constructor.
