@@ -361,9 +361,10 @@ async function forwardedExpression(
 	) {
 		return null;
 	}
-	// Helpers spread their arguments left to right, so the last argument that
-	// carries the capabilities parameter is the source. Later arguments shadow its
-	// capabilities; earlier ones only add capabilities the source does not carry.
+	// Helpers combine arguments from left to right, like object spread.
+	// The source is the last argument that carries the capabilities parameter.
+	// An argument after the source replaces the services that it always gives.
+	// An argument before the source gives only services that the source does not have.
 	let helperSource: {
 		readonly forwarded: ForwardedExpression;
 		readonly ids: ReadonlySet<string>;

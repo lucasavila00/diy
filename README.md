@@ -460,12 +460,15 @@ export function auditAndReplaceWriter(
 }
 ```
 
-Helpers combine their arguments left to right, like object spread, so later
-arguments win. A service from the parameter counts as replaced only when an
-argument after it definitely provides that ID. Optional keys, such as those of a
-`Partial<...>` override, may be missing at runtime, so they do not replace
-anything. The parameter can appear in any argument position, including inside a
-nested helper call:
+The helpers combine their arguments from left to right, like object spread
+(`{ ...a, ...b }`). When two arguments give the same service, the later argument
+wins.
+
+- A later argument replaces a service only if it always gives that service.
+- An optional key (for example, a key of a `Partial<...>` value) can be missing.
+  It does not replace the service.
+- The `capabilities` parameter can be in any argument position.
+- The `capabilities` parameter can be inside a nested helper call.
 
 ```ts
 declare function needBoth(
@@ -634,5 +637,5 @@ const databaseCapabilities = Capabilities.create<DatabaseCapability>({
 const appCapabilities = Capabilities.merge(nodeCapabilities, databaseCapabilities);
 ```
 
-When two containers provide the same ID, the later one wins. `extend` and
-`override` follow the same rule: later arguments replace earlier ones.
+When two containers give the same service, the later container wins. `extend` and
+`override` use the same rule.

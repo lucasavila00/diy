@@ -30,8 +30,8 @@ export async function capabilityIds(checker: Checker, type: Type): Promise<Reado
 	return new Set(properties.filter(isPublicId).map((property) => property.name));
 }
 
-// Optional members, such as every key of a `Partial<...>` override, may be absent
-// at runtime, so they do not definitely provide a capability.
+// An optional member (for example, a key of a `Partial<...>` value) can be missing
+// at runtime. Thus it does not always give a capability.
 export async function definiteCapabilityIds(
 	checker: Checker,
 	type: Type,

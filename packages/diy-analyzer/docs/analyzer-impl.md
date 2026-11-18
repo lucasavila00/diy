@@ -154,11 +154,12 @@ The scanner walks the function's AST and updates the function state:
 - `const child = Capabilities.extend(capabilities, extra)` records `child` as a
   propagated capability source and records the extra provided labels;
 - assignments from capability helper expressions do the same for the assignment target;
-- in a helper call, the last argument that is a capability source (the parameter, a
-  propagated alias, or a nested helper call) is the source. Arguments after it add the
-  labels they definitely provide; arguments before it add only labels missing from the
-  source's type. `definiteCapabilityIds` skips optional members, so a `Partial<...>`
-  override replacement does not count as replacing anything;
+- in a helper call, the source is the last argument that carries the capabilities
+  parameter (directly, through a local alias, or through a nested helper call).
+  An argument after the source replaces each service that it always gives. An
+  argument before the source gives only the services that the source does not have.
+  `definiteCapabilityIds` ignores optional members. Thus a `Partial<...>` value does
+  not replace a service;
 - calls that pass a capability source collect a forwarding constraint by comparing the
   argument to the callee parameter type at that call site;
 - `Capabilities.extend(capabilities, extra)` also records a provider check so redundant
