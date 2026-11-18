@@ -1,5 +1,8 @@
 import type { AppCaps, ReaderCapability, WriterCapability } from "./caps.ts";
-import { Capabilities } from "./diy.ts";
+import type { Looped } from "./cycle-a.ts";
+import { Capabilities, Capabilities as Caps } from "./diy.ts";
+// @ts-expect-error -- unresolved imports never resolve to DIY Capabilities.
+import type { Missing } from "./missing.ts";
 
 export function viaImportedAlias(capabilities: AppCaps): string {
 	return capabilities.reader.read();
@@ -7,6 +10,10 @@ export function viaImportedAlias(capabilities: AppCaps): string {
 
 export function viaBarrel(capabilities: Capabilities<ReaderCapability | WriterCapability>): string {
 	void Capabilities;
+	return capabilities.reader.read();
+}
+
+export function viaRenamedBarrel(capabilities: Caps<ReaderCapability | WriterCapability>): string {
 	return capabilities.reader.read();
 }
 
@@ -35,5 +42,13 @@ type CyclicCaps = OtherCyclicCaps;
 type OtherCyclicCaps = CyclicCaps;
 
 export function cyclic(capabilities: CyclicCaps): void {
+	void capabilities;
+}
+
+export function looped(capabilities: Looped): void {
+	void capabilities;
+}
+
+export function missing(capabilities: Missing): void {
 	void capabilities;
 }

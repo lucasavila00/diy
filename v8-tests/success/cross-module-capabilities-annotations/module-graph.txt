@@ -9,11 +9,19 @@ src/main.ts
 |  +-- direct: reader
 |  `-- indirect: (none)
 |
++-- viaDefaultExport
+|  +-- direct: reader
+|  `-- indirect: (none)
+|
 +-- viaBarrel
 |  +-- direct: reader, writer
 |  `-- indirect: (none)
 |
-`-- viaImportType
++-- viaImportType
+|  +-- direct: reader
+|  `-- indirect: (none)
+|
+`-- viaLocalImportType
    +-- direct: reader
    `-- indirect: (none)
 

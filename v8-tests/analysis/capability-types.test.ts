@@ -11,19 +11,19 @@ type ParameterSymbolArg = Parameters<typeof declaredParameterType>[2];
 type CheckerArg = Parameters<typeof isDiyCapabilitiesAnnotation>[0];
 type TypeNodeArg = Parameters<typeof isDiyCapabilitiesAnnotation>[1];
 
+const stringLiteralKind = 10;
 const typeReferenceKind = 184;
 const parenthesizedTypeKind = 197;
+const literalTypeKind = 202;
+const importTypeKind = 206;
 
 describe("DIY Capabilities annotations", () => {
-	it("accepts parenthesized DIY Capabilities references", async () => {
-		const annotation = typeReference("Capabilities", [typeReference("DataCapability")]);
-		const checker = checkerWithSymbol({
-			declarations: [{ path: "/repo/packages/diy/src/capabilities.ts" }],
-			flags: 0,
-			name: "Capabilities",
-		});
+	it("accepts parenthesized DIY Capabilities import types", async () => {
+		const annotation = importType("@beff/diy", "Capabilities", [typeReference("DataCapability")]);
 
-		expect(await isDiyCapabilitiesAnnotation(checker, parenthesized(annotation))).toBe(true);
+		expect(
+			await isDiyCapabilitiesAnnotation(checkerWithSymbol(undefined), parenthesized(annotation)),
+		).toBe(true);
 	});
 
 	it("does not treat unrelated annotations as opaque Capabilities", async () => {
@@ -64,6 +64,19 @@ function typeReference(name: string, typeArguments: readonly TypeNodeArg[] = [])
 		kind: typeReferenceKind,
 		typeArguments,
 		typeName: { text: name },
+	} as unknown as TypeNodeArg;
+}
+
+function importType(
+	source: string,
+	qualifier: string,
+	typeArguments: readonly TypeNodeArg[],
+): TypeNodeArg {
+	return {
+		argument: { kind: literalTypeKind, literal: { kind: stringLiteralKind, text: source } },
+		kind: importTypeKind,
+		qualifier: { text: qualifier },
+		typeArguments,
 	} as unknown as TypeNodeArg;
 }
 

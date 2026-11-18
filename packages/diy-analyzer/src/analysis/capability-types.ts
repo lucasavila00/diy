@@ -1,7 +1,10 @@
 import {
 	SyntaxKind,
 	isExpression,
+	isExportSpecifier,
+	isImportSpecifier,
 	isImportTypeNode,
+	isLiteralTypeNode,
 	isParenthesizedTypeNode,
 	isQualifiedName,
 	isTypeAliasDeclaration,
@@ -10,8 +13,10 @@ import {
 } from "typescript/unstable/ast";
 import type {
 	CallExpression,
+	ExportDeclaration,
 	Expression,
 	Identifier,
+	ImportDeclaration,
 	Node,
 	TypeNode,
 } from "typescript/unstable/ast";
@@ -126,24 +131,27 @@ async function firstCapabilityTypeArgument(
 		: typeReferenceArguments(directCapabilitiesNode)[0];
 }
 
-// Follow the annotation through the checker: imports, re-exports, `import("...")` types,
-// and type aliases resolve by symbol, so scoping and cross-module aliases match TypeScript.
+// Resolve the annotation with the checker so imports, re-exports, and type aliases follow
+// TypeScript's scoping. DIY `Capabilities` is the `Capabilities` export of a DIY import source.
 async function resolveCapabilitiesAnnotationTypeNode(
 	checker: Checker,
 	typeNode: TypeNode,
 	seenAliases: Set<number>,
 ): Promise<TypeNode | undefined> {
 	const unwrapped = unwrapTypeNode(typeNode);
+	if (isDiyCapabilitiesImportType(unwrapped)) {
+		return unwrapped;
+	}
 	const nameNode = typeReferenceNameNode(unwrapped);
 	const symbol = nameNode == null ? undefined : await checker.getSymbolAtLocation(nameNode);
 	if (symbol == null) {
 		return undefined;
 	}
-	const target =
-		(symbol.flags & SymbolFlags.Alias) === 0 ? symbol : await checker.getAliasedSymbol(symbol);
-	if (target.name === "Capabilities" && isDiyCapabilitiesDeclaration(target)) {
+	if (await isDiyCapabilitiesImport(checker, symbol)) {
 		return unwrapped;
 	}
+	const target =
+		(symbol.flags & SymbolFlags.Alias) === 0 ? symbol : await checker.getAliasedSymbol(symbol);
 	const declaration = target.declarations[0];
 	if (
 		declaration == null ||
@@ -174,22 +182,63 @@ function typeReferenceNameNode(typeNode: TypeNode): Node | undefined {
 	return name != null && isQualifiedName(name) ? name.right : name;
 }
 
-function isDiyCapabilitiesDeclaration(symbol: TsgoSymbol): boolean {
-	return symbol.declarations.some((declaration) => {
-		const normalized = declaration.path.replaceAll("\\", "/");
-		const isCapabilitiesFile =
-			normalized.endsWith("/capabilities.ts") || normalized.endsWith("/capabilities.d.ts");
-		/* c8 ignore next -- fixtures resolve DIY through the local packages path. */
-		return (
-			isCapabilitiesFile &&
-			(normalized.includes("/packages/diy/") || normalized.includes("/node_modules/@beff/diy/"))
-		);
-	});
+function isDiyCapabilitiesImportType(typeNode: TypeNode): boolean {
+	if (!isImportTypeNode(typeNode) || !isLiteralTypeNode(typeNode.argument)) {
+		return false;
+	}
+	const source = literalText(typeNode.argument.literal);
+	return (
+		source != null &&
+		diyImportSources.has(source) &&
+		staticName(typeNode.qualifier) === "Capabilities"
+	);
+}
+
+// Walk import/export alias hops one at a time so `Capabilities` re-exported through local
+// barrels is still recognized by the specifier that names a DIY import source.
+async function isDiyCapabilitiesImport(checker: Checker, symbol: TsgoSymbol): Promise<boolean> {
+	const seen = new Set<number>();
+	let current: TsgoSymbol | undefined = symbol;
+	while (current != null && (current.flags & SymbolFlags.Alias) !== 0 && !seen.has(current.id)) {
+		if (await isDiyCapabilitiesSpecifier(current)) {
+			return true;
+		}
+		seen.add(current.id);
+		current = await checker.getImmediateAliasedSymbol(current);
+	}
+	return false;
+}
+
+async function isDiyCapabilitiesSpecifier(symbol: TsgoSymbol): Promise<boolean> {
+	/* c8 ignore next -- alias symbols always have a declaration. */
+	const specifier = await symbol.declarations[0]?.resolve();
+	if (specifier == null || !(isImportSpecifier(specifier) || isExportSpecifier(specifier))) {
+		return false;
+	}
+	const statement = (
+		isImportSpecifier(specifier) ? specifier.parent.parent.parent : specifier.parent.parent
+	) as ExportDeclaration | ImportDeclaration;
+	const source = statement.moduleSpecifier == null ? null : literalText(statement.moduleSpecifier);
+	return (
+		source != null &&
+		diyImportSources.has(source) &&
+		staticName(specifier.propertyName ?? specifier.name) === "Capabilities"
+	);
 }
 
 async function hasDiyCapabilitiesDeclaration(type: Type): Promise<boolean> {
-	const symbol = await type.getSymbol();
-	return symbol != null && isDiyCapabilitiesDeclaration(symbol);
+	return (
+		(await type.getSymbol())?.declarations.some((declaration) => {
+			const normalized = declaration.path.replaceAll("\\", "/");
+			const isCapabilitiesFile =
+				normalized.endsWith("/capabilities.ts") || normalized.endsWith("/capabilities.d.ts");
+			/* c8 ignore next -- fixtures resolve DIY through the local packages path. */
+			return (
+				isCapabilitiesFile &&
+				(normalized.includes("/packages/diy/") || normalized.includes("/node_modules/@beff/diy/"))
+			);
+		}) ?? false
+	);
 }
 
 export function isImportedCapabilitiesValue(

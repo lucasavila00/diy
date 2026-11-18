@@ -1,1 +1,3 @@
-export { Capabilities } from "@beff/diy";
+import { Capabilities } from "@beff/diy";
+
+export { Capabilities };
