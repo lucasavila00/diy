@@ -16,7 +16,7 @@
 		"test:v8:update": "vitest run --config vitest.v8.config.ts --coverage --update",
 		"format": "oxfmt --write package.json knip.json tsconfig.packages.json vitest.v8.config.ts .oxlintrc.json .oxfmtrc.json oxlint-plugin-local.mjs scripts packages e2e-tests v8-tests",
 		"format:check": "oxfmt --check package.json knip.json tsconfig.packages.json vitest.v8.config.ts .oxlintrc.json .oxfmtrc.json oxlint-plugin-local.mjs scripts packages e2e-tests v8-tests",
-		"knip": "node scripts/check-knip-workspaces.mjs && knip --no-progress --no-config-hints && knip --production --no-progress",
+		"knip": "node scripts/check-knip-workspaces.mjs && knip --no-progress --treat-config-hints-as-errors && knip --production --no-progress",
 		"lint": "oxlint packages oxlint-plugin-local.mjs",
 		"lint:fix": "oxlint packages oxlint-plugin-local.mjs --fix",
 		"test": "pnpm -r --if-present run test",

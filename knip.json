@@ -1,5 +1,5 @@
 {
-	"$schema": "https://unpkg.com/knip@5/schema.json",
+	"$schema": "https://unpkg.com/knip@6/schema.json",
 	"ignoreWorkspaces": [
 		"e2e-tests",
 		"v8-tests/failure",
@@ -11,31 +11,22 @@
 	],
 	"workspaces": {
 		".": {
-			"entry": ["oxlint-plugin-local.mjs", "scripts/check-knip-workspaces.mjs"],
-			"project": ["*.json", "*.mjs"]
+			"project": ["*.mjs"]
 		},
 		"packages/diy": {
-			"entry": ["src/index.ts!", "src/capabilities.ts!", "script/fixup-package.mjs!"],
-			"project": ["src/**/*.ts!", "script/**/*.mjs!"]
+			"entry": ["src/index.ts!", "src/capabilities.ts!"],
+			"project": ["src/**/*.ts!", "script/**/*.mjs"]
 		},
 		"packages/diy-analyzer": {
-			"entry": [
-				"src/core/analysis/analyze.ts!",
-				"src/core/analysis/lint.ts!",
-				"src/core/analysis/module-graph.ts!",
-				"src/core/analysis/timing.ts!",
-				"src/core/config/source-files.ts!"
-			],
+			"entry": ["src/analysis/analyze.ts!"],
 			"project": ["src/**/*.ts!"]
 		},
 		"packages/diy-cli": {
-			"entry": ["bin/index.js!", "src/cli.ts!"],
-			"ignoreDependencies": ["typescript"],
-			"project": ["bin/**/*.js!", "src/**/*.ts!", "tsconfig.json!"]
+			"entry": ["src/cli.ts!"],
+			"project": ["bin/**/*.js!", "src/**/*.ts!"]
 		},
 		"packages/diy-cli-builder": {
-			"entry": ["script/build.mjs!"],
-			"project": ["package.json!", "script/**/*.mjs!"]
+			"project": ["script/**/*.mjs"]
 		}
 	}
 }
