@@ -1,5 +1,11 @@
 # @beff/diy-cli
 
+## 0.0.35
+
+### Patch Changes
+
+- Re-release of 0.0.34, which was not published to npm. No code changes; see 0.0.34 for the changes.
+
 ## 0.0.34
 
 ### Patch Changes
