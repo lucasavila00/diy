@@ -3,5 +3,10 @@ packages:
   - "e2e-tests"
   - "v8-tests/failure"
   - "v8-tests/success/*"
+# Dependencies used by more than one package. Reference them with "catalog:" so
+# every package resolves the same version; `pnpm run deps:lint` enforces it.
+catalog:
+  "@types/node": ^24.19.2
+  typescript: 7.0.2
 allowBuilds:
   esbuild: true

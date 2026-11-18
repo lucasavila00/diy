@@ -1,8 +1,4 @@
-import {
-	SyntaxKind,
-	isBinaryExpression,
-	isVariableDeclaration,
-} from "typescript/unstable/ast";
+import { SyntaxKind, isBinaryExpression, isVariableDeclaration } from "typescript/unstable/ast";
 import type {
 	BinaryExpression,
 	CallExpression,

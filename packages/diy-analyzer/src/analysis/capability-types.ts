@@ -35,7 +35,7 @@ export function capabilityIds(checker: Checker, type: Type): ReadonlySet<string>
 }
 
 export function isCapabilitiesType(checker: Checker, type: Type): boolean {
-	return isDiyCapabilitiesResolvedType(type);
+	return hasDiyCapabilitiesDeclaration(type);
 }
 
 export function isDiyCapabilitiesAnnotation(
@@ -164,13 +164,9 @@ function isImportedDiyCapabilitiesTypeReference(
 	return imported?.importedName === "Capabilities" && diyImportSources.has(imported.source);
 }
 
-function isDiyCapabilitiesResolvedType(type: Type): boolean {
-	return hasDiyCapabilitiesDeclaration(type);
-}
-
-function hasDiyCapabilitiesDeclaration(type: Type | undefined): boolean {
+function hasDiyCapabilitiesDeclaration(type: Type): boolean {
 	return (
-		type?.getSymbol()?.declarations.some((declaration) => {
+		type.getSymbol()?.declarations.some((declaration) => {
 			const normalized = declaration.path.replaceAll("\\", "/");
 			const isCapabilitiesFile =
 				normalized.endsWith("/capabilities.ts") || normalized.endsWith("/capabilities.d.ts");
@@ -226,7 +222,10 @@ export function staticStringExpression(checker: Checker, expression: Expression)
 	return null;
 }
 
-export function resolveCallSignature(checker: Checker, node: CallExpression): Signature | undefined {
+export function resolveCallSignature(
+	checker: Checker,
+	node: CallExpression,
+): Signature | undefined {
 	const type = checker.getTypeAtLocation(unwrapExpression(node.expression));
 	/* c8 ignore next -- the checker returns a type for parsed call expression callees. */
 	if (type == null) {

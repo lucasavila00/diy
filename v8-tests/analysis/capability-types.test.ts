@@ -125,7 +125,6 @@ describe("DIY Capabilities annotations", () => {
 			declaredType,
 		);
 	});
-
 });
 
 function typeReference(name: string, typeArguments: readonly TypeNodeArg[] = []): TypeNodeArg {
