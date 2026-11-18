@@ -1,7 +1,14 @@
 import {
 	SyntaxKind,
+	isArrowFunction,
 	isBinaryExpression,
+	isBlock,
+	isConditionalExpression,
 	isObjectBindingPattern,
+	isPropertyAssignment,
+	isReturnStatement,
+	isShorthandPropertyAssignment,
+	isSpreadAssignment,
 	isVariableDeclaration,
 } from "typescript/unstable/ast";
 import type {
@@ -10,6 +17,7 @@ import type {
 	ComputedPropertyName,
 	ElementAccessExpression,
 	Expression,
+	Identifier,
 	Node,
 	PropertyAccessExpression,
 	VariableDeclaration,
@@ -40,6 +48,7 @@ import type {
 	AnalyzedCapabilityFunction,
 	AnalyzedSourceFile,
 	ForwardedExpression,
+	UntrackedCapabilitiesPattern,
 } from "./native-types.ts";
 import { recordDeadCodeMetric } from "./timing.ts";
 
@@ -57,6 +66,7 @@ export async function scanFunctionBody(
 	// sources that later nodes in the same body look up.
 	const visit = async (node: Node): Promise<void> => {
 		scannedNodes += 1;
+		await scanUntrackedFlow(project.checker, analyzedFunction, node);
 		if (isVariableDeclaration(node)) {
 			await scanPropagatedVariable(project.checker, analyzedFunction, node);
 		} else if (isBinaryExpression(node)) {
@@ -77,6 +87,68 @@ export async function scanFunctionBody(
 		analyzedFunction.unsupportedReasons.push({ kind: "generic-direct-read" });
 	}
 	recordDeadCodeMetric("scanned AST nodes", scannedNodes);
+}
+
+// The bag is only followed into reads, call arguments, and plain local
+// assignments. Report other value positions instead of losing the bag silently.
+async function scanUntrackedFlow(
+	checker: Checker,
+	analyzedFunction: AnalyzedCapabilityFunction,
+	node: Node,
+): Promise<void> {
+	const flow = untrackedFlowCandidates(node);
+	if (flow == null) {
+		return;
+	}
+	for (const expression of flow.expressions) {
+		if ((await capabilitiesSourceExpression(checker, analyzedFunction, expression)) == null) {
+			continue;
+		}
+		const location = locationForNode(analyzedFunction.sourceFile, expression);
+		analyzedFunction.unsupportedReasons.push({
+			column: location.column,
+			kind: "untracked-capabilities-flow",
+			line: location.line,
+			pattern: flow.pattern,
+		});
+		return;
+	}
+}
+
+function untrackedFlowCandidates(node: Node): {
+	readonly expressions: readonly Expression[];
+	readonly pattern: UntrackedCapabilitiesPattern;
+} | null {
+	if (isConditionalExpression(node)) {
+		return { expressions: [node.whenTrue, node.whenFalse], pattern: "conditional" };
+	}
+	if (isBinaryExpression(node)) {
+		const operator = node.operatorToken.kind;
+		if (operator === SyntaxKind.QuestionQuestionToken || operator === SyntaxKind.BarBarToken) {
+			return {
+				expressions: [node.left, node.right],
+				pattern: operator === SyntaxKind.QuestionQuestionToken ? "??" : "||",
+			};
+		}
+		return null;
+	}
+	if (isSpreadAssignment(node)) {
+		return { expressions: [node.expression], pattern: "object-spread" };
+	}
+	if (isPropertyAssignment(node)) {
+		return { expressions: [node.initializer], pattern: "wrapper-object" };
+	}
+	if (isShorthandPropertyAssignment(node)) {
+		// The name of a shorthand property `{ capabilities }` is an identifier reference.
+		return { expressions: [node.name as Identifier], pattern: "wrapper-object" };
+	}
+	if (isReturnStatement(node) && node.expression != null) {
+		return { expressions: [node.expression], pattern: "return" };
+	}
+	if (isArrowFunction(node) && !isBlock(node.body)) {
+		return { expressions: [node.body], pattern: "return" };
+	}
+	return null;
 }
 
 async function scanPropertyAccess(

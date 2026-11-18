@@ -1,0 +1,44 @@
+src/main.ts:16:27 unsupported analysis
+  capabilities bag passed through a conditional expression; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as an argument: `run(capabilities)`; branch around the calls instead, like `flag ? run(capabilities) : other(capabilities)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:20:32 unsupported analysis
+  capabilities bag passed through `??`; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as an argument: `run(capabilities)`; do not pick a capabilities bag with `??`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:24:32 unsupported analysis
+  capabilities bag passed through `||`; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as an argument: `run(capabilities)`; do not pick a capabilities bag with `||`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:28:25 unsupported analysis
+  capabilities bag copied with an object spread; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as an argument: `run(capabilities)`; use `Capabilities.extend(capabilities, ...)` to add services
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:32:20 unsupported analysis
+  capabilities bag stored in an object property; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as its own argument: `run(capabilities, options)`, not inside an object
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:37:25 unsupported analysis
+  capabilities bag stored in an object property; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as its own argument: `run(capabilities, options)`, not inside an object
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:42:53 unsupported analysis
+  capabilities bag returned from a function; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as an argument: `run(capabilities)`, instead of returning it from a function
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:48:10 unsupported analysis
+  capabilities bag returned from a function; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as an argument: `run(capabilities)`, instead of returning it from a function
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:63:27 unsupported analysis
+  capabilities bag passed through a conditional expression; the analyzer cannot tell which capabilities are used
+  = help: pass `capabilities` directly as an argument: `run(capabilities)`; branch around the calls instead, like `flag ? run(capabilities) : other(capabilities)`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
