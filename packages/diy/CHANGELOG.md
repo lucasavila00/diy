@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.34
+
+### Patch Changes
+
+- Publish with npm Trusted Publishing (provenance) and build with TypeScript 7; the published output is unchanged.
+
 ## 0.0.33
 
 ### Patch Changes

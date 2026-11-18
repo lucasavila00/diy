@@ -1,5 +1,11 @@
 # @beff/diy-cli
 
+## 0.0.34
+
+### Patch Changes
+
+- Run the analyzer on TypeScript 7 (`typescript@7.0.2`) instead of `@typescript/native-preview`. Diagnostics are now plain text for coding agents: no code frame; each problem is a `path:line:column rule` header followed by the message and help notes on indented lines. Requires Node.js 22.12+.
+
 ## 0.0.33
 
 ### Patch Changes
