@@ -389,17 +389,43 @@ export function save(capabilities: Capabilities<WriterCapability>): void {
 }
 ```
 
-Forwarded calls must have an analyzable callee. Calls through `any`, dynamic
-registry lookups, or other unresolved call targets are reported as unsupported:
+Pass the capability bag only to parameters typed `Capabilities<...>`. The analyzer
+does not look inside other parameter types, so passing the bag to `any`,
+`unknown`, a structural object type, a union such as
+`Capabilities<ReaderCapability> | undefined`, or a library call such as
+`Object.keys(capabilities)` is reported as unsupported:
 
 ```ts
 declare const dynamicRun: (...args: any[]) => void;
 
-// Not allowed: the analyzer cannot inspect the target parameter type.
-export function runDynamic(capabilities: Capabilities<ReaderCapability>): void {
+function structural(deps: { reader: { read(): string } }): string {
+	return deps.reader.read();
+}
+
+function optional(capabilities: Capabilities<ReaderCapability> | undefined): string {
+	return capabilities == null ? "" : capabilities.reader.read();
+}
+
+// Not allowed: none of these parameters is typed `Capabilities<...>`.
+export function notAnalyzable(capabilities: Capabilities<ReaderCapability>): void {
 	dynamicRun(capabilities);
+	structural(capabilities);
+	optional(capabilities);
+	Object.keys(capabilities);
 }
 ```
+
+Each of these calls reports, at the argument's location:
+
+```text
+src/main.ts:LINE:COLUMN unsupported analysis
+  capabilities bag passed to a parameter not typed `Capabilities<...>`; the analyzer cannot see which services it uses
+  = help: pass `capabilities` only to functions whose parameter is typed `Capabilities<...>`; read the services you need instead of inspecting the bag
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+```
+
+Type the callee's parameter as `Capabilities<...>`, or read the services you need
+directly instead of inspecting the bag.
 
 ### Capability helpers and unused parameters
 

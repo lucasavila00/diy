@@ -14,7 +14,7 @@ import type {
 	PropertyAccessExpression,
 	VariableDeclaration,
 } from "typescript/unstable/ast";
-import type { Checker, Project, Type } from "typescript/unstable/async";
+import type { Checker, Project } from "typescript/unstable/async";
 
 import {
 	childNodes,
@@ -29,7 +29,6 @@ import {
 	expressionType,
 	isCapabilitiesType,
 	isImportedCapabilitiesValue,
-	isUnresolvedForwardingParameter,
 	resolveCallSignature,
 	sameSymbol,
 	staticStringExpression,
@@ -44,6 +43,7 @@ import type {
 import { recordDeadCodeMetric } from "./timing.ts";
 
 type ForwardedArgument = {
+	readonly argument: Expression;
 	readonly forwarded: ForwardedExpression;
 	readonly index: number;
 };
@@ -187,34 +187,30 @@ async function scanCall(
 		if (forwarded == null) {
 			continue;
 		}
-		forwardedArguments.push({ forwarded, index });
+		forwardedArguments.push({ argument, forwarded, index });
 	}
 	if (forwardedArguments.length === 0) {
 		return;
 	}
 	const signature = await resolveCallSignature(project.checker, node);
-	for (const { forwarded, index } of forwardedArguments) {
+	for (const { argument, forwarded, index } of forwardedArguments) {
 		/* c8 ignore next -- forwarded calls without signatures are reported below as unresolved. */
 		const parameterType =
 			signature == null ? undefined : await project.checker.getParameterType(signature, index);
-		const requiredFromCallType = await forwardedRequiredCapabilities(
-			project.checker,
-			analyzedFunction,
-			forwarded,
-			parameterType,
-		);
-		if (requiredFromCallType == null) {
-			if (
-				!analyzedFunction.isGenericDeclaration &&
-				isUnresolvedForwardingParameter(parameterType)
-			) {
-				analyzedFunction.unsupportedReasons.push({ kind: "unresolved-forwarding" });
-			}
+		// Any parameter type other than DIY `Capabilities<...>` (any, unknown, structural
+		// types, unions, library calls) hides which services the callee uses.
+		if (parameterType == null || !(await isCapabilitiesType(project.checker, parameterType))) {
+			const location = locationForNode(analyzedFunction.sourceFile, argument);
+			analyzedFunction.unsupportedReasons.push({
+				column: location.column,
+				kind: "unresolved-forwarding",
+				line: location.line,
+			});
 			continue;
 		}
 		analyzedFunction.forwardedUses.push({
 			provided: forwarded.provided,
-			required: requiredFromCallType,
+			required: await capabilityIds(project.checker, parameterType),
 		});
 	}
 }
@@ -378,22 +374,6 @@ async function forwardedExpression(
 		provided.add(id);
 	}
 	return { provided };
-}
-
-async function forwardedRequiredCapabilities(
-	checker: Checker,
-	analyzedFunction: AnalyzedCapabilityFunction,
-	forwarded: ForwardedExpression,
-	parameterType: Type | undefined,
-): Promise<ReadonlySet<string> | null> {
-	const parameterIds =
-		parameterType != null && (await isCapabilitiesType(checker, parameterType))
-			? await capabilityIds(checker, parameterType)
-			: null;
-	if (parameterIds != null && parameterIds.size > 0) {
-		return parameterIds;
-	}
-	return null;
 }
 
 async function providedCapabilityIds(

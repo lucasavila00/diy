@@ -74,7 +74,11 @@ function. Conceptually, this is a local transfer function:
   `direct`;
 - assignments like `const child = Capabilities.extend(capabilities, ...)` create local
   aliases for derived capability sources;
-- calls that pass a capability source to another parameter create forwarding edges;
+- calls that pass a capability source to a parameter typed `Capabilities<...>` create
+  forwarding edges; passing it to any other parameter type (`any`, `unknown`, a
+  structural object type, a union such as `Capabilities<X> | undefined`, or a library
+  call such as `Object.keys`) is unsupported, because the analyzer cannot see which
+  services the callee uses;
 - helper calls such as `Capabilities.extend`, `merge`, and `override` update the set of
   labels considered already provided by the forwarded value;
 - dynamic reads, unresolved declarations, and unresolved forwarding targets become

@@ -197,18 +197,19 @@ function makeUnsupported(
 			};
 		case "unresolved-forwarding":
 			return {
-				column: analyzedFunction.column,
+				column: reason.column,
 				filePath: analyzedFunction.filePath,
 				functionName: analyzedFunction.name,
-				line: analyzedFunction.line,
+				line: reason.line,
 				notes: [
 					{
 						kind: "help",
 						message:
-							"replace the dynamic callee with a named effectful function call, for example `run(capabilities)`",
+							"pass `capabilities` only to functions whose parameter is typed `Capabilities<...>`; read the services you need instead of inspecting the bag",
 					},
 				],
-				reason: "unresolved capabilities forwarding callee",
+				reason:
+					"capabilities bag passed to a parameter not typed `Capabilities<...>`; the analyzer cannot see which services it uses",
 			};
 	}
 }

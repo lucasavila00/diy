@@ -3,7 +3,17 @@ src/main.ts:7:8 unsupported analysis
   = help: use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
 
+src/main.ts:8:6 unsupported analysis
+  capabilities bag passed to a parameter not typed `Capabilities<...>`; the analyzer cannot see which services it uses
+  = help: pass `capabilities` only to functions whose parameter is typed `Capabilities<...>`; read the services you need instead of inspecting the bag
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
 src/main.ts:11:8 unsupported analysis
   open-ended capability bag cannot be checked for unused capabilities
   = help: use a concrete `Capabilities<...>` union, or `Capabilities<never>` for an empty bag
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:12:6 unsupported analysis
+  capabilities bag passed to a parameter not typed `Capabilities<...>`; the analyzer cannot see which services it uses
+  = help: pass `capabilities` only to functions whose parameter is typed `Capabilities<...>`; read the services you need instead of inspecting the bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

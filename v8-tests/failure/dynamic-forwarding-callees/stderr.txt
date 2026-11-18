@@ -1,4 +1,4 @@
-src/main.ts:16:8 unsupported analysis
-  unresolved capabilities forwarding callee
-  = help: replace the dynamic callee with a named effectful function call, for example `run(capabilities)`
+src/main.ts:17:13 unsupported analysis
+  capabilities bag passed to a parameter not typed `Capabilities<...>`; the analyzer cannot see which services it uses
+  = help: pass `capabilities` only to functions whose parameter is typed `Capabilities<...>`; read the services you need instead of inspecting the bag
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
