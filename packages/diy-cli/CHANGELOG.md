@@ -4,7 +4,8 @@
 
 ### Patch Changes
 
-- Re-release of 0.0.34, which was not published to npm. No code changes; see 0.0.34 for the changes.
+- Includes the 0.0.34 changes (0.0.34 was not published to npm).
+- Fix: no longer sometimes prints a stray `context canceled` line to stderr; the analyzer now uses the async tsgo API, which shuts tsgo down cleanly.
 
 ## 0.0.34
 
