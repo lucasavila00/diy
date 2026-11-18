@@ -1,5 +1,11 @@
 # @beff/diy
 
+## 0.0.35
+
+### Patch Changes
+
+- No code changes; released alongside `@beff/diy-cli` 0.0.35.
+
 ## 0.0.34
 
 ### Patch Changes
