@@ -1,5 +1,30 @@
 # @beff/diy-cli
 
+## 0.0.36
+
+### Patch Changes
+
+- Breaking changes:
+  
+  - Remove the `--no-dead-code-analysis` flag. Lint rules always run with the full analysis.
+  - `Capabilities` parameters are rejected on constructors and on declarations without a body (overload signatures, `declare function`, abstract methods). Use a function with a body instead.
+  - Only two annotation forms are supported: `Capabilities<...>` written directly, or a non-generic alias declared at the top level of the same file. Imported aliases, re-exports, `import("@beff/diy").Capabilities`, generic aliases, and nested aliases are reported. See ADR 0008.
+  - Service aliases of the bag are rejected: `const clock = capabilities.clock`, `capabilities["clock"]` bound to a local, and `const { clock } = capabilities`.
+  - In `Capabilities.extend`, `merge`, and `override`, the capabilities bag must be the first argument, and a helper call that takes the bag must not be inside another helper call.
+  - The capabilities bag passed through `?:`, `??`, `||`, spread, a wrapper object, a `return`, or to a parameter that is not typed `Capabilities<...>` is reported as unsupported analysis instead of a false "unused capability".
+  - Included files that the analyzer cannot load are reported as `unanalyzed file`, and only analyzed files are counted.
+  
+  Fixes:
+  
+  - Forwarded calls use the signature that TypeScript resolves for the call, so overloaded and generic callees are read correctly.
+  - Closure reads of the outer bag inside nested functions count as uses.
+  - Reads of services that `extend`/`merge`/`override` give locally do not count as uses of the original capability.
+  - Capability IDs that contain `@` are kept.
+  - `diy-ignore-next-line` is recognized only in real `//` comments, not in strings or block comments.
+  - Function diagnostics point at the function, not inside a leading comment.
+  - New `replaced capabilities bag` diagnostic at a `merge`/`override` call whose later arguments replace every service of the bag.
+  - Output order does not depend on the system locale.
+
 ## 0.0.35
 
 ### Patch Changes
