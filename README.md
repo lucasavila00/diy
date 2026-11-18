@@ -217,16 +217,23 @@ export function renamed(deps: Capabilities<ReaderCapability>): string {
 }
 ```
 
-Capability parameters may use direct `Capabilities<...>` annotations or aliases
-that resolve to DIY `Capabilities<...>`:
+DIY reads a function's capability requirements from its declaration, so the
+`Capabilities<...>` annotation must be written in a form that is readable right
+there. Exactly two forms are supported:
+
+- `Capabilities<...>` written directly, with `Capabilities` imported by name from
+  `@beff/diy` or `@beff/diy/capabilities`;
+- a non-generic type alias of that, declared at the top level of the same file.
 
 ```ts
-// Allowed.
+import type { Capabilities, Capability } from "@beff/diy";
+
+// Allowed: direct annotation.
 export function load(capabilities: Capabilities<ReaderCapability>): string {
 	return capabilities.reader.read();
 }
 
-// Also allowed.
+// Allowed: non-generic alias declared at the top level of this file.
 type ReaderCaps = Capabilities<ReaderCapability>;
 
 export function loadViaAlias(capabilities: ReaderCaps): string {
@@ -236,6 +243,47 @@ export function loadViaAlias(capabilities: ReaderCaps): string {
 // Allowed for callback/function-type parameters too.
 type ReaderCallback = (capabilities: Capabilities<ReaderCapability>) => string;
 ```
+
+Every other way of spelling the annotation is unsupported on purpose. DIY favors
+direct, readable code over abstraction, and the analyzer does not follow these
+forms (see [ADR 0008](./docs/adr/0008-supported-capabilities-annotations.md)):
+
+```ts
+// Not allowed: alias imported from another module.
+import type { ReaderCaps } from "./caps.ts";
+export function load(capabilities: ReaderCaps): void {}
+
+// Not allowed: `Capabilities` re-exported by another module (a barrel).
+import type { Capabilities } from "./diy.ts";
+export function load(capabilities: Capabilities<ReaderCapability>): void {}
+
+// Not allowed: inline import type.
+export function load(capabilities: import("@beff/diy").Capabilities<ReaderCapability>): void {}
+
+// Not allowed: generic alias.
+type Caps<Allowed extends Capability<string, unknown>> = Capabilities<Allowed>;
+export function load(capabilities: Caps<ReaderCapability>): void {}
+
+// Not allowed: alias declared inside a function, block, or namespace.
+export function outer(): void {
+	type LocalCaps = Capabilities<ReaderCapability>;
+	const load = (capabilities: LocalCaps): string => capabilities.reader.read();
+}
+```
+
+Each of these is reported as `invalid capabilities parameter` with the reason and
+the fix:
+
+```text
+src/main.ts:8:34 invalid capabilities parameter
+  `ReaderCaps` is imported from "./caps.ts". Types imported from other modules, including aliases and re-exports of `Capabilities`, are not supported as capabilities annotations: capability requirements must be readable at the declaration.
+  = help: write `Capabilities<...>` directly, with `Capabilities` imported from `@beff/diy`, or declare a non-generic alias at the top level of this file, like `type AppCaps = Capabilities<AppCapability>`
+```
+
+The analyzer finds capability parameters by their supported annotation or by the
+name `capabilities`/`_capabilities`. A parameter that has another name and an
+unsupported annotation is not treated as a capability parameter: it is neither
+analyzed nor reported.
 
 Capability parameters require a function body. Overload signatures, `declare`
 functions, and abstract methods have nothing the analyzer can check, so a
@@ -275,8 +323,8 @@ export async function createService(capabilities: Capabilities<ReaderCapability>
 ```
 
 If a parameter named `capabilities` or `_capabilities` has a type annotation, it
-must resolve to DIY `Capabilities<...>`. This prevents unrelated values from
-looking like DIY capability bags:
+must use one of the supported `Capabilities<...>` forms above. This prevents
+unrelated values from looking like DIY capability bags:
 
 ```ts
 // Not allowed.

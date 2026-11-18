@@ -76,9 +76,10 @@ type AnalyzedSourceFile = {
 
 [`source-files.ts`](../src/analysis/source-files.ts) creates these records. It begins
 with TypeScript root files plus the covered file set, walks local relative imports that
-the tsgo program can resolve, skips declarations and external files, records DIY import
-bindings, and marks each file as `reportable` only when it came from the configured
-covered set.
+the tsgo program can resolve, skips declarations and external files, records import
+bindings and the file's type aliases (non-generic top-level aliases are followed; generic
+and nested ones are only remembered so diagnostics can name them), and marks each file as
+`reportable` only when it came from the configured covered set.
 
 ## Function Abstraction
 
@@ -124,7 +125,9 @@ deterministically by path, line, column, and name.
 [`capability-types.ts`](../src/analysis/capability-types.ts) is the checker-facing layer.
 It answers questions that syntax alone cannot answer:
 
-- whether a type node or checker type is DIY `Capabilities<...>`;
+- whether a type node is a supported DIY `Capabilities<...>` annotation. This check is
+  syntactic and per file on purpose: it uses the file's imports and its non-generic
+  top-level type aliases, and follows nothing else;
 - which public property names are capability IDs;
 - whether a declaration is `Capabilities<never>`, a generic/opaque capability bag, or an
   open-ended bag;
@@ -246,8 +249,14 @@ syntax violations such as:
 - capability parameters not appearing first;
 - capability parameters on declarations without a body (overload signatures, `declare`
   functions, abstract methods);
+- annotations on parameters named `capabilities` that are not a supported
+  `Capabilities<...>` form. The supported forms are a direct `Capabilities<...>` imported
+  by name from `@beff/diy`, or a non-generic alias of it declared at the top level of the
+  same file. Aliases or `Capabilities` imported from other modules, inline
+  `import("@beff/diy").Capabilities<...>` types, generic aliases, and aliases declared in
+  nested scopes are rejected with a reason that names the form; see
+  [ADR 0008](../../../docs/adr/0008-supported-capabilities-annotations.md);
 - capability parameters on constructors;
-- non-DIY annotations on parameters named `capabilities`;
 - intersected `Capabilities<A> & Capabilities<B>` bags;
 - renamed imports from `@beff/diy`.
 

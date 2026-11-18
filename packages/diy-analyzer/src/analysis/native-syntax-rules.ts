@@ -4,6 +4,7 @@ import {
 	isConstructorDeclaration,
 	isElementAccessExpression,
 	isIdentifier,
+	isImportTypeNode,
 	isPropertyAccessExpression,
 	isVariableDeclaration,
 } from "typescript/unstable/ast";
@@ -31,7 +32,11 @@ import {
 	nodeName,
 	staticName,
 } from "./ast-utils.ts";
-import { isDiyCapabilitiesAnnotation, unwrapExpression } from "./capability-types.ts";
+import {
+	isDiyCapabilitiesAnnotation,
+	typeReferenceName,
+	unwrapExpression,
+} from "./capability-types.ts";
 import type { AnalyzedSourceFile } from "./native-types.ts";
 import { diyImportSources } from "./native-types.ts";
 
@@ -148,11 +153,13 @@ function checkCapabilitiesParameters(
 			param.type != null && hasDiyCapabilitiesIntersection(sourceFile, param.type);
 		const hasDiyCapabilitiesType =
 			param.type != null && isDiyCapabilitiesAnnotation(sourceFile, param.type);
-		const hasNonDiyCapabilitiesAnnotation =
+		const unsupportedAnnotation =
 			isCapabilitiesName &&
 			param.type != null &&
 			!hasDiyCapabilitiesType &&
-			!hasIntersectedDiyCapabilitiesType;
+			!hasIntersectedDiyCapabilitiesType
+				? unsupportedCapabilitiesAnnotation(sourceFile, param.type)
+				: null;
 
 		if (!isCapabilitiesName && !hasDiyCapabilitiesType && !hasIntersectedDiyCapabilitiesType) {
 			continue;
@@ -178,13 +185,10 @@ function checkCapabilitiesParameters(
 				[capabilitiesParameterHelp()],
 			);
 		}
-		if (hasNonDiyCapabilitiesAnnotation) {
-			report(
-				param,
-				"invalid capabilities parameter",
-				"`capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.",
-				[capabilitiesParameterHelp()],
-			);
+		if (unsupportedAnnotation != null) {
+			report(param, "invalid capabilities parameter", unsupportedAnnotation.reason, [
+				unsupportedAnnotation.help,
+			]);
 		}
 		if (index !== 0) {
 			report(
@@ -209,6 +213,51 @@ function checkCapabilitiesParameters(
 			);
 		}
 	}
+}
+
+// Names the unsupported annotation form so the fix is obvious. See ADR 0008.
+function unsupportedCapabilitiesAnnotation(
+	sourceFile: AnalyzedSourceFile,
+	typeNode: TypeNode,
+): { readonly help: DiyAnalyzerNote; readonly reason: string } {
+	const why = "capability requirements must be readable at the declaration";
+	const help: DiyAnalyzerNote = {
+		kind: "help",
+		message:
+			"write `Capabilities<...>` directly, with `Capabilities` imported from `@beff/diy`, or declare a non-generic alias at the top level of this file, like `type AppCaps = Capabilities<AppCapability>`",
+	};
+	if (isImportTypeNode(typeNode)) {
+		return {
+			help,
+			reason: `Inline \`import(...)\` types are not supported as capabilities annotations: ${why}.`,
+		};
+	}
+	const name = typeReferenceName(typeNode);
+	const alias = name == null ? undefined : sourceFile.unsupportedTypeAliases.get(name);
+	const imported = name == null ? undefined : sourceFile.imports.get(name);
+	if (alias === "generic") {
+		return {
+			help,
+			reason: `Generic type alias \`${name}\` is not supported as a capabilities annotation: ${why}, not passed through type parameters.`,
+		};
+	}
+	if (alias === "nested") {
+		return {
+			help,
+			reason: `Type alias \`${name}\` is not declared at the top level of this file. Aliases declared inside functions, blocks, or namespaces are not supported as capabilities annotations: ${why}.`,
+		};
+	}
+	if (imported != null && !diyImportSources.has(imported.source)) {
+		return {
+			help,
+			reason: `\`${name}\` is imported from "${imported.source}". Types imported from other modules, including aliases and re-exports of \`Capabilities\`, are not supported as capabilities annotations: ${why}.`,
+		};
+	}
+	return {
+		help: capabilitiesParameterHelp(),
+		reason:
+			"`capabilities` parameters with a type annotation must use `Capabilities<...>` imported from `@beff/diy`, written directly or through a non-generic type alias declared at the top level of the same file.",
+	};
 }
 
 function checkNoConstructorCapabilities(
