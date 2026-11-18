@@ -1,0 +1,18 @@
+Module graph
+
+src/main.ts
++-- direct
+|  +-- direct: reader
+|  `-- indirect: (none)
+|
++-- viaAlias
+|  +-- direct: reader
+|  `-- indirect: (none)
+|
++-- viaExportedAlias
+|  +-- direct: reader, writer
+|  `-- indirect: (none)
+|
+`-- viaChainedAlias
+   +-- direct: reader
+   `-- indirect: (none)

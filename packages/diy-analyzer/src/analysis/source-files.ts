@@ -9,7 +9,6 @@ import type { DiyAnalyzerViolation } from "../model/types.ts";
 import { normalizePath } from "../shared/path.ts";
 import { lineStarts, literalText } from "./ast-utils.ts";
 import type { AnalyzedSourceFile, ImportBinding } from "./native-types.ts";
-import { diyImportSources } from "./native-types.ts";
 
 export async function collectAnalyzedSourceFiles(
 	project: Project,
@@ -51,7 +50,7 @@ export async function collectAnalyzedSourceFiles(
 		verbose?.(`collecting imports in ${relative(cwd, filePath)}`);
 		const imports = collectImports(sourceFile);
 		verbose?.(`collecting type aliases in ${relative(cwd, filePath)}`);
-		const typeAliases = collectTypeAliases(sourceFile);
+		const { typeAliases, unsupportedTypeAliases } = collectTypeAliases(sourceFile);
 		verbose?.(`resolving imports in ${relative(cwd, filePath)}`);
 		for (const importedPath of await importedProjectFiles(project, sourceFile, cwd)) {
 			if (!seen.has(importedPath)) {
@@ -65,6 +64,7 @@ export async function collectAnalyzedSourceFiles(
 			reportable: coveredSet.has(filePath),
 			sourceFile,
 			typeAliases,
+			unsupportedTypeAliases,
 		});
 	}
 	return {
@@ -177,7 +177,7 @@ function collectImports(sourceFile: SourceFile): ReadonlyMap<string, ImportBindi
 		const node = statement as ImportDeclaration;
 		const source = literalText(node.moduleSpecifier);
 		const clause = node.importClause;
-		if (source == null || clause == null || !diyImportSources.has(source)) {
+		if (source == null || clause == null) {
 			continue;
 		}
 		const namedBindings = clause.namedBindings;
@@ -204,16 +204,26 @@ function collectImports(sourceFile: SourceFile): ReadonlyMap<string, ImportBindi
 	return imports;
 }
 
-function collectTypeAliases(sourceFile: SourceFile): ReadonlyMap<string, TypeNode> {
-	const aliases = new Map<string, TypeNode>();
+function collectTypeAliases(sourceFile: SourceFile): {
+	readonly typeAliases: ReadonlyMap<string, TypeNode>;
+	readonly unsupportedTypeAliases: ReadonlyMap<string, "generic" | "nested">;
+} {
+	const typeAliases = new Map<string, TypeNode>();
+	const unsupportedTypeAliases = new Map<string, "generic" | "nested">();
 	const visit = (node: Node): void => {
 		if (isTypeAliasDeclaration(node)) {
-			aliases.set(node.name.text, node.type);
+			if (node.parent !== sourceFile) {
+				unsupportedTypeAliases.set(node.name.text, "nested");
+			} else if (node.typeParameters != null) {
+				unsupportedTypeAliases.set(node.name.text, "generic");
+			} else {
+				typeAliases.set(node.name.text, node.type);
+			}
 		}
 		node.forEachChild(visit);
 	};
 	visit(sourceFile);
-	return aliases;
+	return { typeAliases, unsupportedTypeAliases };
 }
 
 export function localDiyPaths(cwd: string): Record<string, readonly string[]> {

@@ -1,0 +1,34 @@
+src/barrel.ts:4:27 invalid capabilities parameter
+  `Capabilities` is imported from "./diy.ts". Types imported from other modules, including aliases and re-exports of `Capabilities`, are not supported as capabilities annotations: capability requirements must be readable at the declaration.
+  = help: write `Capabilities<...>` directly, with `Capabilities` imported from `@beff/diy`, or declare a non-generic alias at the top level of this file, like `type AppCaps = Capabilities<AppCapability>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:8:34 invalid capabilities parameter
+  `ImportedCaps` is imported from "./caps.ts". Types imported from other modules, including aliases and re-exports of `Capabilities`, are not supported as capabilities annotations: capability requirements must be readable at the declaration.
+  = help: write `Capabilities<...>` directly, with `Capabilities` imported from `@beff/diy`, or declare a non-generic alias at the top level of this file, like `type AppCaps = Capabilities<AppCapability>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:13:2 invalid capabilities parameter
+  Inline `import(...)` types are not supported as capabilities annotations: capability requirements must be readable at the declaration.
+  = help: write `Capabilities<...>` directly, with `Capabilities` imported from `@beff/diy`, or declare a non-generic alias at the top level of this file, like `type AppCaps = Capabilities<AppCapability>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:18:33 invalid capabilities parameter
+  Generic type alias `Caps` is not supported as a capabilities annotation: capability requirements must be readable at the declaration, not passed through type parameters.
+  = help: write `Capabilities<...>` directly, with `Capabilities` imported from `@beff/diy`, or declare a non-generic alias at the top level of this file, like `type AppCaps = Capabilities<AppCapability>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:22:40 invalid capabilities parameter
+  Generic type alias `Caps` is not supported as a capabilities annotation: capability requirements must be readable at the declaration, not passed through type parameters.
+  = help: write `Capabilities<...>` directly, with `Capabilities` imported from `@beff/diy`, or declare a non-generic alias at the top level of this file, like `type AppCaps = Capabilities<AppCapability>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:28:15 invalid capabilities parameter
+  Type alias `LocalCaps` is not declared at the top level of this file. Aliases declared inside functions, blocks, or namespaces are not supported as capabilities annotations: capability requirements must be readable at the declaration.
+  = help: write `Capabilities<...>` directly, with `Capabilities` imported from `@beff/diy`, or declare a non-generic alias at the top level of this file, like `type AppCaps = Capabilities<AppCapability>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line
+
+src/main.ts:39:15 invalid capabilities parameter
+  Type alias `Options` is not declared at the top level of this file. Aliases declared inside functions, blocks, or namespaces are not supported as capabilities annotations: capability requirements must be readable at the declaration.
+  = help: write `Capabilities<...>` directly, with `Capabilities` imported from `@beff/diy`, or declare a non-generic alias at the top level of this file, like `type AppCaps = Capabilities<AppCapability>`
+  = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

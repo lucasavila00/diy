@@ -153,7 +153,7 @@ function unwrapTypeNode(typeNode: TypeNode): TypeNode {
 	return isParenthesizedTypeNode(typeNode) ? unwrapTypeNode(typeNode.type) : typeNode;
 }
 
-function typeReferenceName(typeNode: TypeNode): string | null {
+export function typeReferenceName(typeNode: TypeNode): string | null {
 	return isTypeReferenceNode(typeNode) ? staticName(typeNode.typeName) : null;
 }
 

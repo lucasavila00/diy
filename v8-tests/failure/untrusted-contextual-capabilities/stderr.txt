@@ -1,4 +1,4 @@
 src/main.ts:3:41 invalid capabilities parameter
-  `capabilities` parameters with a type annotation must resolve to DIY `Capabilities<...>`.
+  `capabilities` parameters with a type annotation must use `Capabilities<...>` imported from `@beff/diy`, written directly or through a non-generic type alias declared at the top level of the same file.
   = help: write the signature as `function run(capabilities: Capabilities<AppCapability>, ...)`
   = help: for known analyzer false positives, add `// diy-ignore-next-line -- reason` on the previous line

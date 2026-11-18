@@ -10,7 +10,10 @@ export type AnalyzedSourceFile = {
 	readonly lineStarts: () => readonly number[];
 	readonly reportable: boolean;
 	readonly sourceFile: SourceFile;
+	// Supported aliases only: non-generic and declared at the top level of the file.
 	readonly typeAliases: ReadonlyMap<string, TypeNode>;
+	// Aliases the analyzer does not follow, kept so diagnostics can name the reason.
+	readonly unsupportedTypeAliases: ReadonlyMap<string, "generic" | "nested">;
 };
 
 export type ImportBinding = {
